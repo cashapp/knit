@@ -39,7 +39,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             }
         }
         extension ModuleAssembly {
-            enum ServiceB_ResolutionKey: String {
+            enum ServiceB_ResolutionKey: String, CaseIterable {
                 case name
                 case otherName
             }

@@ -50,7 +50,7 @@ public enum TypeSafetySourceFile {
         ExtensionDeclSyntax("extension \(assemblyName)") {
             for namedGroup in namedGroups {
                 let modifier = namedGroup.accessLevel == .public ? "public " : ""
-                EnumDeclSyntax("\(modifier)enum \(namedGroup.enumName): String") {
+                EnumDeclSyntax("\(modifier)enum \(namedGroup.enumName): String, CaseIterable") {
                     for test in namedGroup.registrations {
                         EnumCaseDeclSyntax("case \(raw: test.name!)")
                     }
