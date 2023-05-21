@@ -12,10 +12,7 @@ let package = Package(
         .library(name: "KnitLibrary", targets: ["KnitCommand"])
     ],
     dependencies: [
-        .package(
-            url: "https://github.com/apple/swift-syntax.git",
-            revision: "edd2d0cdb988ac45e2515e0dd0624e4a6de54a94"
-        ),
+        .package(url: "https://github.com/apple/swift-syntax.git", from: "508.0.1"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
     ],
     targets: [
