@@ -32,7 +32,7 @@ public enum TypeSafetySourceFile {
                     let modifier = namedGroup.accessLevel == .public ? "public " : ""
                     // swiftlint:disable:next line_length
                     FunctionDeclSyntax("\(modifier)func callAsFunction(named: \(assemblyName).\(namedGroup.enumName)) -> \(namedGroup.service)") {
-                        ForcedValueExprSyntax("self.resolve(\(raw: namedGroup.service).self, name: name.rawValue)!")
+                        ForcedValueExprSyntax("self.resolve(\(raw: namedGroup.service).self, name: named.rawValue)!")
                     }
                 }
             }
