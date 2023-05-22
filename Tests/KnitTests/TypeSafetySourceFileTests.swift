@@ -34,7 +34,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             func callAsFunction() -> ServiceA {
                 self.resolve(ServiceA.self)!
             }
-            func resolve(_ name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
+            func callAsFunction(named: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
                 self.resolve(ServiceB.self, name: name.rawValue)!
             }
         }
