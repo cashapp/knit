@@ -14,10 +14,10 @@ extension FunctionCallExprSyntax {
         var calledMethods = [(methodName: TokenSyntax, arguments: TupleExprElementListSyntax)]()
 
         // Returns the base identifier token that was called
-        func recurseCalledExpressions(_ funcCall: FunctionCallExprSyntax) -> TokenSyntax {
+        func recurseCalledExpressions(_ funcCall: FunctionCallExprSyntax) -> TokenSyntax? {
 
             guard let calledExpr = funcCall.calledExpression.as(MemberAccessExprSyntax.self) else {
-                fatalError("Unexpected calledExpression: \(funcCall.calledExpression.description)")
+                return nil
             }
 
             // Append the method call
@@ -31,7 +31,9 @@ extension FunctionCallExprSyntax {
         }
 
         // Kick off recursion with the current function call
-        let baseIdentfier = recurseCalledExpressions(self)
+        guard let baseIdentfier = recurseCalledExpressions(self) else {
+            return nil
+        }
 
         // The final base identifier must be the "container" local argument
         guard baseIdentfier.text == "container" else {
