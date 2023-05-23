@@ -75,6 +75,7 @@ final class RegistrationParsingTests: XCTestCase {
     func testIncorrectRegistrations() {
         assertNoRegistrationString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
         assertNoRegistrationString("container.register(A)", message: "First param is not a metatype")
+        assertNoRegistrationString("doThing()", message:"Unrelated function call")
     }
 
 }

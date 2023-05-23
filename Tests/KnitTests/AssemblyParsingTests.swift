@@ -112,6 +112,27 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
+    func testAdditionalFunctions() throws {
+        let sourceFile: SourceFile = """
+                class ExampleAssembly: Assembly {
+                    func assemble(container: Container) {
+                        partialAssemble(container: container)
+                    }
+                    func partialAssemble(container: Container) {
+                        container.register(MyService.self) { }
+                    }
+                }
+            """
+
+        let config = try parseSyntaxTree(sourceFile)
+        XCTAssertEqual(config.name, "Example")
+        XCTAssertEqual(
+            config.registrations.map { $0.service },
+            ["MyService"],
+            "Check that services can be registered in other functions"
+        )
+    }
+
     // MARK: - ClassDecl Extension
 
     func testClassDeclExtension() {
