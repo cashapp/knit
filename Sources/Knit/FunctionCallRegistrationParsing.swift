@@ -57,6 +57,8 @@ extension FunctionCallExprSyntax {
             let accessLevel: AccessLevel
             if let leadingTrivia, leadingTrivia.description.contains("@digen public") {
                 accessLevel = .public
+            } else if let leadingTrivia, leadingTrivia.description.contains("@digen hidden") {
+                accessLevel = .hidden
             } else {
                 accessLevel = .internal
             }

@@ -21,4 +21,5 @@ public struct Registration {
 public enum AccessLevel {
     case `public`
     case `internal`
+    case hidden
 }

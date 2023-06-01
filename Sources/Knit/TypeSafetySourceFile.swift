@@ -9,6 +9,7 @@ public enum TypeSafetySourceFile {
         extensionTarget: String,
         registrations: [Registration]
     ) -> SourceFileSyntax {
+        let registrations = registrations.filter { $0.accessLevel != .hidden }
         let namedGroups = NamedRegistrationGroup.make(from: registrations)
         let unnamedRegistrations = registrations.filter { $0.name == nil }
         return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
