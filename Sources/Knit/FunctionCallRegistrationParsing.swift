@@ -41,7 +41,7 @@ extension FunctionCallExprSyntax {
         }
 
         let registerMethods = calledMethods.filter { methodName, _ in
-            methodName.text == "register" || methodName.text == "autoregister"
+            methodName.text == "register" || methodName.text == "autoregister" || methodName.text == "registerAbstract"
         }
 
         guard registerMethods.count <= 1 else {

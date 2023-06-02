@@ -16,7 +16,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 .init(service: "ServiceA", name: nil, accessLevel: .internal),
                 .init(service: "ServiceB", name: "name", accessLevel: .internal),
                 .init(service: "ServiceB", name: "otherName", accessLevel: .internal),
-                .init(service: "ServiceB", name: nil, accessLevel: .hidden),
+                .init(service: "ServiceC", name: nil, accessLevel: .hidden), // No resolver is created
             ]
         )
 

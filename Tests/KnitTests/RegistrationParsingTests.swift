@@ -83,6 +83,23 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testAbstractRegistration() throws {
+        assertRegistrationString(
+            """
+            container.registerAbstract(AType.self)
+            """,
+            serviceName: "AType"
+        )
+
+        assertRegistrationString(
+            """
+            container.registerAbstract(AType.self, name: "service")
+            """,
+            serviceName: "AType",
+            name: "service"
+        )
+    }
+
     func testIncorrectRegistrations() {
         assertNoRegistrationString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
         assertNoRegistrationString("container.register(A)", message: "First param is not a metatype")
