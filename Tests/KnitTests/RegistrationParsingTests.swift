@@ -54,6 +54,17 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testHiddenRegistrations() {
+        assertRegistrationString(
+            """
+            // @digen hidden
+            container.register(AType.self)
+            """,
+            serviceName: "AType",
+            accessLevel: .hidden
+        )
+    }
+
     func testNamedRegistrations() throws {
         assertRegistrationString(
             """
@@ -69,6 +80,23 @@ final class RegistrationParsingTests: XCTestCase {
             """,
             serviceName: "A",
             name: "service2"
+        )
+    }
+
+    func testAbstractRegistration() throws {
+        assertRegistrationString(
+            """
+            container.registerAbstract(AType.self)
+            """,
+            serviceName: "AType"
+        )
+
+        assertRegistrationString(
+            """
+            container.registerAbstract(AType.self, name: "service")
+            """,
+            serviceName: "AType",
+            name: "service"
         )
     }
 

@@ -41,7 +41,7 @@ extension FunctionCallExprSyntax {
         }
 
         let registerMethods = calledMethods.filter { methodName, _ in
-            methodName.text == "register" || methodName.text == "autoregister"
+            methodName.text == "register" || methodName.text == "autoregister" || methodName.text == "registerAbstract"
         }
 
         guard registerMethods.count <= 1 else {
@@ -57,6 +57,8 @@ extension FunctionCallExprSyntax {
             let accessLevel: AccessLevel
             if let leadingTrivia, leadingTrivia.description.contains("@digen public") {
                 accessLevel = .public
+            } else if let leadingTrivia, leadingTrivia.description.contains("@digen hidden") {
+                accessLevel = .hidden
             } else {
                 accessLevel = .internal
             }
