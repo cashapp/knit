@@ -9,7 +9,6 @@ let package = Package(
         .macOS(.v12),
     ],
     products: [
-        .library(name: "KnitLibrary", targets: ["KnitCommand"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", from: "508.0.1"),
@@ -22,20 +21,20 @@ let package = Package(
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxParser", package: "swift-syntax"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .target(name: "Knit"),
+                .target(name: "KnitCodeGen"),
             ]
         ),
         .target(
-            name: "Knit",
+            name: "KnitCodeGen",
             dependencies: [
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxParser", package: "swift-syntax"),
             ]
         ),
         .testTarget(
-            name: "KnitTests",
+            name: "KnitCodeGenTests",
             dependencies: [
-                "Knit",
+                "KnitCodeGen",
             ]
         ),
     ]

@@ -1,5 +1,5 @@
 import ArgumentParser
-import Knit
+import KnitCodeGen
 import Foundation
 import SwiftSyntaxBuilder
 

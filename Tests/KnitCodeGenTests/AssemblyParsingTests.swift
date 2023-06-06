@@ -2,7 +2,7 @@
 // Copyright © Square, Inc. All rights reserved.
 //
 
-@testable import Knit
+@testable import KnitCodeGen
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import XCTest
