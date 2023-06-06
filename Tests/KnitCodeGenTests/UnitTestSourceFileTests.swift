@@ -1,6 +1,6 @@
 // Copyright © Square, Inc. All rights reserved.
 
-@testable import Knit
+@testable import KnitCodeGen
 import Foundation
 import SwiftSyntax
 import XCTest
