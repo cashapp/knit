@@ -19,7 +19,7 @@ let package = Package(
             name: "KnitCommand",
             dependencies: [
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxParser", package: "swift-syntax"),
+                .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .target(name: "KnitCodeGen"),
             ]
@@ -28,7 +28,7 @@ let package = Package(
             name: "KnitCodeGen",
             dependencies: [
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxParser", package: "swift-syntax"),
+                .product(name: "SwiftParser", package: "swift-syntax"),
             ]
         ),
         .testTarget(

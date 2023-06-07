@@ -1,6 +1,6 @@
 import Foundation
 import SwiftSyntax
-import SwiftSyntaxParser
+import SwiftParser
 
 /// Currently the returned Configuration includes `registrations` and `imports`.
 public func parseAssembly(at path: String) throws -> Configuration {
@@ -8,7 +8,7 @@ public func parseAssembly(at path: String) throws -> Configuration {
 
     let syntaxTree: SourceFileSyntax
     do {
-        syntaxTree = try SwiftSyntaxParser.SyntaxParser.parse(url)
+        syntaxTree = try SwiftParser.SyntaxParser.parse(url)
     } catch {
         throw AssemblyParsingError.syntaxParsingError(error, path: path)
     }
