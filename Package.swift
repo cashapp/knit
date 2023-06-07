@@ -11,7 +11,7 @@ let package = Package(
     products: [
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "508.0.1"),
+        .package(url: "https://github.com/apple/swift-syntax.git", exact: "509.0.0-swift-DEVELOPMENT-SNAPSHOT-2023-05-02-a"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
     ],
     targets: [
