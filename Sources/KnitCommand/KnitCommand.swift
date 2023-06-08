@@ -3,14 +3,12 @@ import KnitCodeGen
 import Foundation
 import SwiftSyntaxBuilder
 
-// @main
+@main
 public struct KnitCommand: ParsableCommand {
 
     public static let configuration = CommandConfiguration(
-        commandName: "knit",
-        abstract: "Generate source files required for dependency injection",
-        version: "0.0.1",
-        shouldDisplay: false
+        commandName: "gen",
+        abstract: "Generate source files required for dependency injection"
     )
 
     @Option(help: """
