@@ -8,7 +8,9 @@ public func parseAssembly(at path: String) throws -> Configuration {
 
     let syntaxTree: SourceFileSyntax
     do {
-        syntaxTree = try SwiftParser.SyntaxParser.parse(url)
+        let data = try Data(contentsOf: url)
+        let source = String(data: data, encoding: .utf8)!
+        syntaxTree = Parser.parse(source: source)
     } catch {
         throw AssemblyParsingError.syntaxParsingError(error, path: path)
     }
@@ -57,7 +59,7 @@ private class AssemblyFileVisitor: SyntaxVisitor {
     }
 
     override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        imports.append(node.withoutTrivia())
+        imports.append(node.trimmed)
         return .skipChildren
     }
 

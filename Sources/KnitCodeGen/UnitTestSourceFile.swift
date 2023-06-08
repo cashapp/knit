@@ -7,15 +7,15 @@ public enum UnitTestSourceFile {
         importDecls: [ImportDeclSyntax],
         setupCodeBlock: CodeBlockItemListSyntax?,
         registrations: [Registration]
-    ) -> SourceFileSyntax {
-        SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
+    ) throws -> SourceFileSyntax {
+        try SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             for importDecl in importDecls {
                 importDecl
             }
 
-            ClassDeclSyntax("final class DIRegistrationTests: XCTestCase") {
+            try ClassDeclSyntax("final class DIRegistrationTests: XCTestCase") {
 
-                FunctionDeclSyntax("func testRegistrations()") {
+                try FunctionDeclSyntax("func testRegistrations()") {
 
                     if let setupCodeBlock {
                         setupCodeBlock
@@ -35,10 +35,16 @@ public enum UnitTestSourceFile {
                     for registration in registrations {
                         if let name = registration.name {
                             FunctionCallExprSyntax(
-                                "resolver.assertTypeResolves(\(raw: registration.service).self, name: \"\(raw: name)\")"
-                            )
+                                ExprSyntax(
+                                    "resolver.assertTypeResolves(\(raw: registration.service).self, name: \"\(raw: name)\")"
+                                )
+                            )!
                         } else {
-                            FunctionCallExprSyntax("resolver.assertTypeResolves(\(raw: registration.service).self)")
+                            FunctionCallExprSyntax(
+                                ExprSyntax(
+                                    "resolver.assertTypeResolves(\(raw: registration.service).self)"
+                                )
+                            )!
                         }
 
                     }

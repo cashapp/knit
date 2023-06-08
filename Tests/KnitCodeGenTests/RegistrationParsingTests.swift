@@ -3,6 +3,7 @@
 //
 
 @testable import KnitCodeGen
+import SwiftSyntax
 import SwiftSyntaxBuilder
 import XCTest
 
@@ -109,13 +110,13 @@ final class RegistrationParsingTests: XCTestCase {
 }
 
 private func assertRegistrationString(
-    _ string: String,
+    _ syntax: ExprSyntax,
     serviceName: String,
     accessLevel: AccessLevel = .internal,
     name: String? = nil,
     file: StaticString = #filePath, line: UInt = #line
 ) {
-    let functionCall = FunctionCallExpr(stringLiteral: string)
+    let functionCall = FunctionCallExprSyntax(syntax)!
     let registration = functionCall.getRegistration()
     XCTAssertNotNil(registration, file: file, line: line)
     XCTAssertEqual(registration?.service, serviceName, file: file, line: line)
@@ -124,11 +125,11 @@ private func assertRegistrationString(
 }
 
 private func assertNoRegistrationString(
-    _ string: String,
+    _ syntax: ExprSyntax,
     message: String = "",
     file: StaticString = #filePath, line: UInt = #line
 ) {
-    let functionCall = FunctionCallExpr(stringLiteral: string)
+    let functionCall = FunctionCallExprSyntax(syntax)!
     let registration = functionCall.getRegistration()
     XCTAssertNil(registration, message, file: file, line: line)
 }

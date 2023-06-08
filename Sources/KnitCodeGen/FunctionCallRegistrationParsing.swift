@@ -53,11 +53,11 @@ extension FunctionCallExprSyntax {
                 .expression.as(MemberAccessExprSyntax.self) else { return nil }
             guard firstParam.name.text == "self" else { return nil }
 
-            let registrationText = firstParam.base!.withoutTrivia().description
+            let registrationText = firstParam.base!.trimmed.description
             let accessLevel: AccessLevel
-            if let leadingTrivia, leadingTrivia.description.contains("@digen public") {
+            if leadingTrivia.description.contains("@digen public") {
                 accessLevel = .public
-            } else if let leadingTrivia, leadingTrivia.description.contains("@digen hidden") {
+            } else if leadingTrivia.description.contains("@digen hidden") {
                 accessLevel = .hidden
             } else {
                 accessLevel = .internal

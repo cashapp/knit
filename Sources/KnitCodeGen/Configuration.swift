@@ -28,10 +28,11 @@ public struct Configuration {
 
 public extension Configuration {
 
-    func makeTypeSafetySourceFile() -> SourceFileSyntax {
+    func makeTypeSafetySourceFile() throws -> SourceFileSyntax {
         var allImports = imports
-        allImports.append("import Swinject")
-        return TypeSafetySourceFile.make(
+
+        allImports.append(ImportDeclSyntax(DeclSyntax("import Swinject"))!)
+        return try TypeSafetySourceFile.make(
             assemblyName: "\(name)Assembly",
             imports: sortImports(allImports),
             extensionTarget: "Resolver",
@@ -39,16 +40,16 @@ public extension Configuration {
         )
     }
 
-    func makeUnitTestSourceFile() -> SourceFileSyntax {
+    func makeUnitTestSourceFile() throws -> SourceFileSyntax {
         var allImports = imports
-        allImports.append("@testable import \(raw: self.name)")
-        allImports.append("import XCTest")
+        allImports.append(ImportDeclSyntax(DeclSyntax("@testable import \(raw: self.name)"))!)
+        allImports.append(ImportDeclSyntax(DeclSyntax("import XCTest"))!)
         if let testImports = testConfiguration?.imports {
-            let testImportsDecls = testImports.map { ImportDeclSyntax(moduleName: $0) }
+            let testImportsDecls = testImports.map { ImportDeclSyntax(DeclSyntax("import \(raw: $0)"))! }
             allImports.append(contentsOf: testImportsDecls)
         }
 
-        return UnitTestSourceFile.make(
+        return try UnitTestSourceFile.make(
             importDecls: sortImports(allImports),
             setupCodeBlock: testConfiguration?.testSetupCodeBlock,
             registrations: registrations
@@ -66,17 +67,17 @@ public extension Configuration {
     func writeGeneratedFiles(
         typeSafetyExtensionsOutputPath: String?,
         unitTestOutputPath: String?
-    ) {
+    ) throws {
         if let typeSafetyExtensionsOutputPath {
             write(
-                sourceFile: makeTypeSafetySourceFile(),
+                sourceFile: try makeTypeSafetySourceFile(),
                 to: typeSafetyExtensionsOutputPath
             )
         }
 
         if let unitTestOutputPath {
             write(
-                sourceFile: makeUnitTestSourceFile(),
+                sourceFile: try makeUnitTestSourceFile(),
                 to: unitTestOutputPath
             )
         }
@@ -94,16 +95,4 @@ func write(sourceFile: SourceFileSyntax, to path: String) {
     } catch {
         fatalError("\(error)")
     }
-}
-
-// MARK: - ImportDeclSyntax Convenience Init
-
-public extension ImportDeclSyntax {
-
-    init(moduleName: String) {
-        self.init(
-            path: [ AccessPathComponentSyntax(name: moduleName) ]
-        )
-    }
-
 }

@@ -7,9 +7,9 @@ import XCTest
 
 final class UnitTestSourceFileTests: XCTestCase {
 
-    func test_generation() {
-        let result = UnitTestSourceFile.make(
-            importDecls: [ImportDeclSyntax("import Swinject")],
+    func test_generation() throws {
+        let result = try UnitTestSourceFile.make(
+            importDecls: [ImportDeclSyntax(DeclSyntax("import Swinject"))!],
             setupCodeBlock: nil,
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal),
@@ -23,7 +23,6 @@ final class UnitTestSourceFileTests: XCTestCase {
         let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
 
         let expected = """
-
         // Generated using SwiftSyntax
         // Do not edit directly!
 
@@ -45,7 +44,7 @@ final class UnitTestSourceFileTests: XCTestCase {
         }
         private extension Resolver {
 
-            func assertTypeResolves < T > (
+            func assertTypeResolves<T>(
                 _ type: T.Type,
                 name: String? = nil,
                 file: StaticString = #filePath,

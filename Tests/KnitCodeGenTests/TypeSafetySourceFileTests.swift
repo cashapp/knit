@@ -7,10 +7,10 @@ import XCTest
 
 final class TypeSafetySourceFileTests: XCTestCase {
 
-    func test_generation() {
-        let result = TypeSafetySourceFile.make(
+    func test_generation() throws {
+        let result = try TypeSafetySourceFile.make(
             assemblyName: "ModuleAssembly",
-            imports: [ImportDeclSyntax("import Swinject")],
+            imports: [ImportDeclSyntax(DeclSyntax("import Swinject"))!],
             extensionTarget: "Resolve",
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal),
@@ -21,7 +21,6 @@ final class TypeSafetySourceFileTests: XCTestCase {
         )
 
         let expected = """
-
         // Generated using SwiftSyntax
         // Do not edit directly!
 

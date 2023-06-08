@@ -37,14 +37,13 @@ public struct KnitCommand: ParsableCommand {
         let parsedConfig: Configuration
         do {
             parsedConfig = try parseAssembly(at: assemblyInputPath)
+            try parsedConfig.writeGeneratedFiles(
+                typeSafetyExtensionsOutputPath: typeSafetyExtensionsOutputPath,
+                unitTestOutputPath: unitTestOutputPath
+            )
         } catch {
             fatalError(error.localizedDescription)
         }
-
-        parsedConfig.writeGeneratedFiles(
-            typeSafetyExtensionsOutputPath: typeSafetyExtensionsOutputPath,
-            unitTestOutputPath: unitTestOutputPath
-        )
     }
 
 }
