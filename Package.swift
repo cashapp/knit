@@ -9,13 +9,16 @@ let package = Package(
         .macOS(.v12),
     ],
     products: [
+        .executable(name: "knit-cli", targets: [
+            "KnitCommand"
+        ])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", from: "508.0.1"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
     ],
     targets: [
-        .target(
+        .executableTarget(
             name: "KnitCommand",
             dependencies: [
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
