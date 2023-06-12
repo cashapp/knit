@@ -1,4 +1,5 @@
 import Foundation
+import Swinject
 
 /// A Swinject behavior that aggregates all services registered using
 /// ``Container/registerIntoCollection(_:factory:)`` or
@@ -7,7 +8,7 @@ import Foundation
 /// Usage:
 /// ```
 /// let container = Container()
-/// container.addBehavior(ServiceCollector(for: Animal.self))
+/// container.addBehavior(ServiceCollector())
 /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
 /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
 ///
@@ -16,10 +17,13 @@ import Foundation
 /// ```
 /// - Important: All services must be registered using the same Service type. This is typically a protocol
 ///              that several concrete implementations conform to.
-public final class ServiceCollector<T>: Behavior {
-    private var factories: [(Resolver) -> T?] = []
+public final class ServiceCollector: Behavior {
 
-    public init(for aggregatedType: T.Type) {}
+    /// Maps a service type to an array of service factories
+    /// Note: We use `ObjectIdentifier` to represent the service type since `Any.Type` isn't Hashable.
+    private var factoriesByService: [ObjectIdentifier: [(Resolver) -> Any]] = [:]
+
+    public init() {}
 
     public func container<Type, Service>(
         _ container: Container,
@@ -27,24 +31,24 @@ public final class ServiceCollector<T>: Behavior {
         toService entry: ServiceEntry<Service>,
         withName name: String?
     ) {
-        guard Service.self == T.self else {
-            // We're not collecting this service type. Ignore it.
-            return
-        }
-
         guard name?.hasPrefix(collectionRegistrationPrefix) == true else {
             // This service wasn't explicitly registered into a collection. Ignore it.
             return
         }
 
-        if factories.isEmpty {
-            container.register(ServiceCollection<T>.self) { resolver in
-                .init(entries: self.factories.compactMap { $0(resolver) })
+        if factoriesByService[ObjectIdentifier(Service.self)] == nil {
+            // This is the first factory for this service to be registered into a collection.
+            // Register a `ServiceCollection` for it:
+            container.register(ServiceCollection<Service>.self) { resolver in
+                let factories = self.factoriesByService[ObjectIdentifier(type)]!
+                return .init(entries: factories.map { $0(resolver) as! Service })
             }
         }
+        var factories = factoriesByService[ObjectIdentifier(Service.self)] ?? []
         factories.append {
-            $0.resolve(Service.self, name: name) as? T
+            $0.resolve(Service.self, name: name)!
         }
+        factoriesByService[ObjectIdentifier(Service.self)] = factories
     }
 }
 

@@ -8,7 +8,7 @@ extension Resolver {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///

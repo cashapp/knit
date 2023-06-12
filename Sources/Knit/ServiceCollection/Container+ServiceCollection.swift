@@ -15,7 +15,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.registerIntoCollection(Animal.self) { _ in Cat(...) }
     /// container.registerIntoCollection(Animal.self) { _ in Dog(...) }
     ///
@@ -42,7 +42,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -66,7 +66,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -89,7 +89,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -112,7 +112,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -135,7 +135,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -158,7 +158,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -181,7 +181,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -204,7 +204,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -227,7 +227,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -250,7 +250,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -273,7 +273,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -296,7 +296,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -319,7 +319,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -342,7 +342,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -365,7 +365,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -388,7 +388,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -411,7 +411,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -434,7 +434,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -457,7 +457,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -480,7 +480,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
@@ -503,7 +503,7 @@ extension Container {
     /// Usage:
     /// ```
     /// let container = Container()
-    /// container.addBehavior(ServiceCollector(for: Animal.self))
+    /// container.addBehavior(ServiceCollector())
     /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
     /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
     ///
