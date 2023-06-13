@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# This script is similar to Swinject's gencode script.
+# It generates high-arity overloads of generic functions using the file templates listed below.
+# The generated files are checked in since they are not dynamic and don't change often.
+
+files="Sources/Knit/ServiceCollection/Container+ServiceCollection"
+
+for file in $files; do
+  echo "Generating code to $file.swift"
+  erb -v -T 1 $file.erb > $file.swift
+done

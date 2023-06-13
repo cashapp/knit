@@ -9,15 +9,23 @@ let package = Package(
         .macOS(.v12),
     ],
     products: [
-        .executable(name: "knit-cli", targets: [
-            "KnitCommand"
-        ])
+        .library(name: "Knit", targets: ["Knit"]),
+        .executable(name: "knit-cli", targets: ["KnitCommand"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", from: "508.0.1"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
+        .package(url: "https://github.com/Swinject/Swinject.git", from: "2.8.3"),
+        .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.8.3"),
     ],
     targets: [
+        .target(
+            name: "Knit",
+            dependencies: [
+                .product(name: "Swinject", package: "Swinject"),
+                .product(name: "SwinjectAutoregistration", package: "SwinjectAutoregistration"),
+            ]
+        ),
         .executableTarget(
             name: "KnitCommand",
             dependencies: [
@@ -32,6 +40,12 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxParser", package: "swift-syntax"),
+            ]
+        ),
+        .testTarget(
+            name: "KnitTests",
+            dependencies: [
+                "Knit",
             ]
         ),
         .testTarget(
