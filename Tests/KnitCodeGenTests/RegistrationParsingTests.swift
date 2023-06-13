@@ -293,6 +293,27 @@ final class RegistrationParsingTests: XCTestCase {
         }
     }
 
+    func testRegistrationIntoCollection() {
+        assertMultipleRegistrationsString(
+            """
+            container.registerIntoCollection(AType.self) {}
+                .inObjectScope(.container)
+            """,
+            registrationsIntoCollections: [
+                .init(service: "AType"),
+            ]
+        )
+        assertMultipleRegistrationsString(
+            """
+            container.autoregisterIntoCollection(AType.self, initializer: AType.init)
+                .inObjectScope(.container)
+            """,
+            registrationsIntoCollections: [
+                .init(service: "AType"),
+            ]
+        )
+    }
+
     func testIncorrectRegistrations() {
         assertNoRegistrationsString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
         assertNoRegistrationsString("container.register(A)", message: "First param is not a metatype")
@@ -313,8 +334,9 @@ private func assertRegistrationString(
 ) {
     let functionCall = FunctionCallExpr(stringLiteral: string)
 
-    let registrations = try! functionCall.getRegistrations()
+    let (registrations, registrationsIntoCollecions) = try! functionCall.getRegistrations()
     XCTAssertEqual(registrations.count, 1, file: file, line: line)
+    XCTAssert(registrationsIntoCollecions.isEmpty, file: file, line: line)
 
     let registration = registrations.first
     XCTAssertNotNil(registration, file: file, line: line)
@@ -327,14 +349,18 @@ private func assertRegistrationString(
 /// Assert that multiple registrations exist within the string.
 private func assertMultipleRegistrationsString(
     _ string: String,
-    registrations: [Registration],
+    registrations: [Registration] = [],
+    registrationsIntoCollections: [RegistrationIntoCollection] = [],
     file: StaticString = #filePath, line: UInt = #line
 ) {
     let functionCall = FunctionCallExpr(stringLiteral: string)
 
-    let parsedRegistrations = try! functionCall.getRegistrations()
+    let (parsedRegistrations, parsedRegistrationsIntoCollections) = try! functionCall.getRegistrations()
     XCTAssertEqual(parsedRegistrations.count, registrations.count, file: file, line: line)
     XCTAssertEqual(parsedRegistrations, registrations, file: file, line: line)
+
+    XCTAssertEqual(parsedRegistrationsIntoCollections.count, registrationsIntoCollections.count, file: file, line: line)
+    XCTAssertEqual(parsedRegistrationsIntoCollections, registrationsIntoCollections, file: file, line: line)
 }
 
 /// Assert that no registrations exist within the string.
@@ -344,6 +370,7 @@ private func assertNoRegistrationsString(
     file: StaticString = #filePath, line: UInt = #line
 ) {
     let functionCall = FunctionCallExpr(stringLiteral: string)
-    let registrations = try! functionCall.getRegistrations()
-    XCTAssertEqual(registrations.count, 0, message, file: file, line: line)
+    let (registrations, registrationsIntoCollections) = try! functionCall.getRegistrations()
+    XCTAssert(registrations.isEmpty, message, file: file, line: line)
+    XCTAssert(registrationsIntoCollections.isEmpty, message, file: file, line: line)
 }

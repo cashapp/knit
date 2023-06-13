@@ -11,6 +11,7 @@ public struct Configuration {
     public var name: String
 
     public var registrations: [Registration]
+    public var registrationsIntoCollections: [RegistrationIntoCollection]
 
     public var errors: [Error]
 
@@ -23,6 +24,7 @@ public struct Configuration {
         syntaxTree: SyntaxProtocol,
         name: String,
         registrations: [Registration],
+        registrationsIntoCollections: [RegistrationIntoCollection],
         errors: [Error],
         imports: [ImportDeclSyntax] = [],
         testConfiguration: TestConfiguration? = nil
@@ -31,6 +33,7 @@ public struct Configuration {
         self.syntaxTree = syntaxTree
         self.name = name
         self.registrations = registrations
+        self.registrationsIntoCollections = registrationsIntoCollections
         self.errors = errors
         self.imports = imports
         self.testConfiguration = testConfiguration
@@ -63,7 +66,8 @@ public extension Configuration {
         return UnitTestSourceFile.make(
             importDecls: sortImports(allImports),
             setupCodeBlock: testConfiguration?.testSetupCodeBlock,
-            registrations: registrations
+            registrations: registrations,
+            registrationsIntoCollections: registrationsIntoCollections
         )
     }
 
