@@ -13,10 +13,11 @@ final class TypeSafetySourceFileTests: XCTestCase {
             imports: [ImportDeclSyntax("import Swinject")],
             extensionTarget: "Resolve",
             registrations: [
-                .init(service: "ServiceA", name: nil, accessLevel: .internal),
-                .init(service: "ServiceB", name: "name", accessLevel: .internal),
-                .init(service: "ServiceB", name: "otherName", accessLevel: .internal),
-                .init(service: "ServiceC", name: nil, accessLevel: .hidden), // No resolver is created
+                .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
+                .init(service: "ServiceB", name: "name", accessLevel: .internal, isForwarded: false),
+                .init(service: "ServiceB", name: "otherName", accessLevel: .internal, isForwarded: false),
+                .init(service: "ServiceC", name: nil, accessLevel: .hidden, isForwarded: false), // No resolver is created
+                .init(service: "ServiceD", name: nil, accessLevel: .public, isForwarded: true),
             ]
         )
 
@@ -34,6 +35,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
         extension Resolve {
             func callAsFunction() -> ServiceA {
                 self.resolve(ServiceA.self)!
+            }
+            public func callAsFunction() -> ServiceD {
+                self.resolve(ServiceD.self)!
             }
             func callAsFunction(named: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
                 self.resolve(ServiceB.self, name: named.rawValue)!
