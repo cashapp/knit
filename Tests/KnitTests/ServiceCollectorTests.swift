@@ -4,10 +4,15 @@ import XCTest
 protocol ServiceProtocol {}
 
 struct ServiceA: ServiceProtocol {}
+
 struct ServiceB: ServiceProtocol {}
 
-struct CustomService: ServiceProtocol {
+final class CustomService: ServiceProtocol {
     var name: String
+
+    init(name: String) {
+        self.name = name
+    }
 }
 
 struct HighArityService: ServiceProtocol, Equatable {
@@ -19,6 +24,8 @@ struct HighArityService: ServiceProtocol, Equatable {
 // MARK: -
 
 final class ServiceCollectorTests: XCTestCase {
+
+    // MARK: - Tests - registerIntoCollection
 
     func test_registerIntoCollection() {
         let container = Container()
@@ -121,6 +128,8 @@ final class ServiceCollectorTests: XCTestCase {
         )
     }
 
+    // MARK: - Tests - autoregisterIntoCollection
+
     func test_autoregisterIntoCollection() {
         let container = Container()
         container.addBehavior(ServiceCollector())
@@ -156,6 +165,77 @@ final class ServiceCollectorTests: XCTestCase {
             collection.entries.first as? HighArityService,
             HighArityService(string: "string", uint: 1, int: 2)
         )
+    }
+
+    // MARK: - Tests - Object Scopes
+
+    func test_registerIntoCollection_supportsTransientScopedObjects() throws {
+        let container = Container()
+        container.addBehavior(ServiceCollector())
+
+        // Register a service with the `transient` scope.
+        // It should be recreated each time the ServiceCollection is resolved.
+        container
+            .registerIntoCollection(CustomService.self) { _ in CustomService(name: "service") }
+            .inObjectScope(.transient)
+
+        let collection1 = container.resolveCollection(CustomService.self)
+        let collection2 = container.resolveCollection(CustomService.self)
+
+        let instance1 = try XCTUnwrap(collection1.entries.first)
+        let instance2 = try XCTUnwrap(collection2.entries.first)
+
+        XCTAssert(instance1 !== instance2)
+    }
+
+    func test_registerIntoCollection_supportsContainerScopedObjects() throws {
+        let container = Container()
+        container.addBehavior(ServiceCollector())
+
+        // Register a service with the `container` scope.
+        // The same instance should be shared, even if the collection is resolved many times.
+        container
+            .registerIntoCollection(CustomService.self) { _ in CustomService(name: "service") }
+            .inObjectScope(.container)
+
+        let collection1 = container.resolveCollection(CustomService.self)
+        let collection2 = container.resolveCollection(CustomService.self)
+
+        let instance1 = try XCTUnwrap(collection1.entries.first)
+        let instance2 = try XCTUnwrap(collection2.entries.first)
+
+        XCTAssert(instance1 === instance2)
+    }
+
+    func test_registerIntoCollection_supportsWeakScopedObjects() throws {
+        let container = Container()
+        container.addBehavior(ServiceCollector())
+
+        // Register a service with the `weak` scope.
+        // The same instance should be shared while the instance is alive.
+        // We track the number of times the factory is invoked so we know when an instance was created vs reused.
+        var factoryCallCount = 0
+        container
+            .registerIntoCollection(CustomService.self) { _ in
+                factoryCallCount += 1
+                return CustomService(name: "service")
+            }
+            .inObjectScope(.weak)
+
+        // Resolve the initial instance
+        var instance1: CustomService? = try XCTUnwrap(container.resolveCollection(CustomService.self).entries.first)
+        XCTAssertEqual(factoryCallCount, 1)
+
+        // Resolving again shouldn't increase `factoryCallCount` since `instance1` is still retained.
+        var instance2: CustomService? = try XCTUnwrap(container.resolveCollection(CustomService.self).entries.first)
+        XCTAssertEqual(factoryCallCount, 1)
+        XCTAssert(instance2 === instance1)
+
+        // Release our instances and resolve again. This time a new instance should be created.
+        instance1 = nil
+        instance2 = nil
+        _ = container.resolveCollection(CustomService.self)
+        XCTAssertEqual(factoryCallCount, 2)
     }
 
 }
