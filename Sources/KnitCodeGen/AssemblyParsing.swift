@@ -80,9 +80,8 @@ private class ClassDeclVisitor: SyntaxVisitor {
     private(set) var registrations = [Registration]()
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        if let registration = node.getRegistration() {
-            registrations.append(registration)
-        }
+        registrations.append(contentsOf: node.getRegistrations())
+
         return .skipChildren
     }
 
