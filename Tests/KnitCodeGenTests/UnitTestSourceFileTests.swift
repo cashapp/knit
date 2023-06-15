@@ -24,14 +24,11 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let expected = """
 
-        // Generated using SwiftSyntax
+        // Generated using Knit
         // Do not edit directly!
 
-        //
-        // Copyright © Square, Inc. All rights reserved.
-        //
         import Swinject
-        final class DIRegistrationTests: XCTestCase {
+        final class KnitDIRegistrationTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
