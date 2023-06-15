@@ -39,8 +39,8 @@ public enum TypeSafetySourceFile {
     /// Create the type safe resolver function for this registration
     static func makeResolver(registration: Registration, enumName: String?) -> FunctionDeclSyntax {
         let modifier = registration.accessLevel == .public ? "public " : ""
-        let nameInput = enumName.map { "named: \($0)" }
-        let nameUsage = enumName != nil ? "name: named.rawValue" : nil
+        let nameInput = enumName.map { "name: \($0)" }
+        let nameUsage = enumName != nil ? "name: name.rawValue" : nil
         let (argInput, argUsage) = argumentString(registration: registration)
         let inputs = [nameInput, argInput].compactMap { $0 }.joined(separator: ", ")
         let usages = ["\(registration.service).self", nameUsage, argUsage].compactMap { $0 }.joined(separator: ", ")
