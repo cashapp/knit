@@ -23,12 +23,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
 
         let expected = """
 
-        // Generated using SwiftSyntax
+        // Generated using Knit
         // Do not edit directly!
 
-        //
-        // Copyright © Square, Inc. All rights reserved.
-        //
         import Swinject
         // The correct resolution of each of these types is enforced by a matching automated unit test
         // If a type registration is missing or broken then the automated tests will fail for that PR

@@ -14,12 +14,9 @@ struct TriviaProvider {
 
     private static var headerText: String {
         return """
-            // Generated using SwiftSyntax
+            // Generated using Knit
             // Do not edit directly!
 
-            //
-            // Copyright © Square, Inc. All rights reserved.
-            //
 
             """
     }

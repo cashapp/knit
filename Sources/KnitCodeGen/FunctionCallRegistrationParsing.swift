@@ -100,9 +100,9 @@ private func makeRegistrationFor(
 
     let registrationText = firstParam.base!.withoutTrivia().description
     let accessLevel: AccessLevel
-    if let leadingTrivia, leadingTrivia.description.contains("@digen public") {
+    if let leadingTrivia, leadingTrivia.description.contains("@knit public") {
         accessLevel = .public
-    } else if let leadingTrivia, leadingTrivia.description.contains("@digen hidden") {
+    } else if let leadingTrivia, leadingTrivia.description.contains("@knit hidden") {
         accessLevel = .hidden
     } else {
         accessLevel = .internal

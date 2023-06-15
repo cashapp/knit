@@ -19,13 +19,13 @@ public struct KnitCommand: ParsableCommand {
 
     @Option(help: """
                   Path to the file location in the current module where the unit test source should be written.
-                  For example: `${PODS_TARGET_SRCROOT}/Sources/Generated/DITypeSafety.swift`
+                  For example: `${PODS_TARGET_SRCROOT}/Sources/Generated/KnitDITypeSafety.swift`
                   """)
     var typeSafetyExtensionsOutputPath: String?
 
     @Option(help: """
                   Path to the file location in the current module where the unit test source should be written.
-                  For example: `${PODS_TARGET_SRCROOT}/UnitTests/Generated/RegistrationTests.swift`
+                  For example: `${PODS_TARGET_SRCROOT}/UnitTests/Generated/KnitDIRegistrationTests.swift`
                   """)
     var unitTestOutputPath: String?
 

@@ -49,7 +49,7 @@ final class RegistrationParsingTests: XCTestCase {
 
         assertRegistrationString(
             """
-            // @digen public
+            // @knit public
             container.register(AType.self)
             """,
             serviceName: "AType",
@@ -60,7 +60,7 @@ final class RegistrationParsingTests: XCTestCase {
     func testHiddenRegistrations() {
         assertRegistrationString(
             """
-            // @digen hidden
+            // @knit hidden
             container.register(AType.self)
             """,
             serviceName: "AType",
@@ -119,7 +119,7 @@ final class RegistrationParsingTests: XCTestCase {
             """
             container.autoregister(A.self, initializer: A.init)
             .implements(B.self)
-            // @digen public
+            // @knit public
             .implements(C.self, name: "foo")
             .implements(D.self, name: "bar")
             """,
@@ -133,11 +133,11 @@ final class RegistrationParsingTests: XCTestCase {
 
         assertMultipleRegistrationsString(
             """
-            // @digen hidden
+            // @knit hidden
             container.register(A.self) { }
-            // @digen public
+            // @knit public
             .implements(B.self)
-            // @digen hidden
+            // @knit hidden
             .implements(C.self)
             """,
             registrations: [

@@ -13,7 +13,7 @@ public enum UnitTestSourceFile {
                 importDecl
             }
 
-            ClassDeclSyntax("final class DIRegistrationTests: XCTestCase") {
+            ClassDeclSyntax("final class KnitDIRegistrationTests: XCTestCase") {
 
                 FunctionDeclSyntax("func testRegistrations()") {
 
