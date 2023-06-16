@@ -8,6 +8,8 @@ public struct Configuration {
 
     public var registrations: [Registration]
 
+    public var errors: [Error]
+
     public var imports: [ImportDeclSyntax]
 
     public var testConfiguration: TestConfiguration?
@@ -15,11 +17,13 @@ public struct Configuration {
     public init(
         name: String,
         registrations: [Registration],
+        errors: [Error],
         imports: [ImportDeclSyntax] = [],
         testConfiguration: TestConfiguration? = nil
     ) {
         self.name = name
         self.registrations = registrations
+        self.errors = errors
         self.imports = imports
         self.testConfiguration = testConfiguration
     }
@@ -79,6 +83,11 @@ public extension Configuration {
                 sourceFile: makeUnitTestSourceFile(),
                 to: unitTestOutputPath
             )
+        }
+        // Output any errors that occurred during parsing
+        for error in errors {
+            // TODO: Add file and line numbers and turn into an error
+            print("warning: \(error.localizedDescription)")
         }
     }
 

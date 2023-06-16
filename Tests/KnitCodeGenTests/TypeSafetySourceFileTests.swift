@@ -51,4 +51,64 @@ final class TypeSafetySourceFileTests: XCTestCase {
         XCTAssertEqual(expected, result.formatted().description)
     }
 
+    func testRegistrationMultipleArguments() {
+        let registration = Registration(service: "A", accessLevel: .public, arguments: ["String", "URL"])
+        XCTAssertEqual(
+            TypeSafetySourceFile.makeResolver(
+                registration: registration,
+                enumName: nil
+            ).formatted().description,
+            """
+            public func callAsFunction(string: String, url: URL) -> A {
+                self.resolve(A.self, arguments: string, url)!
+            }
+            """
+        )
+    }
+
+    func testRegistrationSingleArgument() {
+        let registration = Registration(service: "A", accessLevel: .public, arguments: ["String"])
+        XCTAssertEqual(
+            TypeSafetySourceFile.makeResolver(
+                registration: registration,
+                enumName: nil
+            ).formatted().description,
+            """
+            public func callAsFunction(string: String) -> A {
+                self.resolve(A.self, argument: string)!
+            }
+            """
+        )
+    }
+
+    func testRegistrationDuplicateParamType() {
+        let registration = Registration(service: "A", accessLevel: .public, arguments: ["String", "String"])
+        XCTAssertEqual(
+            TypeSafetySourceFile.makeResolver(
+                registration: registration,
+                enumName: nil
+            ).formatted().description,
+            """
+            public func callAsFunction(string1: String, string2: String) -> A {
+                self.resolve(A.self, arguments: string1, string2)!
+            }
+            """
+        )
+    }
+
+    func testRegistrationArgumentAndName() {
+        let registration = Registration(service: "A", name: "test", accessLevel: .public, arguments: ["String"])
+        XCTAssertEqual(
+            TypeSafetySourceFile.makeResolver(
+                registration: registration,
+                enumName: "MyAssembly.A_ResolutionKey"
+            ).formatted().description,
+            """
+            public func callAsFunction(named: MyAssembly.A_ResolutionKey, string: String) -> A {
+                self.resolve(A.self, name: named.rawValue, argument: string)!
+            }
+            """
+        )
+    }
+
 }
