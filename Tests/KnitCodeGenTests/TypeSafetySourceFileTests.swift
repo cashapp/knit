@@ -36,8 +36,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
             public func callAsFunction() -> ServiceD {
                 self.resolve(ServiceD.self)!
             }
-            func callAsFunction(named: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
-                self.resolve(ServiceB.self, name: named.rawValue)!
+            func callAsFunction(name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
+                self.resolve(ServiceB.self, name: name.rawValue)!
             }
         }
         extension ModuleAssembly {
@@ -104,8 +104,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 enumName: "MyAssembly.A_ResolutionKey"
             ).formatted().description,
             """
-            public func callAsFunction(named: MyAssembly.A_ResolutionKey, string: String) -> A {
-                self.resolve(A.self, name: named.rawValue, argument: string)!
+            public func callAsFunction(name: MyAssembly.A_ResolutionKey, string: String) -> A {
+                self.resolve(A.self, name: name.rawValue, argument: string)!
             }
             """
         )
