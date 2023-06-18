@@ -148,6 +148,151 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testRegisterWithArguments() {
+        // Single argument
+        assertMultipleRegistrationsString(
+            """
+            container.register(A.self) { (_, arg: String) in
+                A(string: arg)
+            }
+            """,
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")])
+            ]
+        )
+
+        // Multiple arguments
+        assertMultipleRegistrationsString(
+            """
+            container.register(A.self) { (resolver: Resolver, arg: String, arg2: Int) in
+                A()
+            }
+            """,
+            registrations: [
+                Registration(
+                    service: "A",
+                    accessLevel: .internal,
+                    arguments: [
+                        .init(name: "arg", type: "String"),
+                        .init(name: "arg2", type: "Int"),
+                    ]
+                )
+            ]
+        )
+    }
+
+    func testAutoregisterWithArguments() {
+        // Single argument
+        assertMultipleRegistrationsString(
+            "container.autoregister(A.self, argument: URL.self, initializer: A.init)",
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "URL")])
+            ]
+        )
+
+        // Multiple arguments
+        assertMultipleRegistrationsString(
+            """
+            container.autoregister(
+                A.self,
+                arguments: URL.self,
+                Int.self,
+                String.self,
+                initializer: A.init
+            )
+            """,
+            registrations: [
+                Registration(
+                    service: "A",
+                    accessLevel: .internal,
+                    arguments: [
+                        .init(type: "URL"),
+                        .init(type: "Int"),
+                        .init(type: "String"),
+                    ]
+                )
+            ]
+        )
+
+        // Single argument with name
+        assertMultipleRegistrationsString(
+            """
+            container.autoregister(A.self, name: "test", argument: URL.self, initializer: A.init)
+            """,
+            registrations: [
+                Registration(service: "A", name: "test", accessLevel: .internal, arguments: [.init(type: "URL")])
+            ]
+        )
+
+        // Multiple arguments with name
+        assertMultipleRegistrationsString(
+            """
+            container.autoregister(
+                A.self,
+                name: "test",
+                arguments: URL.self,
+                Int.self,
+                initializer: A.init
+            )
+            """,
+            registrations: [
+                Registration(
+                    service: "A",
+                    name: "test",
+                    accessLevel: .internal,
+                    arguments: [.init(type: "URL"), .init(type: "Int")]
+                )
+            ]
+        )
+    }
+
+    // Arguments on the main registration apply to implements also
+    func testForwardedWithArgument() {
+        // Single argument autoregister
+        assertMultipleRegistrationsString(
+            """
+            container.autoregister(A.self, argument: URL.self, initializer: A.init)
+            .implements(B.self)
+            """,
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "URL")]),
+                Registration(service: "B", accessLevel: .internal, arguments: [.init(type: "URL")], isForwarded: true)
+            ]
+        )
+
+        // Single argument register
+        assertMultipleRegistrationsString(
+            """
+            container.register(A.self) { (_, arg: String) in
+                A(string: arg)
+            }
+            .implements(B.self)
+            """,
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")]),
+                Registration(service: "B", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")], isForwarded: true)
+            ]
+        )
+    }
+
+    func testArgumentMissingType() {
+        // Type of arg can be inferred at build time but cannot be parsed
+        let string = """
+            container.register(A.self) { (_, myArg) in
+                A(string: myArg)
+            }
+        """
+
+        let functionCall = FunctionCallExpr(stringLiteral: string)
+
+        XCTAssertThrowsError(try functionCall.getRegistrations()) { error in
+            XCTAssertEqual(
+                error.localizedDescription,
+                "Registration for myArg is missing a type. Type safe resolver has not been generated"
+            )
+        }
+    }
+
     func testIncorrectRegistrations() {
         assertNoRegistrationsString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
         assertNoRegistrationsString("container.register(A)", message: "First param is not a metatype")
@@ -168,7 +313,7 @@ private func assertRegistrationString(
 ) {
     let functionCall = FunctionCallExpr(stringLiteral: string)
 
-    let registrations = functionCall.getRegistrations()
+    let registrations = try! functionCall.getRegistrations()
     XCTAssertEqual(registrations.count, 1, file: file, line: line)
 
     let registration = registrations.first
@@ -187,7 +332,7 @@ private func assertMultipleRegistrationsString(
 ) {
     let functionCall = FunctionCallExpr(stringLiteral: string)
 
-    let parsedRegistrations = functionCall.getRegistrations()
+    let parsedRegistrations = try! functionCall.getRegistrations()
     XCTAssertEqual(parsedRegistrations.count, registrations.count, file: file, line: line)
     XCTAssertEqual(parsedRegistrations, registrations, file: file, line: line)
 }
@@ -199,6 +344,6 @@ private func assertNoRegistrationsString(
     file: StaticString = #filePath, line: UInt = #line
 ) {
     let functionCall = FunctionCallExpr(stringLiteral: string)
-    let registrations = functionCall.getRegistrations()
+    let registrations = try! functionCall.getRegistrations()
     XCTAssertEqual(registrations.count, 0, message, file: file, line: line)
 }

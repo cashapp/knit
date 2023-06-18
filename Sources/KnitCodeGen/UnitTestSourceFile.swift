@@ -33,7 +33,10 @@ public enum UnitTestSourceFile {
                     }
 
                     for registration in registrations {
-                        if let name = registration.name {
+                        if !registration.arguments.isEmpty {
+                            // TODO: The resolver needs to have access to a value to pass as an argument
+                            // This will be implemented in a separate PR
+                        } else if let name = registration.name {
                             FunctionCallExprSyntax(
                                 "resolver.assertTypeResolves(\(raw: registration.service).self, name: \"\(raw: name)\")"
                             )
