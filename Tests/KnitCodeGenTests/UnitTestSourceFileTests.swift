@@ -17,7 +17,7 @@ final class UnitTestSourceFileTests: XCTestCase {
                 .init(service: "ServiceB", name: "otherName", accessLevel: .internal, isForwarded: true),
                 .init(service: "ServiceC", name: nil, accessLevel: .hidden, isForwarded: false),
                 // TODO: Generate test for types with arguments
-                .init(service: "ServiceD", accessLevel: .hidden, arguments: ["String"]),
+                .init(service: "ServiceD", accessLevel: .hidden, arguments: [.init(type: "String")]),
             ]
         )
 

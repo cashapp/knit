@@ -7,7 +7,7 @@ public struct Registration: Equatable {
     public var accessLevel: AccessLevel
 
     /// Argument types required to resolve the registration
-    public var arguments: [String]
+    public var arguments: [Argument]
 
     /// This registration is forwarded to another service entry.
     public var isForwarded: Bool
@@ -16,7 +16,7 @@ public struct Registration: Equatable {
         service: String,
         name: String? = nil,
         accessLevel: AccessLevel,
-        arguments: [String] = [],
+        arguments: [Argument] = [],
         isForwarded: Bool = false
     ) {
         self.service = service
@@ -29,24 +29,41 @@ public struct Registration: Equatable {
     /// Generate names for each argument based on the type
     public var namedArguments: [(name: String, type: String)] {
         var result: [(name: String, type: String)] = []
-        for type in arguments {
+        for argument in arguments {
             let indexID: String
-            if (arguments.filter { $0 == type }).count > 1 {
-                indexID = (result.filter { $0.type == type }.count + 1).description
+            if (arguments.filter { $0.resolvedName == argument.resolvedName }).count > 1 {
+                indexID = (result.filter { $0.type == argument.type }.count + 1).description
             } else {
                 indexID = ""
             }
-            let name = Self.name(argType: type) + indexID
-            result.append((name, type))
+            let name = argument.resolvedName + indexID
+            result.append((name, argument.type))
         }
         return result
     }
 
-    private static func name(argType: String) -> String {
-        if argType.uppercased() == argType {
-            return argType.lowercased()
+
+}
+
+extension Registration {
+    public struct Argument: Equatable {
+        let name: String?
+        let type: String
+
+        init(name: String? = nil, type: String) {
+            self.name = name
+            self.type = type
         }
-        return argType.prefix(1).lowercased() + argType.dropFirst()
+
+        var resolvedName: String {
+            if let name {
+                return name
+            }
+            if type.uppercased() == type {
+                return type.lowercased()
+            }
+            return type.prefix(1).lowercased() + type.dropFirst()
+        }
     }
 }
 

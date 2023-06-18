@@ -157,7 +157,7 @@ final class RegistrationParsingTests: XCTestCase {
             }
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: ["String"])
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")])
             ]
         )
 
@@ -169,7 +169,14 @@ final class RegistrationParsingTests: XCTestCase {
             }
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: ["String", "Int"])
+                Registration(
+                    service: "A",
+                    accessLevel: .internal,
+                    arguments: [
+                        .init(name: "arg", type: "String"),
+                        .init(name: "arg2", type: "Int"),
+                    ]
+                )
             ]
         )
     }
@@ -179,7 +186,7 @@ final class RegistrationParsingTests: XCTestCase {
         assertMultipleRegistrationsString(
             "container.autoregister(A.self, argument: URL.self, initializer: A.init)",
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: ["URL"])
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "URL")])
             ]
         )
 
@@ -198,7 +205,11 @@ final class RegistrationParsingTests: XCTestCase {
                 Registration(
                     service: "A",
                     accessLevel: .internal,
-                    arguments: ["URL", "Int", "String"]
+                    arguments: [
+                        .init(type: "URL"),
+                        .init(type: "Int"),
+                        .init(type: "String"),
+                    ]
                 )
             ]
         )
@@ -209,7 +220,7 @@ final class RegistrationParsingTests: XCTestCase {
             container.autoregister(A.self, name: "test", argument: URL.self, initializer: A.init)
             """,
             registrations: [
-                Registration(service: "A", name: "test", accessLevel: .internal, arguments: ["URL"])
+                Registration(service: "A", name: "test", accessLevel: .internal, arguments: [.init(type: "URL")])
             ]
         )
 
@@ -229,7 +240,7 @@ final class RegistrationParsingTests: XCTestCase {
                     service: "A",
                     name: "test",
                     accessLevel: .internal,
-                    arguments: ["URL", "Int"]
+                    arguments: [.init(type: "URL"), .init(type: "Int")]
                 )
             ]
         )
@@ -244,8 +255,8 @@ final class RegistrationParsingTests: XCTestCase {
             .implements(B.self)
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: ["URL"]),
-                Registration(service: "B", accessLevel: .internal, arguments: ["URL"], isForwarded: true)
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "URL")]),
+                Registration(service: "B", accessLevel: .internal, arguments: [.init(type: "URL")], isForwarded: true)
             ]
         )
 
@@ -258,8 +269,8 @@ final class RegistrationParsingTests: XCTestCase {
             .implements(B.self)
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: ["String"]),
-                Registration(service: "B", accessLevel: .internal, arguments: ["String"], isForwarded: true)
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")]),
+                Registration(service: "B", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")], isForwarded: true)
             ]
         )
     }

@@ -52,7 +52,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
     }
 
     func testRegistrationMultipleArguments() {
-        let registration = Registration(service: "A", accessLevel: .public, arguments: ["String", "URL"])
+        let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String"), .init(type: "URL")])
         XCTAssertEqual(
             TypeSafetySourceFile.makeResolver(
                 registration: registration,
@@ -67,7 +67,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
     }
 
     func testRegistrationSingleArgument() {
-        let registration = Registration(service: "A", accessLevel: .public, arguments: ["String"])
+        let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String")])
         XCTAssertEqual(
             TypeSafetySourceFile.makeResolver(
                 registration: registration,
@@ -82,7 +82,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
     }
 
     func testRegistrationDuplicateParamType() {
-        let registration = Registration(service: "A", accessLevel: .public, arguments: ["String", "String"])
+        let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String"), .init(type: "String")])
         XCTAssertEqual(
             TypeSafetySourceFile.makeResolver(
                 registration: registration,
@@ -97,7 +97,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
     }
 
     func testRegistrationArgumentAndName() {
-        let registration = Registration(service: "A", name: "test", accessLevel: .public, arguments: ["String"])
+        let registration = Registration(service: "A", name: "test", accessLevel: .public, arguments: [.init(type: "String")])
         XCTAssertEqual(
             TypeSafetySourceFile.makeResolver(
                 registration: registration,
@@ -106,6 +106,21 @@ final class TypeSafetySourceFileTests: XCTestCase {
             """
             public func callAsFunction(named: MyAssembly.A_ResolutionKey, string: String) -> A {
                 self.resolve(A.self, name: named.rawValue, argument: string)!
+            }
+            """
+        )
+    }
+
+    func testRegistrationWithPrenamedArguments() {
+        let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(name: "arg", type: "String")])
+        XCTAssertEqual(
+            TypeSafetySourceFile.makeResolver(
+                registration: registration,
+                enumName: nil
+            ).formatted().description,
+            """
+            public func callAsFunction(arg: String) -> A {
+                self.resolve(A.self, argument: arg)!
             }
             """
         )

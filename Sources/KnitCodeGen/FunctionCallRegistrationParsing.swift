@@ -99,7 +99,7 @@ extension FunctionCallExprSyntax {
 
 private func makeRegistrationFor(
     arguments: TupleExprElementListSyntax,
-    registrationArguments: [String],
+    registrationArguments: [Registration.Argument],
     leadingTrivia: Trivia?,
     isForwarded: Bool
 ) -> Registration? {
@@ -141,12 +141,12 @@ private func getName(arguments: TupleExprElementListSyntax) -> String? {
 private func getArguments(
     arguments: TupleExprElementListSyntax,
     trailingClosure: ClosureExprSyntax?
-) throws -> [String] {
+) throws -> [Registration.Argument] {
     // Check for a single argument param when using autoregister
     if let argumentParam = arguments.first(where: {$0.label?.text == "argument"}),
        let argumentType = argumentParam.expression.as(MemberAccessExprSyntax.self)?.base?.as(IdentifierExprSyntax.self)
     {
-        return [argumentType.identifier.text]
+        return [.init(type: argumentType.identifier.text)]
     }
 
     // Autoregister can provide multiple arguments.
@@ -157,7 +157,7 @@ private func getArguments(
             guard let type = element.expression.as(MemberAccessExprSyntax.self)?.base?.as(IdentifierExprSyntax.self) else {
                 return nil
             }
-            return type.identifier.text
+            return .init(type: type.identifier.text)
         }
     }
 
@@ -171,10 +171,10 @@ private func getArguments(
         let params = closureParameters.parameterList
         // The first param is the resolver, everything after that is an argument
         return try params[params.index(after: params.startIndex)..<params.endIndex].compactMap { element in
-            guard let type = element.type?.as(SimpleTypeIdentifierSyntax.self)?.name.text else {
+            guard let name = element.firstName?.text, let type = element.type?.as(SimpleTypeIdentifierSyntax.self)?.name.text else {
                 throw RegistrationParsingError.missingArgumentType(name: element.firstName?.text ?? "_")
             }
-            return type
+            return .init(name: name, type: type)
         }
     }
 
