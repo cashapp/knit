@@ -13,10 +13,10 @@ public func parseAssembly(at path: String) throws -> Configuration {
         throw AssemblyParsingError.syntaxParsingError(error, path: path)
     }
 
-    return try parseSyntaxTree(syntaxTree)
+    return try parseSyntaxTree(syntaxTree, filePath: path)
 }
 
-func parseSyntaxTree(_ syntaxTree: SyntaxProtocol) throws -> Configuration {
+func parseSyntaxTree(_ syntaxTree: SyntaxProtocol, filePath: String? = nil) throws -> Configuration {
     let assemblyFileVisitor = AssemblyFileVisitor()
     assemblyFileVisitor.walk(syntaxTree)
 
@@ -25,6 +25,8 @@ func parseSyntaxTree(_ syntaxTree: SyntaxProtocol) throws -> Configuration {
     }
 
     return Configuration(
+        filePath: filePath,
+        syntaxTree: syntaxTree,
         name: name,
         registrations: assemblyFileVisitor.registrations,
         errors: assemblyFileVisitor.registrationErrors,

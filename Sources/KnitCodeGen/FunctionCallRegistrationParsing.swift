@@ -163,7 +163,7 @@ private func getArguments(
 
     // This type of closure params cannot include types, so force using `ParameterClauseSyntax`
     if let paramList = trailingClosure?.signature?.input?.as(ClosureParamListSyntax.self), paramList.count >= 2 {
-        throw RegistrationParsingError.unwrappedClosureParams
+        throw RegistrationParsingError.unwrappedClosureParams(syntax: paramList)
     }
 
     // Register methods take a closure with resolver and arguments. Argument types must be provided
@@ -172,7 +172,7 @@ private func getArguments(
         // The first param is the resolver, everything after that is an argument
         return try params[params.index(after: params.startIndex)..<params.endIndex].compactMap { element in
             guard let name = element.firstName?.text, let type = element.type?.as(SimpleTypeIdentifierSyntax.self)?.name.text else {
-                throw RegistrationParsingError.missingArgumentType(name: element.firstName?.text ?? "_")
+                throw RegistrationParsingError.missingArgumentType(syntax: element, name: element.firstName?.text ?? "_")
             }
             return .init(name: name, type: type)
         }
@@ -181,17 +181,26 @@ private func getArguments(
     return []
 }
 
-enum RegistrationParsingError: LocalizedError {
+enum RegistrationParsingError: LocalizedError, SyntaxError {
 
-    case missingArgumentType(name: String)
-    case unwrappedClosureParams
+    case missingArgumentType(syntax: SyntaxProtocol, name: String)
+    case unwrappedClosureParams(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
-        case let .missingArgumentType(name):
+        case let .missingArgumentType(_, name):
             return "Registration for \(name) is missing a type. Type safe resolver has not been generated"
         case .unwrappedClosureParams:
             return "Registrations must wrap argument closures and add types: e.g. { (resolver: Resolver, arg: MyArg) in"
+        }
+    }
+
+    var syntax: SyntaxProtocol {
+        switch self {
+        case let .missingArgumentType(syntax, _):
+            return syntax
+        case let .unwrappedClosureParams(syntax):
+            return syntax
         }
     }
 
