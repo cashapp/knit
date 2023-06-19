@@ -1,0 +1,521 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C43334F32A3FDD43003BA9E3 /* KnitExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43334F22A3FDD43003BA9E3 /* KnitExampleApp.swift */; };
+		C43334F52A3FDD43003BA9E3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43334F42A3FDD43003BA9E3 /* ContentView.swift */; };
+		C43334F72A3FDD44003BA9E3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C43334F62A3FDD44003BA9E3 /* Assets.xcassets */; };
+		C43334FA2A3FDD44003BA9E3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C43334F92A3FDD44003BA9E3 /* Preview Assets.xcassets */; };
+		C43335062A3FDDD3003BA9E3 /* KnitExampleAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43335052A3FDDD3003BA9E3 /* KnitExampleAssembly.swift */; };
+		C433350A2A3FDF68003BA9E3 /* Knit in Frameworks */ = {isa = PBXBuildFile; productRef = C43335092A3FDF68003BA9E3 /* Knit */; };
+		C44754F72A3FE7570072333A /* KnitDITypeSafety.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44754F62A3FE7570072333A /* KnitDITypeSafety.swift */; };
+		C44755172A3FEA5E0072333A /* KnitDIRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44755162A3FEA5E0072333A /* KnitDIRegistrationTests.swift */; };
+		C44755192A3FEA740072333A /* TestModuleAssembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44755182A3FEA740072333A /* TestModuleAssembler.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C44755112A3FEA120072333A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C43334E72A3FDD43003BA9E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C43334EE2A3FDD43003BA9E3;
+			remoteInfo = KnitExample;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		C43334EF2A3FDD43003BA9E3 /* KnitExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KnitExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C43334F22A3FDD43003BA9E3 /* KnitExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnitExampleApp.swift; sourceTree = "<group>"; };
+		C43334F42A3FDD43003BA9E3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C43334F62A3FDD44003BA9E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C43334F92A3FDD44003BA9E3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		C43335042A3FDD78003BA9E3 /* knit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = knit; path = ..; sourceTree = "<group>"; };
+		C43335052A3FDDD3003BA9E3 /* KnitExampleAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnitExampleAssembly.swift; sourceTree = "<group>"; };
+		C44754F62A3FE7570072333A /* KnitDITypeSafety.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KnitDITypeSafety.swift; sourceTree = "<group>"; };
+		C447550D2A3FEA120072333A /* KnitExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KnitExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C44755162A3FEA5E0072333A /* KnitDIRegistrationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KnitDIRegistrationTests.swift; sourceTree = "<group>"; };
+		C44755182A3FEA740072333A /* TestModuleAssembler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestModuleAssembler.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C43334EC2A3FDD43003BA9E3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C433350A2A3FDF68003BA9E3 /* Knit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C447550A2A3FEA120072333A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C43334E62A3FDD43003BA9E3 = {
+			isa = PBXGroup;
+			children = (
+				C43335042A3FDD78003BA9E3 /* knit */,
+				C43334F12A3FDD43003BA9E3 /* KnitExample */,
+				C447550E2A3FEA120072333A /* KnitExampleTests */,
+				C43334F02A3FDD43003BA9E3 /* Products */,
+				C43335082A3FDF68003BA9E3 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		C43334F02A3FDD43003BA9E3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C43334EF2A3FDD43003BA9E3 /* KnitExample.app */,
+				C447550D2A3FEA120072333A /* KnitExampleTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C43334F12A3FDD43003BA9E3 /* KnitExample */ = {
+			isa = PBXGroup;
+			children = (
+				C44754F62A3FE7570072333A /* KnitDITypeSafety.swift */,
+				C43334F22A3FDD43003BA9E3 /* KnitExampleApp.swift */,
+				C43334F42A3FDD43003BA9E3 /* ContentView.swift */,
+				C43334F62A3FDD44003BA9E3 /* Assets.xcassets */,
+				C43334F82A3FDD44003BA9E3 /* Preview Content */,
+				C43335052A3FDDD3003BA9E3 /* KnitExampleAssembly.swift */,
+			);
+			path = KnitExample;
+			sourceTree = "<group>";
+		};
+		C43334F82A3FDD44003BA9E3 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				C43334F92A3FDD44003BA9E3 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		C43335082A3FDF68003BA9E3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C447550E2A3FEA120072333A /* KnitExampleTests */ = {
+			isa = PBXGroup;
+			children = (
+				C44755162A3FEA5E0072333A /* KnitDIRegistrationTests.swift */,
+				C44755182A3FEA740072333A /* TestModuleAssembler.swift */,
+			);
+			path = KnitExampleTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C43334EE2A3FDD43003BA9E3 /* KnitExample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C43334FD2A3FDD44003BA9E3 /* Build configuration list for PBXNativeTarget "KnitExample" */;
+			buildPhases = (
+				C44754F52A3FE06F0072333A /* ShellScript */,
+				C43334EB2A3FDD43003BA9E3 /* Sources */,
+				C43334EC2A3FDD43003BA9E3 /* Frameworks */,
+				C43334ED2A3FDD43003BA9E3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KnitExample;
+			packageProductDependencies = (
+				C43335092A3FDF68003BA9E3 /* Knit */,
+			);
+			productName = KnitExample;
+			productReference = C43334EF2A3FDD43003BA9E3 /* KnitExample.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C447550C2A3FEA120072333A /* KnitExampleTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C44755132A3FEA120072333A /* Build configuration list for PBXNativeTarget "KnitExampleTests" */;
+			buildPhases = (
+				C44755092A3FEA120072333A /* Sources */,
+				C447550A2A3FEA120072333A /* Frameworks */,
+				C447550B2A3FEA120072333A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C44755122A3FEA120072333A /* PBXTargetDependency */,
+			);
+			name = KnitExampleTests;
+			productName = KnitExampleTests;
+			productReference = C447550D2A3FEA120072333A /* KnitExampleTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C43334E72A3FDD43003BA9E3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1430;
+				LastUpgradeCheck = 1420;
+				TargetAttributes = {
+					C43334EE2A3FDD43003BA9E3 = {
+						CreatedOnToolsVersion = 14.2;
+					};
+					C447550C2A3FEA120072333A = {
+						CreatedOnToolsVersion = 14.3.1;
+						TestTargetID = C43334EE2A3FDD43003BA9E3;
+					};
+				};
+			};
+			buildConfigurationList = C43334EA2A3FDD43003BA9E3 /* Build configuration list for PBXProject "KnitExample" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C43334E62A3FDD43003BA9E3;
+			productRefGroup = C43334F02A3FDD43003BA9E3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C43334EE2A3FDD43003BA9E3 /* KnitExample */,
+				C447550C2A3FEA120072333A /* KnitExampleTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C43334ED2A3FDD43003BA9E3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C43334FA2A3FDD44003BA9E3 /* Preview Assets.xcassets in Resources */,
+				C43334F72A3FDD44003BA9E3 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C447550B2A3FEA120072333A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C44754F52A3FE06F0072333A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/KnitExample/KnitExampleAssembly.swift",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/KnitExample/KnitDITypeSafety.swift",
+				"$(SRCROOT)/KnitExampleTests/KnitDIRegistrationTests.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/xcrun --sdk macosx swift run knit-cli \\\n--assembly-input-path KnitExample/KnitExampleAssembly.swift \\\n--type-safety-extensions-output-path KnitExample/KnitDITypeSafety.swift \\\n--unit-test-output-path KnitExampleTests/KnitDIRegistrationTests.swift\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C43334EB2A3FDD43003BA9E3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C43334F52A3FDD43003BA9E3 /* ContentView.swift in Sources */,
+				C43334F32A3FDD43003BA9E3 /* KnitExampleApp.swift in Sources */,
+				C44754F72A3FE7570072333A /* KnitDITypeSafety.swift in Sources */,
+				C43335062A3FDDD3003BA9E3 /* KnitExampleAssembly.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C44755092A3FEA120072333A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C44755192A3FEA740072333A /* TestModuleAssembler.swift in Sources */,
+				C44755172A3FEA5E0072333A /* KnitDIRegistrationTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C44755122A3FEA120072333A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C43334EE2A3FDD43003BA9E3 /* KnitExample */;
+			targetProxy = C44755112A3FEA120072333A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		C43334FB2A3FDD44003BA9E3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		C43334FC2A3FDD44003BA9E3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C43334FE2A3FDD44003BA9E3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"KnitExample/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.squareup.cash.KnitExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C43334FF2A3FDD44003BA9E3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"KnitExample/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.squareup.cash.KnitExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C44755142A3FEA120072333A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.squareup.cash.KnitExampleTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KnitExample.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KnitExample";
+			};
+			name = Debug;
+		};
+		C44755152A3FEA120072333A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.squareup.cash.KnitExampleTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KnitExample.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KnitExample";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C43334EA2A3FDD43003BA9E3 /* Build configuration list for PBXProject "KnitExample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C43334FB2A3FDD44003BA9E3 /* Debug */,
+				C43334FC2A3FDD44003BA9E3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C43334FD2A3FDD44003BA9E3 /* Build configuration list for PBXNativeTarget "KnitExample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C43334FE2A3FDD44003BA9E3 /* Debug */,
+				C43334FF2A3FDD44003BA9E3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C44755132A3FEA120072333A /* Build configuration list for PBXNativeTarget "KnitExampleTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C44755142A3FEA120072333A /* Debug */,
+				C44755152A3FEA120072333A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C43335092A3FDF68003BA9E3 /* Knit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Knit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = C43334E72A3FDD43003BA9E3 /* Project object */;
+}
