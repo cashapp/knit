@@ -3,6 +3,10 @@ import SwiftSyntax
 
 public struct Configuration {
 
+    public let filePath: String?
+
+    public let syntaxTree: SyntaxProtocol
+
     /// Name of the module for this configuration.
     public var name: String
 
@@ -15,12 +19,16 @@ public struct Configuration {
     public var testConfiguration: TestConfiguration?
 
     public init(
+        filePath: String? = nil,
+        syntaxTree: SyntaxProtocol,
         name: String,
         registrations: [Registration],
         errors: [Error],
         imports: [ImportDeclSyntax] = [],
         testConfiguration: TestConfiguration? = nil
     ) {
+        self.filePath = filePath
+        self.syntaxTree = syntaxTree
         self.name = name
         self.registrations = registrations
         self.errors = errors
@@ -84,10 +92,25 @@ public extension Configuration {
                 to: unitTestOutputPath
             )
         }
-        // Output any errors that occurred during parsing
+
+        printErrors()
+    }
+
+    // Output any errors that occurred during parsing
+    private func printErrors() {
+        guard !errors.isEmpty, let filePath else {
+            return
+        }
+        let lineConverter = SourceLocationConverter(file: filePath, tree: syntaxTree)
+
         for error in errors {
-            // TODO: Add file and line numbers and turn into an error
-            print("warning: \(error.localizedDescription)")
+            if let syntaxError = error as? SyntaxError {
+                let position = syntaxError.syntax.startLocation(converter: lineConverter, afterLeadingTrivia: true)
+                let line = position.line ?? 1
+                print("\(filePath):\(line): warning: \(error.localizedDescription)")
+            } else {
+                print("\(filePath): warning: \(error.localizedDescription)")
+            }
         }
     }
 
