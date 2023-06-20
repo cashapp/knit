@@ -286,9 +286,36 @@ final class RegistrationParsingTests: XCTestCase {
         let functionCall = FunctionCallExpr(stringLiteral: string)
 
         XCTAssertThrowsError(try functionCall.getRegistrations()) { error in
+            if case let RegistrationParsingError.missingArgumentType(_, name) = error {
+                XCTAssertEqual(name, "myArg")
+            } else {
+                XCTFail("Incorrect error case")
+            }
             XCTAssertEqual(
                 error.localizedDescription,
                 "Registration for myArg is missing a type. Type safe resolver has not been generated"
+            )
+        }
+    }
+
+    func testUnsupportedClosureSynatx() {
+        let string = """
+            container.register(A.self) { _, myArg in
+                A(string: myArg)
+            }
+        """
+
+        let functionCall = FunctionCallExpr(stringLiteral: string)
+
+        XCTAssertThrowsError(try functionCall.getRegistrations()) { error in
+            if case RegistrationParsingError.unwrappedClosureParams = error {
+                // Correct error case
+            } else {
+                XCTFail("Incorrect error case")
+            }
+            XCTAssertEqual(
+                error.localizedDescription,
+                "Registrations must wrap argument closures and add types: e.g. { (resolver: Resolver, arg: MyArg) in"
             )
         }
     }
