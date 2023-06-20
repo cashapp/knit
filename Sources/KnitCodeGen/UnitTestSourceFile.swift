@@ -6,7 +6,8 @@ public enum UnitTestSourceFile {
     public static func make(
         importDecls: [ImportDeclSyntax],
         setupCodeBlock: CodeBlockItemListSyntax?,
-        registrations: [Registration]
+        registrations: [Registration],
+        registrationsIntoCollections: [RegistrationIntoCollection]
     ) -> SourceFileSyntax {
         SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             for importDecl in importDecls {
@@ -43,13 +44,18 @@ public enum UnitTestSourceFile {
                         } else {
                             FunctionCallExprSyntax("resolver.assertTypeResolves(\(raw: registration.service).self)")
                         }
+                    }
 
+                    for (service, count) in groupByService(registrationsIntoCollections) {
+                        FunctionCallExprSyntax(
+                            "resolver.assertCollectionResolves(\(raw: service).self, count: \(raw: count))"
+                        )
                     }
                 }
             }
 
             // swiftlint:disable line_length
-            DeclSyntax("""
+            DeclSyntax(#"""
                 private extension Resolver {
 
                     func assertTypeResolves<T>(
@@ -66,9 +72,37 @@ public enum UnitTestSourceFile {
                         )
                     }
 
+                    func assertCollectionResolves <T> (
+                        _ type: T.Type,
+                        count expectedCount: Int,
+                        file: StaticString = #filePath,
+                        line: UInt = #line
+                    ) {
+                        let actualCount = resolveCollection(type).entries.count
+                        XCTAssert(
+                            actualCount >= expectedCount,
+                            """
+                            The resolved ServiceCollection<\(type)> did not contain the expected number of services \
+                            (resolved \(actualCount), expected \(expectedCount)).
+                            Make sure your assembler contains a ServiceCollector behavior.
+                            """,
+                            file: file,
+                            line: line
+                        )
+                    }
+
                 }
-                """)
+                """#)
             // swiftlint:enable line_length
+        }
+    }
+
+    /// Groups the provided registrations by service
+    /// - Returns: A dictionary mapping each service to the number of times it was registered
+    private static func groupByService(_ registrations: [RegistrationIntoCollection]) -> [String: Int] {
+        registrations.reduce(into: [:]) { result, registration in
+            let existingCount = result[registration.service] ?? 0
+            result[registration.service] = existingCount + 1
         }
     }
 

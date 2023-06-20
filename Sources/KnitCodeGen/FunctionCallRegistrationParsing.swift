@@ -9,7 +9,7 @@ extension FunctionCallExprSyntax {
 
     /// Retrieve any registrations if they exist in the function call expression.
     /// Function call expressions can contain chained function calls, and this method will parse the chain.
-    func getRegistrations() throws -> [Registration] {
+    func getRegistrations() throws -> (registrations: [Registration], registrationsIntoCollections: [RegistrationIntoCollection]) {
         // Collect all chained method calls
         var calledMethods = [(calledExpr: MemberAccessExprSyntax, arguments: TupleExprElementListSyntax, closure: ClosureExprSyntax?)]()
 
@@ -32,12 +32,26 @@ extension FunctionCallExprSyntax {
 
         // Kick off recursion with the current function call
         guard let baseIdentfier = recurseCalledExpressions(self) else {
-            return []
+            return ([], [])
         }
 
         // The final base identifier must be the "container" local argument
         guard baseIdentfier.text == "container" else {
-            return []
+            return ([], [])
+        }
+
+        let registrationIntoCollection = calledMethods
+            .first { calledExpr, _, _ in
+                let name = calledExpr.name.text
+                return name == "registerIntoCollection" || name == "autoregisterIntoCollection"
+            }
+            .flatMap { _, arguments, _ in
+                makeRegistrationIntoCollection(arguments: arguments)
+            }
+
+        // If this is a registration into a collection, there's nothing left to parse.
+        if let registrationIntoCollection {
+            return ([], [registrationIntoCollection])
         }
 
         let registerMethods = calledMethods.filter { calledExpr, _, _ in
@@ -50,7 +64,7 @@ extension FunctionCallExprSyntax {
         }
 
         guard let primaryRegisterMethod = registerMethods.first else {
-            return []
+            return ([], [])
         }
 
         // Arguments from the primary registration apply to all .implements() calls
@@ -66,7 +80,7 @@ extension FunctionCallExprSyntax {
             leadingTrivia: self.leadingTrivia,
             isForwarded: false
         ) else {
-            return []
+            return ([], [])
         }
 
         let implementsCalledMethods = calledMethods.filter { calledExpr, _, _ in
@@ -92,7 +106,7 @@ extension FunctionCallExprSyntax {
         // The called methods process from the outside in, which is reverse order of how they read
         forwardedRegistrations.reverse()
 
-        return [primaryRegistration] + forwardedRegistrations
+        return ([primaryRegistration] + forwardedRegistrations, [])
     }
 
 }
@@ -125,6 +139,17 @@ private func makeRegistrationFor(
         arguments: registrationArguments,
         isForwarded: isForwarded
     )
+}
+
+private func makeRegistrationIntoCollection(
+    arguments: TupleExprElementListSyntax
+) -> RegistrationIntoCollection? {
+    guard let firstParam = arguments.first?.as(TupleExprElementSyntax.self)?
+        .expression.as(MemberAccessExprSyntax.self) else { return nil }
+    guard firstParam.name.text == "self" else { return nil }
+
+    let registrationText = firstParam.base!.withoutTrivia().description
+    return RegistrationIntoCollection(service: registrationText)
 }
 
 private func getName(arguments: TupleExprElementListSyntax) -> String? {

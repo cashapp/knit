@@ -29,6 +29,7 @@ func parseSyntaxTree(_ syntaxTree: SyntaxProtocol, filePath: String? = nil) thro
         syntaxTree: syntaxTree,
         name: name,
         registrations: assemblyFileVisitor.registrations,
+        registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
         errors: assemblyFileVisitor.registrationErrors,
         imports: assemblyFileVisitor.imports
     )
@@ -45,6 +46,10 @@ private class AssemblyFileVisitor: SyntaxVisitor {
 
     var registrations: [Registration] {
         return classDeclVisitor?.registrations ?? []
+    }
+
+    var registrationsIntoCollections: [RegistrationIntoCollection] {
+        return classDeclVisitor?.registrationsIntoCollections ?? []
     }
 
     var registrationErrors: [Error] {
@@ -85,11 +90,17 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     /// The registrations that were found in the tree.
     private(set) var registrations = [Registration]()
+
+    /// The registrations into collections that were found in the tree
+    private(set) var registrationsIntoCollections = [RegistrationIntoCollection]()
+
     private(set) var registrationErrors = [Error]()
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         do {
-            registrations.append(contentsOf: try node.getRegistrations())
+            let (registrations, registrationsIntoCollections) = try node.getRegistrations()
+            self.registrations.append(contentsOf: registrations)
+            self.registrationsIntoCollections.append(contentsOf: registrationsIntoCollections)
         } catch {
             registrationErrors.append(error)
         }
