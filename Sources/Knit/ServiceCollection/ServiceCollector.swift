@@ -42,7 +42,7 @@ public final class ServiceCollector: Behavior {
             container.register(ServiceCollection<Service>.self) { resolver in
                 let factories = self.factoriesByService[ObjectIdentifier(type)]!
                 return .init(entries: factories.map { $0(resolver) as! Service })
-            }
+            }.inObjectScope(.transient)
         }
         var factories = factoriesByService[ObjectIdentifier(Service.self)] ?? []
         factories.append {
