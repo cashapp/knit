@@ -78,7 +78,7 @@ public enum TypeSafetySourceFile {
 
 }
 
-private extension Registration {
+extension Registration {
 
     /// Generate names for each argument based on the type
     func namedArguments() -> [(name: String, type: String)] {

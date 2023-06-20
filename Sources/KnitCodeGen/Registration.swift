@@ -29,7 +29,6 @@ public struct Registration: Equatable {
 }
 
 extension Registration {
-
     public struct Argument: Equatable {
         let name: String?
         let type: String
@@ -39,7 +38,6 @@ extension Registration {
             self.type = type
         }
     }
-
 }
 
 public enum AccessLevel {
