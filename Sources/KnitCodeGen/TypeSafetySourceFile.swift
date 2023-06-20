@@ -55,8 +55,8 @@ public enum TypeSafetySourceFile {
             return (nil, nil)
         }
         let prefix = registration.arguments.count == 1 ? "argument:" : "arguments:"
-        let input = registration.namedArguments.map { "\($0.name): \($0.type)" }.joined(separator: ", ")
-        let usages = registration.namedArguments.map { $0.name }.joined(separator: ", ")
+        let input = registration.namedArguments().map { "\($0.name): \($0.type)" }.joined(separator: ", ")
+        let usages = registration.namedArguments().map { $0.name }.joined(separator: ", ")
         return (input, "\(prefix) \(usages)")
     }
 
@@ -81,16 +81,16 @@ public enum TypeSafetySourceFile {
 private extension Registration {
 
     /// Generate names for each argument based on the type
-    var namedArguments: [(name: String, type: String)] {
+    func namedArguments() -> [(name: String, type: String)] {
         var result: [(name: String, type: String)] = []
         for argument in arguments {
             let indexID: String
-            if (arguments.filter { $0.resolvedName == argument.resolvedName }).count > 1 {
+            if (arguments.filter { $0.resolvedName() == argument.resolvedName() }).count > 1 {
                 indexID = (result.filter { $0.type == argument.type }.count + 1).description
             } else {
                 indexID = ""
             }
-            let name = argument.resolvedName + indexID
+            let name = argument.resolvedName() + indexID
             result.append((name, argument.type))
         }
         return result
@@ -100,7 +100,7 @@ private extension Registration {
 
 private extension Registration.Argument {
 
-    var resolvedName: String {
+    func resolvedName() -> String {
         if let name {
             return name
         }
