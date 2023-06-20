@@ -17,13 +17,17 @@ final class UnitTestSourceFileTests: XCTestCase {
                 .init(service: "ServiceB", name: "otherName", accessLevel: .internal, isForwarded: true),
                 .init(service: "ServiceC", name: nil, accessLevel: .hidden, isForwarded: false),
                 .init(service: "ServiceD", accessLevel: .hidden, arguments: [.init(type: "String")]),
+            ],
+            registrationsIntoCollections: [
+                .init(service: "ServiceD"),
+                .init(service: "ServiceD"),
             ]
         )
 
         //Remote trailing line spaces
         let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
 
-        let expected = """
+        let expected = #"""
 
         // Generated using Knit
         // Do not edit directly!
@@ -43,6 +47,7 @@ final class UnitTestSourceFileTests: XCTestCase {
                 resolver.assertTypeResolves(ServiceB.self, name: "otherName")
                 resolver.assertTypeResolves(ServiceC.self)
                 resolver.assertTypeResolved(resolver.resolve(ServiceD.self, argument: args.serviceDString))
+                resolver.assertCollectionResolves(ServiceD.self, count: 2)
             }
         }
         struct KnitRegistrationTestArguments {
@@ -57,7 +62,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             ) {
                 XCTAssertNotNil(
                     resolve(type, name: name),
-                    "The container did not resolve the type: \\(type). Check that this type is registered correctly.",
+                    "The container did not resolve the type: \(type). Check that this type is registered correctly.",
                     file: file,
                     line: line
                 )
@@ -69,13 +74,31 @@ final class UnitTestSourceFileTests: XCTestCase {
             ) {
                 XCTAssertNotNil(
                     result,
-                    "The container did not resolve the type: \\(T.self). Check that this type is registered correctly.",
+                    "The container did not resolve the type: \(T.self). Check that this type is registered correctly.",
+                    file: file,
+                    line: line
+                )
+            }
+            func assertCollectionResolves < T > (
+                _ type: T.Type,
+                count expectedCount: Int,
+                file: StaticString = #filePath,
+                line: UInt = #line
+            ) {
+                let actualCount = resolveCollection(type).entries.count
+                XCTAssert(
+                    actualCount >= expectedCount,
+                    """
+                The resolved ServiceCollection<\(type)> did not contain the expected number of services \
+                (resolved \(actualCount), expected \(expectedCount)).
+                Make sure your assembler contains a ServiceCollector behavior.
+                """,
                     file: file,
                     line: line
                 )
             }
         }
-        """
+        """#
 
         XCTAssertEqual(formattedResult, expected)
     }
