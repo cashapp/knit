@@ -5,7 +5,6 @@ public enum UnitTestSourceFile {
 
     public static func make(
         importDecls: [ImportDeclSyntax],
-        setupCodeBlock: CodeBlockItemListSyntax?,
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection]
     ) -> SourceFileSyntax {
@@ -18,9 +17,6 @@ public enum UnitTestSourceFile {
 
                 FunctionDeclSyntax("func testRegistrations()") {
 
-                    if let setupCodeBlock {
-                        setupCodeBlock
-                    }
                     DeclSyntax("""
                         // In the test target for your module, please provide a static method that creates a
                         // ModuleAssembler instance for testing.

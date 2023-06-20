@@ -10,7 +10,6 @@ final class UnitTestSourceFileTests: XCTestCase {
     func test_generation() {
         let result = UnitTestSourceFile.make(
             importDecls: [ImportDeclSyntax("import Swinject")],
-            setupCodeBlock: nil,
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
                 .init(service: "ServiceB", name: "name", accessLevel: .internal, isForwarded: false),
