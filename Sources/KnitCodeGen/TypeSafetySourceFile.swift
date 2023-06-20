@@ -77,3 +77,37 @@ public enum TypeSafetySourceFile {
     }
 
 }
+
+private extension Registration {
+
+    /// Generate names for each argument based on the type
+    var namedArguments: [(name: String, type: String)] {
+        var result: [(name: String, type: String)] = []
+        for argument in arguments {
+            let indexID: String
+            if (arguments.filter { $0.resolvedName == argument.resolvedName }).count > 1 {
+                indexID = (result.filter { $0.type == argument.type }.count + 1).description
+            } else {
+                indexID = ""
+            }
+            let name = argument.resolvedName + indexID
+            result.append((name, argument.type))
+        }
+        return result
+    }
+
+}
+
+private extension Registration.Argument {
+
+    var resolvedName: String {
+        if let name {
+            return name
+        }
+        if type.uppercased() == type {
+            return type.lowercased()
+        }
+        return type.prefix(1).lowercased() + type.dropFirst()
+    }
+
+}
