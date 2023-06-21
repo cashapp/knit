@@ -126,4 +126,35 @@ final class TypeSafetySourceFileTests: XCTestCase {
         )
     }
 
+    func testArgumentNames() {
+        let registration1 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String?")])
+        XCTAssertEqual(
+            registration1.namedArguments().map { $0.name },
+            ["string"]
+        )
+
+        let registration2 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Service.Argument")])
+        XCTAssertEqual(
+            registration2.namedArguments().map { $0.name },
+            ["argument"]
+        )
+
+        let registration3 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Result<String, Error>")])
+        XCTAssertEqual(
+            registration3.namedArguments().map { $0.name },
+            ["result"]
+        )
+
+        let registration4 = Registration(
+            service: "A",
+            accessLevel: .public,
+            arguments: [.init(type: "[Result<ServerResponse<Any>, Swift.Error>]")]
+        )
+        XCTAssertEqual(
+            registration4.namedArguments().map { $0.name },
+            ["result"]
+        )
+
+    }
+
 }

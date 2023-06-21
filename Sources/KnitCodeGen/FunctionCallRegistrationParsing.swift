@@ -50,7 +50,7 @@ extension FunctionCallExprSyntax {
         }
 
         guard registerMethods.count <= 1 else {
-            fatalError("Chained registration calls are not supported")
+            throw RegistrationParsingError.chainedRegistrations(syntax: registerMethods[0].calledExpression)
         }
 
         guard let primaryRegisterMethod = registerMethods.first else {
@@ -64,7 +64,7 @@ extension FunctionCallExprSyntax {
         )
 
         // The primary registration (not `.implements()`)
-        guard let primaryRegistration = makeRegistrationFor(
+        guard let primaryRegistration = try makeRegistrationFor(
             arguments: primaryRegisterMethod.arguments,
             registrationArguments: registrationArguments,
             leadingTrivia: self.leadingTrivia,
@@ -83,7 +83,7 @@ extension FunctionCallExprSyntax {
             // For `.implements()` the leading trivia is attached to the Dot syntax node
             let leadingTrivia = implementsCalledMethod.calledExpression.dot.leadingTrivia
 
-            if let forwardedRegistration = makeRegistrationFor(
+            if let forwardedRegistration = try makeRegistrationFor(
                 arguments: implementsCalledMethod.arguments,
                 registrationArguments: registrationArguments,
                 leadingTrivia: leadingTrivia,
@@ -139,7 +139,7 @@ private func makeRegistrationFor(
     registrationArguments: [Registration.Argument],
     leadingTrivia: Trivia?,
     isForwarded: Bool
-) -> Registration? {
+) throws -> Registration? {
     guard let firstParam = arguments.first?.as(TupleExprElementSyntax.self)?
         .expression.as(MemberAccessExprSyntax.self) else { return nil }
     guard firstParam.name.text == "self" else { return nil }
@@ -153,7 +153,7 @@ private func makeRegistrationFor(
     } else {
         accessLevel = .internal
     }
-    let name = getName(arguments: arguments)
+    let name = try getName(arguments: arguments)
 
     return Registration(
         service: registrationText,
@@ -175,13 +175,12 @@ private func makeRegistrationIntoCollection(
     return RegistrationIntoCollection(service: registrationText)
 }
 
-private func getName(arguments: TupleExprElementListSyntax) -> String? {
-    let nameParam = arguments.first(where: {$0.label?.text == "name"})
-    guard let name = nameParam?.expression.as(StringLiteralExprSyntax.self)?.description else {
+private func getName(arguments: TupleExprElementListSyntax) throws -> String? {
+    guard let nameParam = arguments.first(where: {$0.label?.text == "name"}) else {
         return nil
     }
-    guard name.hasPrefix("\"") && name.hasSuffix("\"") else {
-        fatalError("Service name must be a static string. Found: \(name)")
+    guard let name = nameParam.expression.as(StringLiteralExprSyntax.self)?.description else {
+        throw RegistrationParsingError.nonStaticString(syntax: arguments, name: nameParam.description)
     }
     return String(name.dropFirst().dropLast())
 }
@@ -192,9 +191,9 @@ private func getArguments(
 ) throws -> [Registration.Argument] {
     // Check for a single argument param when using autoregister
     if let argumentParam = arguments.first(where: {$0.label?.text == "argument"}),
-       let argumentType = argumentParam.expression.as(MemberAccessExprSyntax.self)?.base?.as(IdentifierExprSyntax.self)
+       let argumentType = getArgumentType(arg: argumentParam)
     {
-        return [.init(type: argumentType.identifier.text)]
+        return [.init(type: argumentType)]
     }
 
     // Autoregister can provide multiple arguments.
@@ -202,10 +201,10 @@ private func getArguments(
     if let argumentsParamIndex = arguments.firstIndex(where: {$0.label?.text == "arguments"}),
        let initIndex = arguments.firstIndex(where: {$0.label?.text == "initializer"}) {
         return arguments[argumentsParamIndex..<initIndex].compactMap { element in
-            guard let type = element.expression.as(MemberAccessExprSyntax.self)?.base?.as(IdentifierExprSyntax.self) else {
+            guard let type = getArgumentType(arg: element) else {
                 return nil
             }
-            return .init(type: type.identifier.text)
+            return .init(type: type)
         }
     }
 
@@ -219,7 +218,7 @@ private func getArguments(
         let params = closureParameters.parameterList
         // The first param is the resolver, everything after that is an argument
         return try params[params.index(after: params.startIndex)..<params.endIndex].compactMap { element in
-            guard let name = element.firstName?.text, let type = element.type?.as(SimpleTypeIdentifierSyntax.self)?.name.text else {
+            guard let name = element.firstName?.text, let type = getArgumentType(arg: element)  else {
                 throw RegistrationParsingError.missingArgumentType(syntax: element, name: element.firstName?.text ?? "_")
             }
             return .init(name: name, type: type)
@@ -229,10 +228,24 @@ private func getArguments(
     return []
 }
 
+private func getArgumentType(arg: TupleExprElementSyntax) -> String? {
+    return arg.expression.as(MemberAccessExprSyntax.self)?.base?.description
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+private func getArgumentType(arg: FunctionParameterSyntax) -> String? {
+    guard let type = arg.type else {
+        return nil
+    }
+    return type.description.trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
 enum RegistrationParsingError: LocalizedError, SyntaxError {
 
     case missingArgumentType(syntax: SyntaxProtocol, name: String)
     case unwrappedClosureParams(syntax: SyntaxProtocol)
+    case chainedRegistrations(syntax: SyntaxProtocol)
+    case nonStaticString(syntax: SyntaxProtocol, name: String)
 
     var errorDescription: String? {
         switch self {
@@ -240,14 +253,19 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             return "Registration for \(name) is missing a type. Type safe resolver has not been generated"
         case .unwrappedClosureParams:
             return "Registrations must wrap argument closures and add types: e.g. { (resolver: Resolver, arg: MyArg) in"
+        case .chainedRegistrations:
+            return "Chained registration calls are not supported"
+        case let .nonStaticString(_, name):
+            return "Service name must be a static string. Found: \(name)"
         }
     }
 
     var syntax: SyntaxProtocol {
         switch self {
-        case let .missingArgumentType(syntax, _):
-            return syntax
-        case let .unwrappedClosureParams(syntax):
+        case let .missingArgumentType(syntax, _),
+            let .chainedRegistrations(syntax),
+            let .nonStaticString(syntax, _),
+            let .unwrappedClosureParams(syntax):
             return syntax
         }
     }

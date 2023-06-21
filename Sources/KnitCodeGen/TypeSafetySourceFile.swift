@@ -1,3 +1,4 @@
+import Foundation
 import SwiftSyntax
 import SwiftSyntaxBuilder
 
@@ -104,10 +105,27 @@ private extension Registration.Argument {
         if let name {
             return name
         }
+        let type = sanitizeType()
         if type.uppercased() == type {
             return type.lowercased()
         }
         return type.prefix(1).lowercased() + type.dropFirst()
+    }
+
+    /// Simplifies the type name and removes invalid characters
+    func sanitizeType() -> String {
+        let removedCharacters = CharacterSet(charactersIn: "?[]")
+        var type = self.type.components(separatedBy: removedCharacters).joined(separator: "")
+        let regex = try! NSRegularExpression(pattern: "<.*>")
+        if let match = regex.firstMatch(in: type, range: .init(location: 0, length: type.count)) {
+            type = (type as NSString).replacingCharacters(in: match.range, with: "")
+        }
+        if let dotIndex = type.firstIndex(of: ".") {
+            let nameStart = type.index(after: dotIndex)
+            type = String(type[nameStart...])
+        }
+
+        return type
     }
 
 }
