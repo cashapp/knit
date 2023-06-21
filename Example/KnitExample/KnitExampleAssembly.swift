@@ -20,12 +20,16 @@ final class KnitExampleAssembly: Assembly {
             initializer: ExampleArgumentService.init(arg:)
         )
 
+        container.autoregister(NamedService.self, name: "name", initializer: NamedService.init)
+
         container.autoregisterIntoCollection(ExampleService.self, initializer: ExampleService.init)
     }
 
 }
 
 // MARK: - Example services
+
+final class NamedService {}
 
 final class ExampleService {
     init() { }

@@ -102,9 +102,9 @@ public extension Configuration {
             if let syntaxError = error as? SyntaxError {
                 let position = syntaxError.syntax.startLocation(converter: lineConverter, afterLeadingTrivia: true)
                 let line = position.line ?? 1
-                print("\(filePath):\(line): warning: \(error.localizedDescription)")
+                print("\(filePath):\(line): error: \(error.localizedDescription)")
             } else {
-                print("\(filePath): warning: \(error.localizedDescription)")
+                print("\(filePath): error: \(error.localizedDescription)")
             }
         }
     }

@@ -370,6 +370,23 @@ final class RegistrationParsingTests: XCTestCase {
         }
     }
 
+    func testInvalidName() {
+        let string = """
+            container.register(A.self, name: name) { _ in
+                A()
+            }
+        """
+
+        let functionCall = FunctionCallExpr(stringLiteral: string)
+
+        XCTAssertThrowsError(try functionCall.getRegistrations()) { error in
+            XCTAssertEqual(
+                error.localizedDescription,
+                "Service name must be a static string. Found: name: name"
+            )
+        }
+    }
+
     func testRegistrationIntoCollection() {
         assertMultipleRegistrationsString(
             """
