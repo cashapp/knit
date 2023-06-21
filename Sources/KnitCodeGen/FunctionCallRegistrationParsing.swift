@@ -5,48 +5,38 @@
 import Foundation
 import SwiftSyntax
 
+struct CalledMethod {
+
+    // The member access for each called expression, e.g. `object.methodName(arg1: String)`.
+    let calledExpression: MemberAccessExprSyntax
+
+    // The arguments passed to the method, e.g. `arg1: String` from the example above.
+    let arguments: TupleExprElementListSyntax
+
+    // A trailing closure after the called method (which is the last argument for that method call).
+    let trailingClosure: ClosureExprSyntax?
+}
+
 extension FunctionCallExprSyntax {
 
     /// Retrieve any registrations if they exist in the function call expression.
     /// Function call expressions can contain chained function calls, and this method will parse the chain.
     func getRegistrations() throws -> (registrations: [Registration], registrationsIntoCollections: [RegistrationIntoCollection]) {
-        // Collect all chained method calls
-        var calledMethods = [(calledExpr: MemberAccessExprSyntax, arguments: TupleExprElementListSyntax, closure: ClosureExprSyntax?)]()
 
-        // Returns the base identifier token that was called
-        func recurseCalledExpressions(_ funcCall: FunctionCallExprSyntax) -> TokenSyntax? {
-
-            guard let calledExpr = funcCall.calledExpression.as(MemberAccessExprSyntax.self) else {
-                return nil
-            }
-
-            // Append the method call
-            calledMethods.append((calledExpr: calledExpr, arguments: funcCall.argumentList, funcCall.trailingClosure))
-            if let identifierToken = calledExpr.base?.as(IdentifierExprSyntax.self)?.identifier {
-                return identifierToken
-            } else {
-                let innerFunctionCall = calledExpr.base!.as(FunctionCallExprSyntax.self)!
-                return recurseCalledExpressions(innerFunctionCall)
-            }
-        }
-
-        // Kick off recursion with the current function call
-        guard let baseIdentfier = recurseCalledExpressions(self) else {
-            return ([], [])
-        }
+        let (calledMethods, baseIdentifier) = recurseAllCalledMethods(startingWith: self)
 
         // The final base identifier must be the "container" local argument
-        guard baseIdentfier.text == "container" else {
+        guard let baseIdentifier, baseIdentifier.text == "container" else {
             return ([], [])
         }
 
         let registrationIntoCollection = calledMethods
-            .first { calledExpr, _, _ in
-                let name = calledExpr.name.text
+            .first { method in
+                let name = method.calledExpression.name.text
                 return name == "registerIntoCollection" || name == "autoregisterIntoCollection"
             }
-            .flatMap { _, arguments, _ in
-                makeRegistrationIntoCollection(arguments: arguments)
+            .flatMap { method in
+                makeRegistrationIntoCollection(arguments: method.arguments)
             }
 
         // If this is a registration into a collection, there's nothing left to parse.
@@ -54,8 +44,8 @@ extension FunctionCallExprSyntax {
             return ([], [registrationIntoCollection])
         }
 
-        let registerMethods = calledMethods.filter { calledExpr, _, _ in
-            let name = calledExpr.name.text
+        let registerMethods = calledMethods.filter { method in
+            let name = method.calledExpression.name.text
             return name == "register" || name == "autoregister" || name == "registerAbstract"
         }
 
@@ -70,7 +60,7 @@ extension FunctionCallExprSyntax {
         // Arguments from the primary registration apply to all .implements() calls
         let registrationArguments = try getArguments(
             arguments: primaryRegisterMethod.arguments,
-            trailingClosure: primaryRegisterMethod.closure
+            trailingClosure: primaryRegisterMethod.trailingClosure
         )
 
         // The primary registration (not `.implements()`)
@@ -83,15 +73,15 @@ extension FunctionCallExprSyntax {
             return ([], [])
         }
 
-        let implementsCalledMethods = calledMethods.filter { calledExpr, _, _ in
-            calledExpr.name.text == "implements"
+        let implementsCalledMethods = calledMethods.filter { method in
+            method.calledExpression.name.text == "implements"
         }
 
         var forwardedRegistrations = [Registration]()
 
         for implementsCalledMethod in implementsCalledMethods {
             // For `.implements()` the leading trivia is attached to the Dot syntax node
-            let leadingTrivia = implementsCalledMethod.calledExpr.dot.leadingTrivia
+            let leadingTrivia = implementsCalledMethod.calledExpression.dot.leadingTrivia
 
             if let forwardedRegistration = makeRegistrationFor(
                 arguments: implementsCalledMethod.arguments,
@@ -109,6 +99,39 @@ extension FunctionCallExprSyntax {
         return ([primaryRegistration] + forwardedRegistrations, [])
     }
 
+}
+
+func recurseAllCalledMethods(
+    startingWith startFunctionCall: FunctionCallExprSyntax
+) -> (calledMethods: [CalledMethod], baseToken: TokenSyntax?) {
+    // Collect all chained method calls
+    var calledMethods = [CalledMethod]()
+
+    // Returns the base identifier token that was called
+    func recurseCalledExpressions(_ funcCall: FunctionCallExprSyntax) -> TokenSyntax? {
+
+        guard let calledExpr = funcCall.calledExpression.as(MemberAccessExprSyntax.self) else {
+            return nil
+        }
+
+        // Append each method call as we recurse
+        calledMethods.append(CalledMethod(
+            calledExpression: calledExpr,
+            arguments: funcCall.argumentList,
+            trailingClosure: funcCall.trailingClosure
+        ))
+        if let identifierToken = calledExpr.base?.as(IdentifierExprSyntax.self)?.identifier {
+            return identifierToken
+        } else {
+            let innerFunctionCall = calledExpr.base!.as(FunctionCallExprSyntax.self)!
+            return recurseCalledExpressions(innerFunctionCall)
+        }
+    }
+
+    // Kick off recursion with the current function call expression
+    let baseIdentifier = recurseCalledExpressions(startFunctionCall)
+
+    return (calledMethods, baseIdentifier)
 }
 
 private func makeRegistrationFor(
