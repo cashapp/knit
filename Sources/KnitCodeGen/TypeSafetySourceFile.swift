@@ -114,14 +114,15 @@ private extension Registration.Argument {
 
     /// Simplifies the type name and removes invalid characters
     func sanitizeType() -> String {
-        var type = self.type.replacingOccurrences(of: "?", with: "")
-        if let dotIndex = type.firstIndex(of: ".") {
-            let nameStart = type.index(after: dotIndex)
-            type = String(type[nameStart...])
-        }
+        let removedCharacters = CharacterSet(charactersIn: "?[]")
+        var type = self.type.components(separatedBy: removedCharacters).joined(separator: "")
         let regex = try! NSRegularExpression(pattern: "<.*>")
         if let match = regex.firstMatch(in: type, range: .init(location: 0, length: type.count)) {
             type = (type as NSString).replacingCharacters(in: match.range, with: "")
+        }
+        if let dotIndex = type.firstIndex(of: ".") {
+            let nameStart = type.index(after: dotIndex)
+            type = String(type[nameStart...])
         }
 
         return type
