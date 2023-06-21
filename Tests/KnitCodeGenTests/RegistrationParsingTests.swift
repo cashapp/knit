@@ -149,7 +149,7 @@ final class RegistrationParsingTests: XCTestCase {
     }
 
     func testRegisterWithArguments() {
-        // Single argument
+        // Single argument, trailing closure
         assertMultipleRegistrationsString(
             """
             container.register(A.self) { (_, arg: String) in
@@ -161,12 +161,43 @@ final class RegistrationParsingTests: XCTestCase {
             ]
         )
 
-        // Multiple arguments
+        // Single argument, named parameter
+        assertMultipleRegistrationsString(
+            """
+            container.register(A.self, factory: { (_, arg: String) in
+                A(string: arg)
+            })
+            """,
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")])
+            ]
+        )
+
+        // Multiple arguments, trailing closure
         assertMultipleRegistrationsString(
             """
             container.register(A.self) { (resolver: Resolver, arg: String, arg2: Int) in
                 A()
             }
+            """,
+            registrations: [
+                Registration(
+                    service: "A",
+                    accessLevel: .internal,
+                    arguments: [
+                        .init(name: "arg", type: "String"),
+                        .init(name: "arg2", type: "Int"),
+                    ]
+                )
+            ]
+        )
+
+        // Multiple arguments, named parameter
+        assertMultipleRegistrationsString(
+            """
+            container.register(A.self, factory: { (resolver: Resolver, arg: String, arg2: Int) in
+                A()
+            })
             """,
             registrations: [
                 Registration(
@@ -366,6 +397,26 @@ final class RegistrationParsingTests: XCTestCase {
             XCTAssertEqual(
                 error.localizedDescription,
                 "Registrations must wrap argument closures and add types: e.g. { (resolver: Resolver, arg: MyArg) in"
+            )
+        }
+    }
+
+    func testIncorrectFactoryType() {
+        let string = """
+            container.register(A.self, factory: A.staticFunc)
+        """
+
+        let functionCall = FunctionCallExpr(stringLiteral: string)
+
+        XCTAssertThrowsError(try functionCall.getRegistrations()) { error in
+            if case RegistrationParsingError.incorrectFactoryType = error {
+                // Correct error case
+            } else {
+                XCTFail("Incorrect error case")
+            }
+            XCTAssertEqual(
+                error.localizedDescription,
+                "Factory type must be a closure. Found MemberAccessExprSyntax"
             )
         }
     }
