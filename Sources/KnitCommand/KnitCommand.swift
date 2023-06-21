@@ -29,12 +29,21 @@ public struct KnitCommand: ParsableCommand {
                   """)
     var unitTestOutputPath: String?
 
+    @Option(help: """
+                  Path to the file location where the intermediate parsed data should be written
+                  """)
+    var jsonDataOutputPath: String?
+
     public init() {}
 
     public func run() {
         let parsedConfig: Configuration
         do {
             parsedConfig = try parseAssembly(at: assemblyInputPath)
+            if let jsonDataOutputPath {
+                let data = try JSONEncoder().encode(parsedConfig)
+                try data.write(to: URL(fileURLWithPath: jsonDataOutputPath))
+            }
         } catch {
             fatalError(error.localizedDescription)
         }

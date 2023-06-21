@@ -1,7 +1,7 @@
 import Foundation
 import SwiftSyntax
 
-public struct Configuration {
+public struct Configuration: Encodable {
 
     public let filePath: String?
 
@@ -13,9 +13,9 @@ public struct Configuration {
     public var registrations: [Registration]
     public var registrationsIntoCollections: [RegistrationIntoCollection]
 
-    public var errors: [Error]
+    public var errors: [Error] = []
 
-    public var imports: [ImportDeclSyntax]
+    public var imports: [ImportDeclSyntax] = []
 
     public init(
         filePath: String? = nil,
@@ -33,6 +33,11 @@ public struct Configuration {
         self.registrationsIntoCollections = registrationsIntoCollections
         self.errors = errors
         self.imports = imports
+    }
+
+    public enum CodingKeys: CodingKey {
+        case name
+        case registrations
     }
 
 }

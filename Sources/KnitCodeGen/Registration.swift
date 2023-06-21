@@ -1,4 +1,4 @@
-public struct Registration: Equatable {
+public struct Registration: Equatable, Codable {
 
     public var service: String
 
@@ -29,7 +29,7 @@ public struct Registration: Equatable {
 }
 
 extension Registration {
-    public struct Argument: Equatable {
+    public struct Argument: Equatable, Codable {
         let name: String?
         let type: String
 
@@ -40,7 +40,7 @@ extension Registration {
     }
 }
 
-public enum AccessLevel {
+public enum AccessLevel: String, Codable {
     case `public`
     case `internal`
     case hidden
