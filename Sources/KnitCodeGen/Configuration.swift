@@ -17,8 +17,6 @@ public struct Configuration {
 
     public var imports: [ImportDeclSyntax]
 
-    public var testConfiguration: TestConfiguration?
-
     public init(
         filePath: String? = nil,
         syntaxTree: SyntaxProtocol,
@@ -26,8 +24,7 @@ public struct Configuration {
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
         errors: [Error],
-        imports: [ImportDeclSyntax] = [],
-        testConfiguration: TestConfiguration? = nil
+        imports: [ImportDeclSyntax] = []
     ) {
         self.filePath = filePath
         self.syntaxTree = syntaxTree
@@ -36,7 +33,6 @@ public struct Configuration {
         self.registrationsIntoCollections = registrationsIntoCollections
         self.errors = errors
         self.imports = imports
-        self.testConfiguration = testConfiguration
     }
 
 }
@@ -58,14 +54,9 @@ public extension Configuration {
         var allImports = imports
         allImports.append("@testable import \(raw: self.name)")
         allImports.append("import XCTest")
-        if let testImports = testConfiguration?.imports {
-            let testImportsDecls = testImports.map { ImportDeclSyntax(moduleName: $0) }
-            allImports.append(contentsOf: testImportsDecls)
-        }
 
         return UnitTestSourceFile.make(
             importDecls: sortImports(allImports),
-            setupCodeBlock: testConfiguration?.testSetupCodeBlock,
             registrations: registrations,
             registrationsIntoCollections: registrationsIntoCollections
         )
