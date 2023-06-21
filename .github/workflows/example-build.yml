@@ -1,0 +1,40 @@
+name: Build Example iOS app
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build and Test the Example app
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.0-beta'
+      - uses: swift-actions/setup-swift@v1.25.0
+        with:
+          swift-version: "5.9"
+      - name: Bootstrap
+        working-directory: Example
+        run: ./bootstrap
+      - name: Build
+        working-directory: Example
+        env:
+          scheme: ${{ 'KnitExample' }}
+        run: |
+          # xcrun xctrace returns via stderr, not the expected stdout (see https://developer.apple.com/forums/thread/663959)
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*Simulator.*\([A-Z0-9-]*\)$' | grep -oE '[A-Z0-9-]{36}' | head -1`
+          xcodebuild build-for-testing -scheme KnitExample -destination "id=$device"
+      - name: Test
+        working-directory: Example
+        env:
+          scheme: ${{ 'KnitExample' }}
+        run: |
+          # xcrun xctrace returns via stderr, not the expected stdout (see https://developer.apple.com/forums/thread/663959)
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*Simulator.*\([A-Z0-9-]*\)$' | grep -oE '[A-Z0-9-]{36}' | head -1`
+          xcodebuild test-without-building -scheme KnitExample -destination "id=$device"
