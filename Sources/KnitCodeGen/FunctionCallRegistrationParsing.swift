@@ -189,6 +189,8 @@ private func getArguments(
     arguments: TupleExprElementListSyntax,
     trailingClosure: ClosureExprSyntax?
 ) throws -> [Registration.Argument] {
+    // `autoregister` parsing
+
     // Check for a single argument param when using autoregister
     if let argumentParam = arguments.first(where: {$0.label?.text == "argument"}),
        let argumentType = getArgumentType(arg: argumentParam)
@@ -208,13 +210,32 @@ private func getArguments(
         }
     }
 
-    // This type of closure params cannot include types, so force using `ParameterClauseSyntax`
-    if let paramList = trailingClosure?.signature?.input?.as(ClosureParamListSyntax.self), paramList.count >= 2 {
+    // `register` parsing
+
+    // The factory closure if it exists, either as a named parameter or a trailing closure
+    let factoryClosure: ClosureExprSyntax?
+
+    // Normalize factory closure between argument and trailing closure
+    if let factoryParam = arguments.first(where: { $0.label?.text == "factory" }) {
+        guard let closure = factoryParam.expression.as(ClosureExprSyntax.self) else {
+            throw RegistrationParsingError.incorrectFactoryType(syntax: factoryParam.expression)
+        }
+        factoryClosure = closure
+    } else if let trailingClosure {
+        factoryClosure = trailingClosure
+    } else {
+        factoryClosure = nil
+    }
+
+    // This type of closure param list syntax cannot include types, so force using `ParameterClauseSyntax`
+    // when there is more that one param.
+    // If there is only one param then it is always the `Resolver`.
+    if let paramList = factoryClosure?.signature?.input?.as(ClosureParamListSyntax.self), paramList.count >= 2 {
         throw RegistrationParsingError.unwrappedClosureParams(syntax: paramList)
     }
 
     // Register methods take a closure with resolver and arguments. Argument types must be provided
-    if let closureParameters = trailingClosure?.signature?.input?.as(ParameterClauseSyntax.self) {
+    if let closureParameters = factoryClosure?.signature?.input?.as(ParameterClauseSyntax.self) {
         let params = closureParameters.parameterList
         // The first param is the resolver, everything after that is an argument
         return try params[params.index(after: params.startIndex)..<params.endIndex].compactMap { element in
@@ -246,6 +267,7 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
     case unwrappedClosureParams(syntax: SyntaxProtocol)
     case chainedRegistrations(syntax: SyntaxProtocol)
     case nonStaticString(syntax: SyntaxProtocol, name: String)
+    case incorrectFactoryType(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
@@ -257,6 +279,8 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             return "Chained registration calls are not supported"
         case let .nonStaticString(_, name):
             return "Service name must be a static string. Found: \(name)"
+        case let .incorrectFactoryType(syntax: syntax):
+            return "Factory type must be a closure. Found \(syntax.syntaxNodeType)"
         }
     }
 
@@ -265,7 +289,8 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
         case let .missingArgumentType(syntax, _),
             let .chainedRegistrations(syntax),
             let .nonStaticString(syntax, _),
-            let .unwrappedClosureParams(syntax):
+            let .unwrappedClosureParams(syntax),
+            let .incorrectFactoryType(syntax):
             return syntax
         }
     }
