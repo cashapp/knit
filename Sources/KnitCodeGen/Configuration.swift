@@ -3,35 +3,23 @@ import SwiftSyntax
 
 public struct Configuration: Encodable {
 
-    public let filePath: String?
-
-    public let syntaxTree: SyntaxProtocol
-
     /// Name of the module for this configuration.
     public var name: String
 
     public var registrations: [Registration]
     public var registrationsIntoCollections: [RegistrationIntoCollection]
 
-    public var errors: [Error] = []
-
     public var imports: [ImportDeclSyntax] = []
 
     public init(
-        filePath: String? = nil,
-        syntaxTree: SyntaxProtocol,
         name: String,
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
-        errors: [Error],
         imports: [ImportDeclSyntax] = []
     ) {
-        self.filePath = filePath
-        self.syntaxTree = syntaxTree
         self.name = name
         self.registrations = registrations
         self.registrationsIntoCollections = registrationsIntoCollections
-        self.errors = errors
         self.imports = imports
     }
 
@@ -91,26 +79,6 @@ public extension Configuration {
                 sourceFile: makeUnitTestSourceFile(),
                 to: unitTestOutputPath
             )
-        }
-
-        printErrors()
-    }
-
-    // Output any errors that occurred during parsing
-    private func printErrors() {
-        guard !errors.isEmpty, let filePath else {
-            return
-        }
-        let lineConverter = SourceLocationConverter(file: filePath, tree: syntaxTree)
-
-        for error in errors {
-            if let syntaxError = error as? SyntaxError {
-                let position = syntaxError.syntax.startLocation(converter: lineConverter, afterLeadingTrivia: true)
-                let line = position.line ?? 1
-                print("\(filePath):\(line): error: \(error.localizedDescription)")
-            } else {
-                print("\(filePath): error: \(error.localizedDescription)")
-            }
         }
     }
 

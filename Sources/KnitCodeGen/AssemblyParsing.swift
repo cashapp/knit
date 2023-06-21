@@ -2,7 +2,6 @@ import Foundation
 import SwiftSyntax
 import SwiftSyntaxParser
 
-/// Currently the returned Configuration includes `registrations` and `imports`.
 public func parseAssembly(at path: String) throws -> Configuration {
     let url = URL(fileURLWithPath: path, isDirectory: false)
 
@@ -13,10 +12,19 @@ public func parseAssembly(at path: String) throws -> Configuration {
         throw AssemblyParsingError.syntaxParsingError(error, path: path)
     }
 
-    return try parseSyntaxTree(syntaxTree, filePath: path)
+    var errorsToPrint = [Error]()
+
+    let configuration = try parseSyntaxTree(syntaxTree, errorsToPrint: &errorsToPrint)
+
+    printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
+
+    return configuration
 }
 
-func parseSyntaxTree(_ syntaxTree: SyntaxProtocol, filePath: String? = nil) throws -> Configuration {
+func parseSyntaxTree(
+    _ syntaxTree: SyntaxProtocol,
+    errorsToPrint: inout [Error]
+) throws -> Configuration {
     let assemblyFileVisitor = AssemblyFileVisitor()
     assemblyFileVisitor.walk(syntaxTree)
 
@@ -24,13 +32,12 @@ func parseSyntaxTree(_ syntaxTree: SyntaxProtocol, filePath: String? = nil) thro
         throw AssemblyParsingError.missingModuleName
     }
 
+    errorsToPrint.append(contentsOf: assemblyFileVisitor.registrationErrors)
+
     return Configuration(
-        filePath: filePath,
-        syntaxTree: syntaxTree,
         name: name,
         registrations: assemblyFileVisitor.registrations,
         registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
-        errors: assemblyFileVisitor.registrationErrors,
         imports: assemblyFileVisitor.imports
     )
 }
@@ -148,4 +155,22 @@ extension AssemblyParsingError: LocalizedError {
         }
     }
 
+}
+
+// Output any errors that occurred during parsing
+func printErrors(_ errors: [Error], filePath: String, syntaxTree: SyntaxProtocol) {
+    guard !errors.isEmpty else {
+        return
+    }
+    let lineConverter = SourceLocationConverter(file: filePath, tree: syntaxTree)
+
+    for error in errors {
+        if let syntaxError = error as? SyntaxError {
+            let position = syntaxError.syntax.startLocation(converter: lineConverter, afterLeadingTrivia: true)
+            let line = position.line ?? 1
+            print("\(filePath):\(line): error: \(error.localizedDescription)")
+        } else {
+            print("\(filePath): error: \(error.localizedDescription)")
+        }
+    }
 }

@@ -36,7 +36,7 @@ public struct KnitCommand: ParsableCommand {
 
     public init() {}
 
-    public func run() {
+    public func run() throws {
         let parsedConfig: Configuration
         do {
             parsedConfig = try parseAssembly(at: assemblyInputPath)
@@ -45,7 +45,8 @@ public struct KnitCommand: ParsableCommand {
                 try data.write(to: URL(fileURLWithPath: jsonDataOutputPath))
             }
         } catch {
-            fatalError(error.localizedDescription)
+            print(error.localizedDescription)
+            throw ExitCode(1)
         }
 
         parsedConfig.writeGeneratedFiles(
