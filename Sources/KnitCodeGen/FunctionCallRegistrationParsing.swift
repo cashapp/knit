@@ -192,9 +192,9 @@ private func getArguments(
 ) throws -> [Registration.Argument] {
     // Check for a single argument param when using autoregister
     if let argumentParam = arguments.first(where: {$0.label?.text == "argument"}),
-       let argumentType = argumentParam.expression.as(MemberAccessExprSyntax.self)?.base?.as(IdentifierExprSyntax.self)
+       let argumentType = getArgumentType(arg: argumentParam)
     {
-        return [.init(type: argumentType.identifier.text)]
+        return [.init(type: argumentType)]
     }
 
     // Autoregister can provide multiple arguments.
@@ -202,10 +202,10 @@ private func getArguments(
     if let argumentsParamIndex = arguments.firstIndex(where: {$0.label?.text == "arguments"}),
        let initIndex = arguments.firstIndex(where: {$0.label?.text == "initializer"}) {
         return arguments[argumentsParamIndex..<initIndex].compactMap { element in
-            guard let type = element.expression.as(MemberAccessExprSyntax.self)?.base?.as(IdentifierExprSyntax.self) else {
+            guard let type = getArgumentType(arg: element) else {
                 return nil
             }
-            return .init(type: type.identifier.text)
+            return .init(type: type)
         }
     }
 
@@ -219,7 +219,7 @@ private func getArguments(
         let params = closureParameters.parameterList
         // The first param is the resolver, everything after that is an argument
         return try params[params.index(after: params.startIndex)..<params.endIndex].compactMap { element in
-            guard let name = element.firstName?.text, let type = element.type?.as(SimpleTypeIdentifierSyntax.self)?.name.text else {
+            guard let name = element.firstName?.text, let type = getArgumentType(arg: element)  else {
                 throw RegistrationParsingError.missingArgumentType(syntax: element, name: element.firstName?.text ?? "_")
             }
             return .init(name: name, type: type)
@@ -227,6 +227,18 @@ private func getArguments(
     }
 
     return []
+}
+
+private func getArgumentType(arg: TupleExprElementSyntax) -> String? {
+    return arg.expression.as(MemberAccessExprSyntax.self)?.base?.description
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+private func getArgumentType(arg: FunctionParameterSyntax) -> String? {
+    guard let type = arg.type else {
+        return nil
+    }
+    return type.description.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 enum RegistrationParsingError: LocalizedError, SyntaxError {

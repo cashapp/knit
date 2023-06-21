@@ -14,6 +14,12 @@ final class KnitExampleAssembly: Assembly {
             ExampleArgumentService.init(string: arg)
         }
 
+        container.autoregister(
+            ExampleArgumentService.self,
+            argument: ExampleArgumentService.Argument.self,
+            initializer: ExampleArgumentService.init(arg:)
+        )
+
         container.autoregisterIntoCollection(ExampleService.self, initializer: ExampleService.init)
     }
 
@@ -27,4 +33,11 @@ final class ExampleService {
 
 final class ExampleArgumentService {
     init(string: String) {}
+    struct Argument {
+        let string: String
+    }
+
+    convenience init(arg: Argument) {
+        self.init(string: arg.string)
+    }
 }

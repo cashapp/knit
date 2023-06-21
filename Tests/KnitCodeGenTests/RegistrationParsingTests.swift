@@ -275,6 +275,56 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testRegistrationWithComplexTypes() {
+        assertMultipleRegistrationsString(
+            """
+            container.register(A.self) { (_, arg: A.Argument) in
+                A(string: arg.string)
+            }
+            """,
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "A.Argument")]),
+            ]
+        )
+
+        assertMultipleRegistrationsString(
+            """
+            container.register(A.self) { (_, arg: Result<String?, Error>) in
+                A(string: arg.string)
+            }
+            """,
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "Result<String?, Error>")]),
+            ]
+        )
+    }
+
+    func testAutoRegistrationWithComplexTypes() {
+        assertMultipleRegistrationsString(
+            """
+            container.autoregister(A.self, argument: String?.self, initializer: A.init)
+            """,
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "String?")]),
+            ]
+        )
+
+        assertMultipleRegistrationsString(
+            """
+            container.autoregister(A.self, arguments: Result<Int, Error>.self, Optional<Int>.self, initializer: A.init)
+            """,
+            registrations: [
+                Registration(
+                    service: "A",
+                    accessLevel: .internal,
+                    arguments: [
+                        .init(type: "Result<Int, Error>"),
+                        .init(type: "Optional<Int>"),
+                    ]),
+            ]
+        )
+    }
+
     func testArgumentMissingType() {
         // Type of arg can be inferred at build time but cannot be parsed
         let string = """
