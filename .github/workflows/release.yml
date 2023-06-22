@@ -29,14 +29,14 @@ jobs:
           # Considerations:
           # - Package the source code
           # - Package the pre-built binary
-          zip -r knit.$TAG.zip knit Sources
+          zip -r knit-$TAG.zip knit Sources
 
           # Create the release
           gh release create "$TAG" \
             --title "$TAG" \
             --target "$GITHUB_REF_NAME" \
             --generate-notes \
-            "knit.$TAG.zip"
+            "knit-$TAG.zip"
         env:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

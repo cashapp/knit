@@ -6,9 +6,13 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://github.com/squareup/knit'
   s.license          = { :type => 'Proprietary', :text => '© Square, Inc.' }
   s.author           = { 'Cash App iOS' => 'ios@squareup.com' }
-  s.source           = { :git => 'org-49461806@github.com:squareup/knit.git', :tag => s.version.to_s }
+
+  # TODO: Update this endpoint to be GitHub once this repository is public.
+  s.source           = { http: "https://artifactory.global.square/artifactory/squarepods/knit-#{s.version}.zip" }
+
+  s.source_files     = 'Sources/Knit/**/*.swift'
+  s.preserve_paths   = '*'
   s.ios.deployment_target = '14.0'
-  s.source_files = 'Sources/Knit/**/*.swift'
   s.dependency 'Swinject', '2.8.3'
   s.dependency 'SwinjectAutoregistration', '2.8.3'
 end
