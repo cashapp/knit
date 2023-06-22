@@ -10,7 +10,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Knit", targets: ["Knit"]),
-        .executable(name: "knit-cli", targets: ["KnitCommand"])
+        .executable(name: "knit", targets: ["KnitCommand"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", from: "508.0.1"),

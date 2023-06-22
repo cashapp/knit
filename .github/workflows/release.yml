@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The new version to tag, ex: x.x.x'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Create Release
+        run: |
+          set -euo pipefail
+
+          git config user.name "Release Workflow"
+          git config user.email "noreply@github.com"
+
+          # Build the binary
+          swift build -c release --arch x86_64 --arch arm64 --product knit
+          mv .build/apple/Products/Release/knit knit
+
+          # Archive the repository
+          # Considerations:
+          # - Package the source code
+          # - Package the pre-built binary
+          zip -r knit.$TAG.zip knit Sources
+
+          # Create the release
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --target "$GITHUB_REF_NAME" \
+            --generate-notes \
+            "knit.$TAG.zip"
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
