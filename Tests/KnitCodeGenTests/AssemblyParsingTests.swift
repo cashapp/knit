@@ -16,7 +16,7 @@ final class AssemblyParsingTests: XCTestCase {
             class FooTestAssembly: Assembly { }
             """
 
-        let config = try parseSyntaxTree(sourceFile)
+        let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(
             config.imports.map { $0.description },
             [
@@ -34,7 +34,7 @@ final class AssemblyParsingTests: XCTestCase {
             class FooTestAssembly: Assembly { }
             """
 
-        let config = try parseSyntaxTree(sourceFile)
+        let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(
             config.imports.map { $0.description },
             [
@@ -52,7 +52,7 @@ final class AssemblyParsingTests: XCTestCase {
             }
         """
 
-        let config = try parseSyntaxTree(sourceFile)
+        let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.name, "FooTest")
     }
 
@@ -65,7 +65,7 @@ final class AssemblyParsingTests: XCTestCase {
             }
         """
 
-        let config = try parseSyntaxTree(sourceFile)
+        let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.name, "FooTest")
     }
 
@@ -78,7 +78,7 @@ final class AssemblyParsingTests: XCTestCase {
             }
             """
 
-        let config = try parseSyntaxTree(sourceFile)
+        let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.name, "Test")
         XCTAssertEqual(config.imports.count, 0, "No imports")
         XCTAssertEqual(
@@ -102,7 +102,7 @@ final class AssemblyParsingTests: XCTestCase {
                 }
             """
 
-        let config = try parseSyntaxTree(sourceFile)
+        let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.name, "KeyValueStore", "The first assembly's module name")
         XCTAssertEqual(config.imports.count, 0, "No imports")
         XCTAssertEqual(
@@ -124,7 +124,7 @@ final class AssemblyParsingTests: XCTestCase {
                 }
             """
 
-        let config = try parseSyntaxTree(sourceFile)
+        let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.name, "Example")
         XCTAssertEqual(
             config.registrations.map { $0.service },
@@ -156,7 +156,7 @@ final class AssemblyParsingTests: XCTestCase {
                 // missing an assembly
             """
 
-        XCTAssertThrowsError(try parseSyntaxTree(sourceFile)) { error in
+        XCTAssertThrowsError(try assertParsesSyntaxTree(sourceFile)) { error in
             guard case AssemblyParsingError.missingModuleName = error else {
                 XCTFail("Incorrect error case")
                 return
@@ -164,4 +164,46 @@ final class AssemblyParsingTests: XCTestCase {
         }
     }
 
+    func testRegistrationParsingErrorToPrint() throws {
+        let sourceFile: SourceFile = """
+            class MyAssembly: Assembly {
+                func assemble(container: Container) {
+                    container.register(A.self) { resolver, arg1 in A(arg: arg1) }
+                }
+            }
+        """
+
+        // Make sure that individual registration errors are bubbled up to be printed
+        _ = try assertParsesSyntaxTree(
+            sourceFile,
+            assertErrorsToPrint: { errors in
+                XCTAssertEqual(errors.count, 1)
+                if let error = errors.first, case RegistrationParsingError.unwrappedClosureParams = error {
+                    // Correct error case
+                } else {
+                    XCTFail("Incorrect error case")
+                }
+            }
+        )
+    }
+
+}
+
+private func assertParsesSyntaxTree(
+    _ sourceFile: SourceFile,
+    assertErrorsToPrint assertErrorsCallback: (([Error]) -> Void)? = nil,
+    file: StaticString = #filePath,
+    line: UInt = #line
+) throws -> Configuration {
+    var errorsToPrint = [Error]()
+
+    let configuration = try parseSyntaxTree(sourceFile, errorsToPrint: &errorsToPrint)
+
+    if let assertErrorsCallback {
+        assertErrorsCallback(errorsToPrint)
+    } else {
+        XCTAssertEqual(errorsToPrint.count, 0, file: file, line: line)
+    }
+
+    return configuration
 }
