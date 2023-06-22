@@ -217,10 +217,13 @@ private func getArguments(
 
     // Normalize factory closure between argument and trailing closure
     if let factoryParam = arguments.first(where: { $0.label?.text == "factory" }) {
-        guard let closure = factoryParam.expression.as(ClosureExprSyntax.self) else {
-            throw RegistrationParsingError.incorrectFactoryType(syntax: factoryParam.expression)
+        if let closure = factoryParam.expression.as(ClosureExprSyntax.self) {
+            factoryClosure = closure
+        } else {
+            // It is possible that a helper function is providing the closure and that is acceptable,
+            // but we will not be able to detect and parse arguments
+            factoryClosure = nil
         }
-        factoryClosure = closure
     } else if let trailingClosure {
         factoryClosure = trailingClosure
     } else {
@@ -267,7 +270,6 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
     case unwrappedClosureParams(syntax: SyntaxProtocol)
     case chainedRegistrations(syntax: SyntaxProtocol)
     case nonStaticString(syntax: SyntaxProtocol, name: String)
-    case incorrectFactoryType(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
@@ -279,8 +281,6 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             return "Chained registration calls are not supported"
         case let .nonStaticString(_, name):
             return "Service name must be a static string. Found: \(name)"
-        case let .incorrectFactoryType(syntax: syntax):
-            return "Factory type must be a closure. Found \(syntax.syntaxNodeType)"
         }
     }
 
@@ -289,8 +289,7 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
         case let .missingArgumentType(syntax, _),
             let .chainedRegistrations(syntax),
             let .nonStaticString(syntax, _),
-            let .unwrappedClosureParams(syntax),
-            let .incorrectFactoryType(syntax):
+            let .unwrappedClosureParams(syntax):
             return syntax
         }
     }

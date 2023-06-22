@@ -277,6 +277,18 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testRegisterNonClosureFactoryType() {
+        // This is acceptable syntax but we will not be able to parse any arguments
+        assertMultipleRegistrationsString(
+            """
+                container.register(A.self, factory: A.staticFunc)
+            """,
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [], isForwarded: false)
+            ]
+        )
+    }
+
     // Arguments on the main registration apply to implements also
     func testForwardedWithArgument() {
         // Single argument autoregister
@@ -397,26 +409,6 @@ final class RegistrationParsingTests: XCTestCase {
             XCTAssertEqual(
                 error.localizedDescription,
                 "Registrations must wrap argument closures and add types: e.g. { (resolver: Resolver, arg: MyArg) in"
-            )
-        }
-    }
-
-    func testIncorrectFactoryType() {
-        let string = """
-            container.register(A.self, factory: A.staticFunc)
-        """
-
-        let functionCall = FunctionCallExpr(stringLiteral: string)
-
-        XCTAssertThrowsError(try functionCall.getRegistrations()) { error in
-            if case RegistrationParsingError.incorrectFactoryType = error {
-                // Correct error case
-            } else {
-                XCTFail("Incorrect error case")
-            }
-            XCTAssertEqual(
-                error.localizedDescription,
-                "Factory type must be a closure. Found MemberAccessExprSyntax"
             )
         }
     }
