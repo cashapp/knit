@@ -37,7 +37,7 @@ public struct KnitCommand: ParsableCommand {
     @Option(help: """
                   The name of the target type where the type-safe extensions will go.
                   """)
-    var defaultResolverName: String = "Resolver"
+    var defaultResolverName: String?
 
     public init() {}
 

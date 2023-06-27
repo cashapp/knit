@@ -4,7 +4,7 @@ import SwiftSyntaxParser
 
 public func parseAssembly(
     at path: String,
-    defaultResolverName: String
+    defaultResolverName: String?
 ) throws -> Configuration {
     let url = URL(fileURLWithPath: path, isDirectory: false)
 
@@ -30,7 +30,7 @@ public func parseAssembly(
 
 func parseSyntaxTree(
     _ syntaxTree: SyntaxProtocol,
-    defaultResolverName: String,
+    defaultResolverName: String?,
     errorsToPrint: inout [Error]
 ) throws -> Configuration {
     let assemblyFileVisitor = AssemblyFileVisitor()
@@ -40,7 +40,9 @@ func parseSyntaxTree(
         throw AssemblyParsingError.missingModuleName
     }
 
-    let resolverName = assemblyFileVisitor.resolverName ?? defaultResolverName
+    guard let resolverName = assemblyFileVisitor.resolverName ?? defaultResolverName else {
+        throw AssemblyParsingError.missingTargetResolver
+    }
 
     errorsToPrint.append(contentsOf: assemblyFileVisitor.registrationErrors)
 
@@ -170,6 +172,7 @@ extension IdentifiedDeclSyntax {
 enum AssemblyParsingError: Error {
     case syntaxParsingError(Error, path: String)
     case missingModuleName
+    case missingTargetResolver
 }
 
 extension AssemblyParsingError: LocalizedError {
@@ -185,6 +188,9 @@ extension AssemblyParsingError: LocalizedError {
         case .missingModuleName:
             return "Cannot generate unit test source file without a module name. " +
                 "Is your Assembly file setup correctly?"
+
+        case .missingTargetResolver:
+            return "Cannot generate type safety file without a target Resolver."
         }
     }
 

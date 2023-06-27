@@ -193,6 +193,26 @@ final class AssemblyParsingTests: XCTestCase {
         }
     }
 
+    func testMissingTargetResolver() throws {
+        let sourceFile: SourceFile = """
+            class MyAssembly: Assembly {
+                // No `Resolver` typealias
+                func assemble(container: Container) {
+                }
+            }
+            """
+
+        XCTAssertThrowsError(try assertParsesSyntaxTree(
+            sourceFile,
+            defaultResolverName: nil // Also there is no default resolver provided as a CLI option
+        )) { error in
+            guard case AssemblyParsingError.missingTargetResolver = error else {
+                XCTFail("Incorrect error case")
+                return
+            }
+        }
+    }
+
     func testRegistrationParsingErrorToPrint() throws {
         let sourceFile: SourceFile = """
             class MyAssembly: Assembly {
@@ -220,7 +240,7 @@ final class AssemblyParsingTests: XCTestCase {
 
 private func assertParsesSyntaxTree(
     _ sourceFile: SourceFile,
-    defaultResolverName: String = "Resolver",
+    defaultResolverName: String? = "Resolver",
     assertErrorsToPrint assertErrorsCallback: (([Error]) -> Void)? = nil,
     file: StaticString = #filePath,
     line: UInt = #line
