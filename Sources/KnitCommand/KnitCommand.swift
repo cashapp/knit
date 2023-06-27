@@ -34,17 +34,12 @@ public struct KnitCommand: ParsableCommand {
                   """)
     var jsonDataOutputPath: String?
 
-    @Option(help: """
-                  The name of the target type where the type-safe extensions will go.
-                  """)
-    var defaultResolverName: String?
-
     public init() {}
 
     public func run() throws {
         let parsedConfig: Configuration
         do {
-            parsedConfig = try parseAssembly(at: assemblyInputPath, defaultResolverName: defaultResolverName)
+            parsedConfig = try parseAssembly(at: assemblyInputPath)
             if let jsonDataOutputPath {
                 let data = try JSONEncoder().encode(parsedConfig)
                 try data.write(to: URL(fileURLWithPath: jsonDataOutputPath))
