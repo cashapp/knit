@@ -2,7 +2,10 @@ import Foundation
 import SwiftSyntax
 import SwiftSyntaxParser
 
-public func parseAssembly(at path: String) throws -> Configuration {
+public func parseAssembly(
+    at path: String,
+    defaultResolverName: String?
+) throws -> Configuration {
     let url = URL(fileURLWithPath: path, isDirectory: false)
 
     let syntaxTree: SourceFileSyntax
@@ -14,7 +17,11 @@ public func parseAssembly(at path: String) throws -> Configuration {
 
     var errorsToPrint = [Error]()
 
-    let configuration = try parseSyntaxTree(syntaxTree, errorsToPrint: &errorsToPrint)
+    let configuration = try parseSyntaxTree(
+        syntaxTree,
+        defaultResolverName: defaultResolverName,
+        errorsToPrint: &errorsToPrint
+    )
 
     printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
 
@@ -23,6 +30,7 @@ public func parseAssembly(at path: String) throws -> Configuration {
 
 func parseSyntaxTree(
     _ syntaxTree: SyntaxProtocol,
+    defaultResolverName: String?,
     errorsToPrint: inout [Error]
 ) throws -> Configuration {
     let assemblyFileVisitor = AssemblyFileVisitor()
@@ -32,13 +40,18 @@ func parseSyntaxTree(
         throw AssemblyParsingError.missingModuleName
     }
 
+    guard let resolverName = assemblyFileVisitor.resolverName ?? defaultResolverName else {
+        throw AssemblyParsingError.missingTargetResolver
+    }
+
     errorsToPrint.append(contentsOf: assemblyFileVisitor.registrationErrors)
 
     return Configuration(
         name: name,
         registrations: assemblyFileVisitor.registrations,
         registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
-        imports: assemblyFileVisitor.imports
+        imports: assemblyFileVisitor.imports,
+        resolverName: resolverName
     )
 }
 
@@ -48,6 +61,10 @@ private class AssemblyFileVisitor: SyntaxVisitor {
     private(set) var imports = [ImportDeclSyntax]()
 
     private(set) var moduleName: String?
+
+    var resolverName: String? {
+        classDeclVisitor?.resolverName
+    }
 
     private var classDeclVisitor: ClassDeclVisitor?
 
@@ -103,6 +120,8 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     private(set) var registrationErrors = [Error]()
 
+    private(set) var resolverName: String?
+
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         do {
             let (registrations, registrationsIntoCollections) = try node.getRegistrations()
@@ -110,6 +129,21 @@ private class ClassDeclVisitor: SyntaxVisitor {
             self.registrationsIntoCollections.append(contentsOf: registrationsIntoCollections)
         } catch {
             registrationErrors.append(error)
+        }
+
+        return .skipChildren
+    }
+
+    override func visit(_ node: TypealiasDeclSyntax) -> SyntaxVisitorContinueKind {
+        if node.identifier.text == "Resolver" {
+            guard let simpleType = node.initializer.value.as(SimpleTypeIdentifierSyntax.self) else {
+                registrationErrors.append(
+                    AssemblyParsingSyntaxError.unsupportedResolverTypealias(syntax: node.initializer.value)
+                )
+                return .skipChildren
+            }
+
+            resolverName = simpleType.name.text
         }
 
         return .skipChildren
@@ -134,9 +168,11 @@ extension IdentifiedDeclSyntax {
 
 // MARK: - Errors
 
+// Unrecoverable errors, assembly parsing can not continue.
 enum AssemblyParsingError: Error {
     case syntaxParsingError(Error, path: String)
     case missingModuleName
+    case missingTargetResolver
 }
 
 extension AssemblyParsingError: LocalizedError {
@@ -152,9 +188,39 @@ extension AssemblyParsingError: LocalizedError {
         case .missingModuleName:
             return "Cannot generate unit test source file without a module name. " +
                 "Is your Assembly file setup correctly?"
+
+        case .missingTargetResolver:
+            return "Cannot generate type safety file without a target Resolver."
         }
     }
 
+}
+
+// Errors that should be shown in the IDE, parsing does continue.
+enum AssemblyParsingSyntaxError: Error {
+    case unsupportedResolverTypealias(syntax: SyntaxProtocol)
+}
+
+extension AssemblyParsingSyntaxError: SyntaxError {
+
+    var syntax: SyntaxProtocol {
+        switch self {
+        case let .unsupportedResolverTypealias(syntax: syntax):
+            return syntax
+        }
+    }
+
+}
+
+extension AssemblyParsingSyntaxError: LocalizedError {
+
+    var errorDescription: String? {
+        switch self {
+        case .unsupportedResolverTypealias:
+            return "This type alias initializer is not supported"
+        }
+    }
+    
 }
 
 // Output any errors that occurred during parsing
