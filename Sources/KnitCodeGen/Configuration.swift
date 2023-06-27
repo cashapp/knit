@@ -11,20 +11,16 @@ public struct Configuration: Encodable {
 
     public var imports: [ImportDeclSyntax] = []
 
-    public var resolverName: String
-
     public init(
         name: String,
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
-        imports: [ImportDeclSyntax] = [],
-        resolverName: String
+        imports: [ImportDeclSyntax] = []
     ) {
         self.name = name
         self.registrations = registrations
         self.registrationsIntoCollections = registrationsIntoCollections
         self.imports = imports
-        self.resolverName = resolverName
     }
 
     public enum CodingKeys: CodingKey {
@@ -42,7 +38,7 @@ public extension Configuration {
         return TypeSafetySourceFile.make(
             assemblyName: "\(name)Assembly",
             imports: sortImports(allImports),
-            extensionTarget: resolverName,
+            extensionTarget: "Resolver",
             registrations: registrations
         )
     }
