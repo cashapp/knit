@@ -33,7 +33,7 @@ public enum UnitTestSourceFile {
                             """)
                     }
 
-                    if registrations.isEmpty {
+                    if registrations.isEmpty && registrationsIntoCollections.isEmpty {
                         DeclSyntax("let _ = assembler.resolver")
                     } else {
                         DeclSyntax("let resolver = assembler.resolver")

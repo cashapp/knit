@@ -102,6 +102,136 @@ final class UnitTestSourceFileTests: XCTestCase {
         XCTAssertEqual(formattedResult, expected)
     }
 
+    func test_generation_emptyRegistrations() {
+        let result = UnitTestSourceFile.make(
+            importDecls: [ImportDeclSyntax("import Swinject")],
+            registrations: [],
+            registrationsIntoCollections: []
+        )
+
+        //Remote trailing line spaces
+        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+
+        let expected = #"""
+
+        // Generated using Knit
+        // Do not edit directly!
+
+        import Swinject
+        final class KnitDIRegistrationTests: XCTestCase {
+            func testRegistrations() {
+                // In the test target for your module, please provide a static method that creates a
+                // ModuleAssembler instance for testing.
+                let assembler = makeAssemblerForTests()
+                let _ = assembler.resolver
+            }
+        }
+        private extension Resolver {
+        }
+        """#
+
+        XCTAssertEqual(formattedResult, expected)
+    }
+
+    func test_generation_onlySingleRegistrations() {
+        let result = UnitTestSourceFile.make(
+            importDecls: [ImportDeclSyntax("import Swinject")],
+            registrations: [
+                .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
+            ],
+            registrationsIntoCollections: []
+        )
+
+        //Remote trailing line spaces
+        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+
+        let expected = #"""
+
+        // Generated using Knit
+        // Do not edit directly!
+
+        import Swinject
+        final class KnitDIRegistrationTests: XCTestCase {
+            func testRegistrations() {
+                // In the test target for your module, please provide a static method that creates a
+                // ModuleAssembler instance for testing.
+                let assembler = makeAssemblerForTests()
+                let resolver = assembler.resolver
+                resolver.assertTypeResolves(ServiceA.self)
+            }
+        }
+        private extension Resolver {
+            func assertTypeResolves < T > (
+                _ type: T.Type,
+                name: String? = nil,
+                file: StaticString = #filePath,
+                line: UInt = #line
+            ) {
+                XCTAssertNotNil(
+                    resolve(type, name: name),
+                    "The container did not resolve the type: \(type). Check that this type is registered correctly.",
+                    file: file,
+                    line: line
+                )
+            }
+        }
+        """#
+
+        XCTAssertEqual(formattedResult, expected)
+    }
+
+    func test_generation_onlyRegistrationsIntoCollections() {
+        let result = UnitTestSourceFile.make(
+            importDecls: [ImportDeclSyntax("import Swinject")],
+            registrations: [],
+            registrationsIntoCollections: [
+                .init(service: "ServiceA"),
+            ]
+        )
+
+        //Remote trailing line spaces
+        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+
+        let expected = #"""
+
+        // Generated using Knit
+        // Do not edit directly!
+
+        import Swinject
+        final class KnitDIRegistrationTests: XCTestCase {
+            func testRegistrations() {
+                // In the test target for your module, please provide a static method that creates a
+                // ModuleAssembler instance for testing.
+                let assembler = makeAssemblerForTests()
+                let resolver = assembler.resolver
+                resolver.assertCollectionResolves(ServiceA.self, count: 1)
+            }
+        }
+        private extension Resolver {
+            func assertCollectionResolves < T > (
+                _ type: T.Type,
+                count expectedCount: Int,
+                file: StaticString = #filePath,
+                line: UInt = #line
+            ) {
+                let actualCount = resolveCollection(type).entries.count
+                XCTAssert(
+                    actualCount >= expectedCount,
+                    """
+                The resolved ServiceCollection<\(type)> did not contain the expected number of services \
+                (resolved \(actualCount), expected \(expectedCount)).
+                Make sure your assembler contains a ServiceCollector behavior.
+                """,
+                    file: file,
+                    line: line
+                )
+            }
+        }
+        """#
+
+        XCTAssertEqual(formattedResult, expected)
+    }
+
     func test_argumentStruct() {
         let result = UnitTestSourceFile.makeArgumentStruct(registrations: [
             Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String")]),
