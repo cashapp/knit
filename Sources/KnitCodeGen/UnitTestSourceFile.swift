@@ -171,7 +171,7 @@ public enum UnitTestSourceFile {
         var seen: Set<String> = []
         // Make sure duplicate parameters don't get created
         let uniqueFields = fields.filter {
-            let key = "\($0.0)-\($0.1)"
+            let key = "\($0.name.string)-\($0.type)"
             if seen.contains(key) {
                 return false
             }
@@ -181,7 +181,7 @@ public enum UnitTestSourceFile {
 
         return StructDeclSyntax("struct KnitRegistrationTestArguments") {
             for field in uniqueFields {
-                DeclSyntax("let \(raw: field.0): \(raw: field.1)")
+                DeclSyntax("let \(raw: field.name.string): \(raw: field.type)")
             }
         }
     }
@@ -191,7 +191,7 @@ public enum UnitTestSourceFile {
             fatalError("Should only be called for registrations with arguments")
         }
         let prefix = registration.arguments.count == 1 ? "argument:" : "arguments:"
-        let params = registration.serviceNamedArguments().map { "args.\($0.name)" }.joined(separator: ", ")
+        let params = registration.serviceNamedArguments().map { "args.\($0.name.string)" }.joined(separator: ", ")
         return "\(prefix) \(params)"
     }
 
@@ -200,11 +200,11 @@ public enum UnitTestSourceFile {
 private extension Registration {
 
     /// Argument names prefixed with the service name. Provides additional collision safety.
-    func serviceNamedArguments() -> [(name: String, type: String)] {
-        return namedArguments().map { (name, type) in
+    func serviceNamedArguments() -> [Argument] {
+        return namedArguments().map { arg in
             let serviceName = self.service.prefix(1).lowercased() + self.service.dropFirst()
-            let capitalizedName = name.prefix(1).uppercased() + name.dropFirst()
-            return (serviceName + capitalizedName, type)
+            let capitalizedName = arg.name.string.prefix(1).uppercased() + arg.name.string.dropFirst()
+            return Argument(name: serviceName + capitalizedName, type: arg.type)
         }
     }
 

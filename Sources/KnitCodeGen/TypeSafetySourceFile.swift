@@ -56,8 +56,8 @@ public enum TypeSafetySourceFile {
             return (nil, nil)
         }
         let prefix = registration.arguments.count == 1 ? "argument:" : "arguments:"
-        let input = registration.namedArguments().map { "\($0.name): \($0.type)" }.joined(separator: ", ")
-        let usages = registration.namedArguments().map { $0.name }.joined(separator: ", ")
+        let input = registration.namedArguments().map { "\($0.name.string): \($0.functionType)" }.joined(separator: ", ")
+        let usages = registration.namedArguments().map { $0.resolvedName() }.joined(separator: ", ")
         return (input, "\(prefix) \(usages)")
     }
 
@@ -82,8 +82,8 @@ public enum TypeSafetySourceFile {
 extension Registration {
 
     /// Generate names for each argument based on the type
-    func namedArguments() -> [(name: String, type: String)] {
-        var result: [(name: String, type: String)] = []
+    func namedArguments() -> [Argument] {
+        var result: [Registration.Argument] = []
         for argument in arguments {
             let indexID: String
             if (arguments.filter { $0.resolvedName() == argument.resolvedName() }).count > 1 {
@@ -92,7 +92,7 @@ extension Registration {
                 indexID = ""
             }
             let name = argument.resolvedName() + indexID
-            result.append((name, argument.type))
+            result.append(Argument(name: name, type: argument.type))
         }
         return result
     }
@@ -102,9 +102,15 @@ extension Registration {
 private extension Registration.Argument {
 
     func resolvedName() -> String {
-        if let name {
-            return name
+        switch name {
+        case let .fixed(value):
+            return value
+        case .computed:
+            return computedName
         }
+    }
+
+    private var computedName: String {
         let type = sanitizeType()
         if type.uppercased() == type {
             return type.lowercased()
@@ -114,6 +120,10 @@ private extension Registration.Argument {
 
     /// Simplifies the type name and removes invalid characters
     func sanitizeType() -> String {
+        if isClosure {
+            // The naming doesn't work for function types, just return closure
+            return "closure"
+        }
         let removedCharacters = CharacterSet(charactersIn: "?[]")
         var type = self.type.components(separatedBy: removedCharacters).joined(separator: "")
         let regex = try! NSRegularExpression(pattern: "<.*>")
@@ -126,6 +136,15 @@ private extension Registration.Argument {
         }
 
         return type
+    }
+
+    // The type to be used in functions. Closures are always expected to be escaping
+    var functionType: String {
+        return isClosure ? "@escaping \(type)" : type
+    }
+
+    var isClosure: Bool {
+        return type.contains("->")
     }
 
 }
