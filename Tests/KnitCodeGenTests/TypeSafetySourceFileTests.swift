@@ -18,6 +18,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 .init(service: "ServiceB", name: "otherName", accessLevel: .internal, isForwarded: false),
                 .init(service: "ServiceC", name: nil, accessLevel: .hidden, isForwarded: false), // No resolver is created
                 .init(service: "ServiceD", name: nil, accessLevel: .public, isForwarded: true),
+                .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [.init(type: "() -> Void")]),
             ]
         )
 
@@ -35,6 +36,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
             }
             public func callAsFunction() -> ServiceD {
                 self.resolve(ServiceD.self)!
+            }
+            public func callAsFunction(closure: @escaping () -> Void) -> ServiceE {
+                self.resolve(ServiceE.self, argument: closure)!
             }
             func callAsFunction(name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
                 self.resolve(ServiceB.self, name: name.rawValue)!
@@ -129,19 +133,19 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testArgumentNames() {
         let registration1 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String?")])
         XCTAssertEqual(
-            registration1.namedArguments().map { $0.name },
+            registration1.namedArguments().map { $0.name.string },
             ["string"]
         )
 
         let registration2 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Service.Argument")])
         XCTAssertEqual(
-            registration2.namedArguments().map { $0.name },
+            registration2.namedArguments().map { $0.name.string },
             ["argument"]
         )
 
         let registration3 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Result<String, Error>")])
         XCTAssertEqual(
-            registration3.namedArguments().map { $0.name },
+            registration3.namedArguments().map { $0.name.string },
             ["result"]
         )
 
@@ -151,7 +155,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             arguments: [.init(type: "[Result<ServerResponse<Any>, Swift.Error>]")]
         )
         XCTAssertEqual(
-            registration4.namedArguments().map { $0.name },
+            registration4.namedArguments().map { $0.name.string },
             ["result"]
         )
 

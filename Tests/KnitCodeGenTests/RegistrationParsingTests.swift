@@ -368,6 +368,15 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testClosureArgument() {
+        assertMultipleRegistrationsString(
+            "container.autoregister(A.self, argument: (() -> Void).self, initializer: A.init)",
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "(() -> Void)")]),
+            ]
+        )
+    }
+
     func testArgumentMissingType() {
         // Type of arg can be inferred at build time but cannot be parsed
         let string = """

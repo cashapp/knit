@@ -11,6 +11,7 @@ func makeAssemblerForTests() -> Assembler {
 func makeArgumentsForTests() -> KnitRegistrationTestArguments {
     return .init(
         exampleArgumentServiceArg: "Test",
-        exampleArgumentServiceArgument: .init(string: "Test")
+        exampleArgumentServiceArgument: .init(string: "Test"),
+        closureServiceClosure: {}
     )
 }

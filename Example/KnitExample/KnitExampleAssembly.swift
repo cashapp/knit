@@ -22,6 +22,8 @@ final class KnitExampleAssembly: Assembly {
 
         container.autoregister(NamedService.self, name: "name", initializer: NamedService.init)
 
+        container.autoregister(ClosureService.self, argument: (() -> Void).self, initializer: ClosureService.init)
+
         container.autoregisterIntoCollection(ExampleService.self, initializer: ExampleService.init)
     }
 
@@ -44,4 +46,9 @@ final class ExampleArgumentService {
     convenience init(arg: Argument) {
         self.init(string: arg.string)
     }
+}
+
+final class ClosureService {
+
+    init(closure: @escaping (() -> Void)) { }
 }

@@ -30,12 +30,28 @@ public struct Registration: Equatable, Codable {
 
 extension Registration {
     public struct Argument: Equatable, Codable {
-        let name: String?
+        let name: Name
         let type: String
 
         init(name: String? = nil, type: String) {
-            self.name = name
+            if let name {
+                self.name = .fixed(name)
+            } else {
+                self.name = .computed
+            }
             self.type = type
+        }
+    }
+
+    public enum Name: Codable, Equatable {
+        case fixed(String)
+        case computed
+
+        var string: String {
+            switch self {
+            case let .fixed(value): return value
+            case .computed: fatalError("Argument must be resolved to a fixed name")
+            }
         }
     }
 }
