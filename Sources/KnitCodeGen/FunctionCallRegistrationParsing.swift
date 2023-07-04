@@ -254,6 +254,7 @@ private func getArguments(
 
 private func getArgumentType(arg: TupleExprElementSyntax) -> String? {
     return arg.expression.as(MemberAccessExprSyntax.self)?.base?.description
+        .replacingOccurrences(of: "@escaping", with: " ")
         .trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
@@ -261,7 +262,9 @@ private func getArgumentType(arg: FunctionParameterSyntax) -> String? {
     guard let type = arg.type else {
         return nil
     }
-    return type.description.trimmingCharacters(in: .whitespacesAndNewlines)
+    return type.description
+        .replacingOccurrences(of: "@escaping", with: " ")
+        .trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 enum RegistrationParsingError: LocalizedError, SyntaxError {

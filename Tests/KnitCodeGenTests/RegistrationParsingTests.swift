@@ -375,6 +375,17 @@ final class RegistrationParsingTests: XCTestCase {
                 Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "(() -> Void)")]),
             ]
         )
+
+        assertMultipleRegistrationsString(
+            """
+            container.register(A.self) { (resolver, arg1: @escaping () -> Void) in
+                A(arg: arg1)
+            }
+            """,
+            registrations: [
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg1", type: "() -> Void")]),
+            ]
+        )
     }
 
     func testArgumentMissingType() {

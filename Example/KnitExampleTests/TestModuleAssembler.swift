@@ -12,6 +12,7 @@ func makeArgumentsForTests() -> KnitRegistrationTestArguments {
     return .init(
         exampleArgumentServiceArg: "Test",
         exampleArgumentServiceArgument: .init(string: "Test"),
-        closureServiceClosure: {}
+        closureServiceClosure: {},
+        closureServiceArg1: {}
     )
 }
