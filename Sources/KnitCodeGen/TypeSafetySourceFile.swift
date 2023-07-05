@@ -13,6 +13,7 @@ public enum TypeSafetySourceFile {
         let registrations = registrations.filter { $0.accessLevel != .hidden }
         let namedGroups = NamedRegistrationGroup.make(from: registrations)
         let unnamedRegistrations = registrations.filter { $0.name == nil }
+        let namedVars = unnamedRegistrations.filter { $0.namedVar && $0.name == nil }
         return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             for importItem in imports {
                 importItem
@@ -25,10 +26,13 @@ public enum TypeSafetySourceFile {
                           """) {
 
                 for registration in unnamedRegistrations {
-                    makeResolver(registration: registration, enumName: nil)
+                    makeResolver(registration: registration)
                 }
                 for namedGroup in namedGroups {
                     makeResolver(registration: namedGroup.registrations[0], enumName: "\(assemblyName).\(namedGroup.enumName)")
+                }
+                for registration in namedVars {
+                    makeResolver(registration: registration, namedGetter: true)
                 }
             }
             if !namedGroups.isEmpty {
@@ -38,15 +42,20 @@ public enum TypeSafetySourceFile {
     }
 
     /// Create the type safe resolver function for this registration
-    static func makeResolver(registration: Registration, enumName: String?) -> FunctionDeclSyntax {
+    static func makeResolver(
+        registration: Registration,
+        enumName: String? = nil,
+        namedGetter: Bool = false
+    ) -> FunctionDeclSyntax {
         let modifier = registration.accessLevel == .public ? "public " : ""
         let nameInput = enumName.map { "name: \($0)" }
         let nameUsage = enumName != nil ? "name: name.rawValue" : nil
         let (argInput, argUsage) = argumentString(registration: registration)
         let inputs = [nameInput, argInput].compactMap { $0 }.joined(separator: ", ")
         let usages = ["\(registration.service).self", nameUsage, argUsage].compactMap { $0 }.joined(separator: ", ")
+        let funcName = namedGetter ? TypeNamer.computedVariableName(type: registration.service) : "callAsFunction" 
 
-        return FunctionDeclSyntax("\(modifier)func callAsFunction(\(inputs)) -> \(registration.service)") {
+        return FunctionDeclSyntax("\(modifier)func \(funcName)(\(inputs)) -> \(registration.service)") {
             ForcedValueExprSyntax("self.resolve(\(raw: usages))!")
         }
     }
@@ -107,45 +116,13 @@ extension Registration.Argument {
         case let .fixed(value):
             return value
         case .computed:
-            return computedName
+            return TypeNamer.computedVariableName(type: type)
         }
-    }
-
-    private var computedName: String {
-        let type = sanitizeType()
-        if type.uppercased() == type {
-            return type.lowercased()
-        }
-        return type.prefix(1).lowercased() + type.dropFirst()
-    }
-
-    /// Simplifies the type name and removes invalid characters
-    func sanitizeType() -> String {
-        if isClosure {
-            // The naming doesn't work for function types, just return closure
-            return "closure"
-        }
-        let removedCharacters = CharacterSet(charactersIn: "?[]")
-        var type = self.type.components(separatedBy: removedCharacters).joined(separator: "")
-        let regex = try! NSRegularExpression(pattern: "<.*>")
-        if let match = regex.firstMatch(in: type, range: .init(location: 0, length: type.count)) {
-            type = (type as NSString).replacingCharacters(in: match.range, with: "")
-        }
-        if let dotIndex = type.firstIndex(of: ".") {
-            let nameStart = type.index(after: dotIndex)
-            type = String(type[nameStart...])
-        }
-
-        return type
     }
 
     // The type to be used in functions. Closures are always expected to be escaping
     var functionType: String {
-        return isClosure ? "@escaping \(type)" : type
-    }
-
-    var isClosure: Bool {
-        return type.contains("->")
+        return TypeNamer.isClosure(type: type) ? "@escaping \(type)" : type
     }
 
 }
