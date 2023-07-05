@@ -12,18 +12,23 @@ public struct Registration: Equatable, Codable {
     /// This registration is forwarded to another service entry.
     public var isForwarded: Bool
 
+    /// This registration should have a named var generated
+    public var namedVar: Bool
+
     public init(
         service: String,
         name: String? = nil,
         accessLevel: AccessLevel,
         arguments: [Argument] = [],
-        isForwarded: Bool = false
+        isForwarded: Bool = false,
+        namedVar: Bool = false
     ) {
         self.service = service
         self.name = name
         self.accessLevel = accessLevel
         self.arguments = arguments
         self.isForwarded = isForwarded
+        self.namedVar = namedVar
     }
 
 }

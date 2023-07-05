@@ -86,6 +86,18 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testNamedVarRegistrations() throws {
+        assertMultipleRegistrationsString(
+            """
+            // @knit public named-getter
+            container.register(A.self) { }
+            """,
+            registrations: [
+                .init(service: "A", accessLevel: .public, namedVar: true)
+            ]
+        )
+    }
+
     func testAbstractRegistration() throws {
         assertRegistrationString(
             """
