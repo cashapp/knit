@@ -8,6 +8,7 @@ final class KnitExampleAssembly: Assembly {
     func assemble(container: Container) {
         container.addBehavior(ServiceCollector())
 
+        // @knit named-var
         container.autoregister(ExampleService.self, initializer: ExampleService.init)
 
         container.register(ExampleArgumentService.self) { (_, arg: String) in

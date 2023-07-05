@@ -13,6 +13,7 @@ public enum TypeSafetySourceFile {
         let registrations = registrations.filter { $0.accessLevel != .hidden }
         let namedGroups = NamedRegistrationGroup.make(from: registrations)
         let unnamedRegistrations = registrations.filter { $0.name == nil }
+        let namedVars = unnamedRegistrations.filter { $0.namedVar && $0.name == nil && $0.arguments.isEmpty }
         return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             for importItem in imports {
                 importItem
@@ -29,6 +30,9 @@ public enum TypeSafetySourceFile {
                 }
                 for namedGroup in namedGroups {
                     makeResolver(registration: namedGroup.registrations[0], enumName: "\(assemblyName).\(namedGroup.enumName)")
+                }
+                for registration in namedVars {
+                    makeNamedVarResolver(registration: registration)
                 }
             }
             if !namedGroups.isEmpty {
@@ -49,6 +53,13 @@ public enum TypeSafetySourceFile {
         return FunctionDeclSyntax("\(modifier)func callAsFunction(\(inputs)) -> \(registration.service)") {
             ForcedValueExprSyntax("self.resolve(\(raw: usages))!")
         }
+    }
+
+    static func makeNamedVarResolver(registration: Registration) -> VariableDeclSyntax {
+        let modifier = registration.accessLevel == .public ? "public " : ""
+        let varName = registration.service.computedVariableName
+        let usages = "\(registration.service).self"
+        return VariableDeclSyntax("\(raw: modifier)var \(raw: varName): \(raw: registration.service) {self.resolve(\(raw: usages))!}")
     }
 
     private static func argumentString(registration: Registration) -> (input: String?, usage: String?) {
@@ -107,36 +118,8 @@ extension Registration.Argument {
         case let .fixed(value):
             return value
         case .computed:
-            return computedName
+            return type.computedVariableName
         }
-    }
-
-    private var computedName: String {
-        let type = sanitizeType()
-        if type.uppercased() == type {
-            return type.lowercased()
-        }
-        return type.prefix(1).lowercased() + type.dropFirst()
-    }
-
-    /// Simplifies the type name and removes invalid characters
-    func sanitizeType() -> String {
-        if isClosure {
-            // The naming doesn't work for function types, just return closure
-            return "closure"
-        }
-        let removedCharacters = CharacterSet(charactersIn: "?[]")
-        var type = self.type.components(separatedBy: removedCharacters).joined(separator: "")
-        let regex = try! NSRegularExpression(pattern: "<.*>")
-        if let match = regex.firstMatch(in: type, range: .init(location: 0, length: type.count)) {
-            type = (type as NSString).replacingCharacters(in: match.range, with: "")
-        }
-        if let dotIndex = type.firstIndex(of: ".") {
-            let nameStart = type.index(after: dotIndex)
-            type = String(type[nameStart...])
-        }
-
-        return type
     }
 
     // The type to be used in functions. Closures are always expected to be escaping
@@ -148,4 +131,34 @@ extension Registration.Argument {
         return type.contains("->")
     }
 
+}
+
+private extension String {
+    var computedVariableName: String {
+        let type = sanitizeType()
+        if type.uppercased() == type {
+            return type.lowercased()
+        }
+        return type.prefix(1).lowercased() + type.dropFirst()
+    }
+
+    /// Simplifies the type name and removes invalid characters
+    func sanitizeType() -> String {
+        if self.contains("->") {
+            // The naming doesn't work for function types, just return closure
+            return "closure"
+        }
+        let removedCharacters = CharacterSet(charactersIn: "?[]")
+        var type = self.components(separatedBy: removedCharacters).joined(separator: "")
+        let regex = try! NSRegularExpression(pattern: "<.*>")
+        if let match = regex.firstMatch(in: type, range: .init(location: 0, length: type.count)) {
+            type = (type as NSString).replacingCharacters(in: match.range, with: "")
+        }
+        if let dotIndex = type.firstIndex(of: ".") {
+            let nameStart = type.index(after: dotIndex)
+            type = String(type[nameStart...])
+        }
+
+        return type
+    }
 }

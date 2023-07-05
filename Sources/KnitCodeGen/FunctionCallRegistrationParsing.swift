@@ -146,13 +146,15 @@ private func makeRegistrationFor(
 
     let registrationText = firstParam.base!.withoutTrivia().description
     let accessLevel: AccessLevel
-    if let leadingTrivia, leadingTrivia.description.contains("@knit public") {
+    let leadingTriviaText = leadingTrivia?.description ?? ""
+    if leadingTriviaText.contains("@knit public") {
         accessLevel = .public
-    } else if let leadingTrivia, leadingTrivia.description.contains("@knit hidden") {
+    } else if leadingTriviaText.contains("@knit hidden") {
         accessLevel = .hidden
     } else {
         accessLevel = .internal
     }
+    let namedVar = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-var")
     let name = try getName(arguments: arguments)
 
     return Registration(
@@ -160,7 +162,8 @@ private func makeRegistrationFor(
         name: name,
         accessLevel: accessLevel,
         arguments: registrationArguments,
-        isForwarded: isForwarded
+        isForwarded: isForwarded,
+        namedVar: namedVar
     )
 }
 
