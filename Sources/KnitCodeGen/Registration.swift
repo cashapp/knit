@@ -41,19 +41,14 @@ extension Registration {
             }
             self.type = type
         }
-    }
 
-    public enum Name: Codable, Equatable {
-        case fixed(String)
-        case computed
-
-        var string: String {
-            switch self {
-            case let .fixed(value): return value
-            case .computed: fatalError("Argument must be resolved to a fixed name")
-            }
+        public enum Name: Codable, Equatable {
+            case fixed(String)
+            case computed
         }
+
     }
+
 }
 
 public enum AccessLevel: String, Codable {
