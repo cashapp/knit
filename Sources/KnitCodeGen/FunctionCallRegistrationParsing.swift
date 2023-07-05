@@ -154,7 +154,7 @@ private func makeRegistrationFor(
     } else {
         accessLevel = .internal
     }
-    let namedVar = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-var")
+    let namedVar = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-getter")
     let name = try getName(arguments: arguments)
 
     return Registration(

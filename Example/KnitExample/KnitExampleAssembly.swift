@@ -8,9 +8,10 @@ final class KnitExampleAssembly: Assembly {
     func assemble(container: Container) {
         container.addBehavior(ServiceCollector())
 
-        // @knit named-var
+        // @knit named-getter
         container.autoregister(ExampleService.self, initializer: ExampleService.init)
 
+        // @knit named-getter
         container.register(ExampleArgumentService.self) { (_, arg: String) in
             ExampleArgumentService.init(string: arg)
         }
