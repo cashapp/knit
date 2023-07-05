@@ -171,7 +171,7 @@ public enum UnitTestSourceFile {
         var seen: Set<String> = []
         // Make sure duplicate parameters don't get created
         let uniqueFields = fields.filter {
-            let key = "\($0.name.string)-\($0.type)"
+            let key = "\($0.resolvedName())-\($0.type)"
             if seen.contains(key) {
                 return false
             }
@@ -181,7 +181,7 @@ public enum UnitTestSourceFile {
 
         return StructDeclSyntax("struct KnitRegistrationTestArguments") {
             for field in uniqueFields {
-                DeclSyntax("let \(raw: field.name.string): \(raw: field.type)")
+                DeclSyntax("let \(raw: field.resolvedName()): \(raw: field.type)")
             }
         }
     }
@@ -191,7 +191,7 @@ public enum UnitTestSourceFile {
             fatalError("Should only be called for registrations with arguments")
         }
         let prefix = registration.arguments.count == 1 ? "argument:" : "arguments:"
-        let params = registration.serviceNamedArguments().map { "args.\($0.name.string)" }.joined(separator: ", ")
+        let params = registration.serviceNamedArguments().map { "args.\($0.resolvedName())" }.joined(separator: ", ")
         return "\(prefix) \(params)"
     }
 
@@ -203,7 +203,7 @@ private extension Registration {
     func serviceNamedArguments() -> [Argument] {
         return namedArguments().map { arg in
             let serviceName = self.service.prefix(1).lowercased() + self.service.dropFirst()
-            let capitalizedName = arg.name.string.prefix(1).uppercased() + arg.name.string.dropFirst()
+            let capitalizedName = arg.resolvedName().prefix(1).uppercased() + arg.resolvedName().dropFirst()
             return Argument(name: serviceName + capitalizedName, type: arg.type)
         }
     }

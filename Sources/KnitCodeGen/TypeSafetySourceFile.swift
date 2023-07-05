@@ -56,7 +56,7 @@ public enum TypeSafetySourceFile {
             return (nil, nil)
         }
         let prefix = registration.arguments.count == 1 ? "argument:" : "arguments:"
-        let input = registration.namedArguments().map { "\($0.name.string): \($0.functionType)" }.joined(separator: ", ")
+        let input = registration.namedArguments().map { "\($0.resolvedName()): \($0.functionType)" }.joined(separator: ", ")
         let usages = registration.namedArguments().map { $0.resolvedName() }.joined(separator: ", ")
         return (input, "\(prefix) \(usages)")
     }
@@ -99,8 +99,9 @@ extension Registration {
 
 }
 
-private extension Registration.Argument {
+extension Registration.Argument {
 
+    /// Determine the name for the Registration Argument.
     func resolvedName() -> String {
         switch name {
         case let .fixed(value):
