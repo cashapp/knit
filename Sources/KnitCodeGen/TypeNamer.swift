@@ -5,7 +5,13 @@ import Foundation
 
 enum TypeNamer {
 
-    static func computedVariableName(type: String) -> String {
+    /**
+     Creates a name for a given Type signature.
+     The resulting name can be safely used as an identifier in Swift (does not use reserved characters).
+
+     See TypeNamerTests unit tests for examples.
+     */
+    static func computedIdentifierName(type: String) -> String {
         let type = sanitizeType(type: type)
         if type.uppercased() == type {
             return type.lowercased()
@@ -36,6 +42,5 @@ enum TypeNamer {
     static func isClosure(type: String) -> Bool {
         return type.contains("->")
     }
-
 
 }

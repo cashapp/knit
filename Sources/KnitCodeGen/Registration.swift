@@ -2,6 +2,7 @@ public struct Registration: Equatable, Codable {
 
     public var service: String
 
+    /// The resolution name for this Registration, if specified.
     public var name: String?
 
     public var accessLevel: AccessLevel
@@ -12,8 +13,8 @@ public struct Registration: Equatable, Codable {
     /// This registration is forwarded to another service entry.
     public var isForwarded: Bool
 
-    /// This registration should have a named var generated
-    public var namedVar: Bool
+    /// This registration should have an identified getter generated.
+    public var identifiedGetter: Bool
 
     public init(
         service: String,
@@ -21,33 +22,35 @@ public struct Registration: Equatable, Codable {
         accessLevel: AccessLevel,
         arguments: [Argument] = [],
         isForwarded: Bool = false,
-        namedVar: Bool = false
+        identifiedGetter: Bool = false
     ) {
         self.service = service
         self.name = name
         self.accessLevel = accessLevel
         self.arguments = arguments
         self.isForwarded = isForwarded
-        self.namedVar = namedVar
+        self.identifiedGetter = identifiedGetter
     }
 
 }
 
 extension Registration {
+
     public struct Argument: Equatable, Codable {
-        let name: Name
+
+        let identifier: Identifier
         let type: String
 
-        init(name: String? = nil, type: String) {
-            if let name {
-                self.name = .fixed(name)
+        init(identifier: String? = nil, type: String) {
+            if let identifier {
+                self.identifier = .fixed(identifier)
             } else {
-                self.name = .computed
+                self.identifier = .computed
             }
             self.type = type
         }
 
-        public enum Name: Codable, Equatable {
+        public enum Identifier: Codable, Equatable {
             case fixed(String)
             case computed
         }

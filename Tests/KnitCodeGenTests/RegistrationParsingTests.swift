@@ -93,7 +93,7 @@ final class RegistrationParsingTests: XCTestCase {
             container.register(A.self) { }
             """,
             registrations: [
-                .init(service: "A", accessLevel: .public, namedVar: true)
+                .init(service: "A", accessLevel: .public, identifiedGetter: true)
             ]
         )
     }
@@ -169,7 +169,7 @@ final class RegistrationParsingTests: XCTestCase {
             }
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")])
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(identifier: "arg", type: "String")])
             ]
         )
 
@@ -181,7 +181,7 @@ final class RegistrationParsingTests: XCTestCase {
             })
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")])
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(identifier: "arg", type: "String")])
             ]
         )
 
@@ -197,8 +197,8 @@ final class RegistrationParsingTests: XCTestCase {
                     service: "A",
                     accessLevel: .internal,
                     arguments: [
-                        .init(name: "arg", type: "String"),
-                        .init(name: "arg2", type: "Int"),
+                        .init(identifier: "arg", type: "String"),
+                        .init(identifier: "arg2", type: "Int"),
                     ]
                 )
             ]
@@ -216,8 +216,8 @@ final class RegistrationParsingTests: XCTestCase {
                     service: "A",
                     accessLevel: .internal,
                     arguments: [
-                        .init(name: "arg", type: "String"),
-                        .init(name: "arg2", type: "Int"),
+                        .init(identifier: "arg", type: "String"),
+                        .init(identifier: "arg2", type: "Int"),
                     ]
                 )
             ]
@@ -324,8 +324,8 @@ final class RegistrationParsingTests: XCTestCase {
             .implements(B.self)
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")]),
-                Registration(service: "B", accessLevel: .internal, arguments: [.init(name: "arg", type: "String")], isForwarded: true)
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(identifier: "arg", type: "String")]),
+                Registration(service: "B", accessLevel: .internal, arguments: [.init(identifier: "arg", type: "String")], isForwarded: true)
             ]
         )
     }
@@ -338,7 +338,7 @@ final class RegistrationParsingTests: XCTestCase {
             }
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "A.Argument")]),
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(identifier: "arg", type: "A.Argument")]),
             ]
         )
 
@@ -349,7 +349,7 @@ final class RegistrationParsingTests: XCTestCase {
             }
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg", type: "Result<String?, Error>")]),
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(identifier: "arg", type: "Result<String?, Error>")]),
             ]
         )
     }
@@ -395,7 +395,7 @@ final class RegistrationParsingTests: XCTestCase {
             }
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(name: "arg1", type: "() -> Void")]),
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(identifier: "arg1", type: "() -> Void")]),
             ]
         )
     }

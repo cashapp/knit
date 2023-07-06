@@ -7,45 +7,45 @@ import XCTest
 
 final class TypeNamerTests: XCTestCase {
 
-    func testTypeNaming() {
-        XCTAssertEqual(
-            TypeNamer.computedVariableName(type: "String"),
-            "string"
+    func testTypeComputedIdentifiers() {
+        assertComputedIdentifier(
+            type: "String",
+            expectedIdentifier: "string"
         )
 
-        XCTAssertEqual(
-            TypeNamer.computedVariableName(type: "URL"),
-            "url"
+        assertComputedIdentifier(
+            type: "URL",
+            expectedIdentifier: "url"
         )
 
-        XCTAssertEqual(
-            TypeNamer.computedVariableName(type: "() -> URL"),
-            "closure"
+        assertComputedIdentifier(
+            type: "() -> URL",
+            expectedIdentifier: "closure"
         )
 
-        XCTAssertEqual(
-            TypeNamer.computedVariableName(type: "MyService"),
-            "myService"
+        assertComputedIdentifier(
+            type: "MyService",
+            expectedIdentifier: "myService"
         )
 
-        XCTAssertEqual(
-            TypeNamer.computedVariableName(type: "Result<String, Error>"),
-            "result"
+        assertComputedIdentifier(
+            type: "Result<String, Error>",
+            expectedIdentifier: "result"
         )
 
-        XCTAssertEqual(
-            TypeNamer.computedVariableName(type: "Result<String, Error>"),
-            "result"
+        assertComputedIdentifier(
+            type: "Result<String, Error>",
+            expectedIdentifier: "result"
         )
 
-        XCTAssertEqual(
-            TypeNamer.computedVariableName(type: "[ServiceA]"),
-            "serviceA"
+        assertComputedIdentifier(
+            type: "[ServiceA]",
+            expectedIdentifier: "serviceA"
         )
 
-        XCTAssertEqual(
-            TypeNamer.computedVariableName(type: "[ServiceA]?"),
-            "serviceA"
+        assertComputedIdentifier(
+            type: "[ServiceA]?",
+            expectedIdentifier: "serviceA"
         )
 
     }
@@ -55,4 +55,18 @@ final class TypeNamerTests: XCTestCase {
         XCTAssertFalse(TypeNamer.isClosure(type: "String"))
     }
 
+}
+
+private func assertComputedIdentifier(
+    type: String,
+    expectedIdentifier: String,
+    file: StaticString = #file,
+    line: UInt = #line
+) {
+    XCTAssertEqual(
+        TypeNamer.computedIdentifierName(type: type),
+        expectedIdentifier,
+        file: file,
+        line: line
+    )
 }
