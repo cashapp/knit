@@ -13,7 +13,7 @@ public enum TypeSafetySourceFile {
         let registrations = registrations.filter { $0.accessLevel != .hidden }
         let namedGroups = NamedRegistrationGroup.make(from: registrations)
         let unnamedRegistrations = registrations.filter { $0.name == nil }
-        let namedVars = unnamedRegistrations.filter { $0.namedVar && $0.name == nil }
+        let identifiedGetterRegistrations = unnamedRegistrations.filter { $0.identifiedGetter }
         return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             for importItem in imports {
                 importItem
@@ -31,8 +31,8 @@ public enum TypeSafetySourceFile {
                 for namedGroup in namedGroups {
                     makeResolver(registration: namedGroup.registrations[0], enumName: "\(assemblyName).\(namedGroup.enumName)")
                 }
-                for registration in namedVars {
-                    makeResolver(registration: registration, namedGetter: true)
+                for registration in identifiedGetterRegistrations {
+                    makeResolver(registration: registration, identifiedGetter: true)
                 }
             }
             if !namedGroups.isEmpty {
@@ -45,7 +45,7 @@ public enum TypeSafetySourceFile {
     static func makeResolver(
         registration: Registration,
         enumName: String? = nil,
-        namedGetter: Bool = false
+        identifiedGetter: Bool = false
     ) -> FunctionDeclSyntax {
         let modifier = registration.accessLevel == .public ? "public " : ""
         let nameInput = enumName.map { "name: \($0)" }
@@ -53,7 +53,7 @@ public enum TypeSafetySourceFile {
         let (argInput, argUsage) = argumentString(registration: registration)
         let inputs = [nameInput, argInput].compactMap { $0 }.joined(separator: ", ")
         let usages = ["\(registration.service).self", nameUsage, argUsage].compactMap { $0 }.joined(separator: ", ")
-        let funcName = namedGetter ? TypeNamer.computedVariableName(type: registration.service) : "callAsFunction" 
+        let funcName = identifiedGetter ? TypeNamer.computedIdentifierName(type: registration.service) : "callAsFunction"
 
         return FunctionDeclSyntax("\(modifier)func \(funcName)(\(inputs)) -> \(registration.service)") {
             ForcedValueExprSyntax("self.resolve(\(raw: usages))!")
@@ -65,8 +65,8 @@ public enum TypeSafetySourceFile {
             return (nil, nil)
         }
         let prefix = registration.arguments.count == 1 ? "argument:" : "arguments:"
-        let input = registration.namedArguments().map { "\($0.resolvedName()): \($0.functionType)" }.joined(separator: ", ")
-        let usages = registration.namedArguments().map { $0.resolvedName() }.joined(separator: ", ")
+        let input = registration.namedArguments().map { "\($0.resolvedIdentifier()): \($0.functionType)" }.joined(separator: ", ")
+        let usages = registration.namedArguments().map { $0.resolvedIdentifier() }.joined(separator: ", ")
         return (input, "\(prefix) \(usages)")
     }
 
@@ -95,13 +95,13 @@ extension Registration {
         var result: [Registration.Argument] = []
         for argument in arguments {
             let indexID: String
-            if (arguments.filter { $0.resolvedName() == argument.resolvedName() }).count > 1 {
+            if (arguments.filter { $0.resolvedIdentifier() == argument.resolvedIdentifier() }).count > 1 {
                 indexID = (result.filter { $0.type == argument.type }.count + 1).description
             } else {
                 indexID = ""
             }
-            let name = argument.resolvedName() + indexID
-            result.append(Argument(name: name, type: argument.type))
+            let name = argument.resolvedIdentifier() + indexID
+            result.append(Argument(identifier: name, type: argument.type))
         }
         return result
     }
@@ -110,13 +110,13 @@ extension Registration {
 
 extension Registration.Argument {
 
-    /// Determine the name for the Registration Argument.
-    func resolvedName() -> String {
-        switch name {
+    /// Determine the identifier for the Registration Argument.
+    func resolvedIdentifier() -> String {
+        switch identifier {
         case let .fixed(value):
             return value
         case .computed:
-            return TypeNamer.computedVariableName(type: type)
+            return TypeNamer.computedIdentifierName(type: type)
         }
     }
 

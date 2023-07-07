@@ -235,7 +235,7 @@ final class UnitTestSourceFileTests: XCTestCase {
     func test_argumentStruct() {
         let result = UnitTestSourceFile.makeArgumentStruct(registrations: [
             Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String")]),
-            Registration(service: "B", accessLevel: .public, arguments: [.init(name: "field", type: "String"), .init(type: "String")]),
+            Registration(service: "B", accessLevel: .public, arguments: [.init(identifier: "field", type: "String"), .init(type: "String")]),
             Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Int"), .init(type: "String")]),
         ])
 

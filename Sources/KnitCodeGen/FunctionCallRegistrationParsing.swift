@@ -154,7 +154,7 @@ private func makeRegistrationFor(
     } else {
         accessLevel = .internal
     }
-    let namedVar = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-getter")
+    let identifiedGetter = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-getter")
     let name = try getName(arguments: arguments)
 
     return Registration(
@@ -163,7 +163,7 @@ private func makeRegistrationFor(
         accessLevel: accessLevel,
         arguments: registrationArguments,
         isForwarded: isForwarded,
-        namedVar: namedVar
+        identifiedGetter: identifiedGetter
     )
 }
 
@@ -245,10 +245,10 @@ private func getArguments(
         let params = closureParameters.parameterList
         // The first param is the resolver, everything after that is an argument
         return try params[params.index(after: params.startIndex)..<params.endIndex].compactMap { element in
-            guard let name = element.firstName?.text, let type = getArgumentType(arg: element)  else {
+            guard let identifier = element.firstName?.text, let type = getArgumentType(arg: element)  else {
                 throw RegistrationParsingError.missingArgumentType(syntax: element, name: element.firstName?.text ?? "_")
             }
-            return .init(name: name, type: type)
+            return .init(identifier: identifier, type: type)
         }
     }
 
