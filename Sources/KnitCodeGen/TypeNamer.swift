@@ -12,7 +12,7 @@ enum TypeNamer {
      See TypeNamerTests unit tests for examples.
      */
     static func computedIdentifierName(type: String) -> String {
-        let type = sanitizeType(type: type)
+        let type = sanitizeType(type: type, keepGenerics: false)
         if type.uppercased() == type {
             return type.lowercased()
         }
@@ -20,7 +20,8 @@ enum TypeNamer {
     }
 
     /// Simplifies the type name and removes invalid characters
-    private static func sanitizeType(type: String) -> String {
+
+    static func sanitizeType(type: String, keepGenerics: Bool) -> String {
         if isClosure(type: type) {
             // The naming doesn't work for function types, just return closure
             return "closure"
@@ -28,8 +29,21 @@ enum TypeNamer {
         let removedCharacters = CharacterSet(charactersIn: "?[]")
         var type = type.components(separatedBy: removedCharacters).joined(separator: "")
         let regex = try! NSRegularExpression(pattern: "<.*>")
+        let nsString = type as NSString
         if let match = regex.firstMatch(in: type, range: .init(location: 0, length: type.count)) {
-            type = (type as NSString).replacingCharacters(in: match.range, with: "")
+            let range = match.range
+            if keepGenerics {
+                var genericName = nsString.substring(
+                    with: .init(location: range.location + 1, length: range.length - 2)
+                )
+                // Handle generic types with multiple parameters
+                genericName = genericName
+                    .replacingOccurrences(of: ",", with: "_")
+                    .replacingOccurrences(of: " ", with: "")
+                type = nsString.replacingCharacters(in: match.range, with: "_\(genericName)")
+            } else {
+                type = nsString.replacingCharacters(in: match.range, with: "")
+            }
         }
         if let dotIndex = type.firstIndex(of: ".") {
             let nameStart = type.index(after: dotIndex)
