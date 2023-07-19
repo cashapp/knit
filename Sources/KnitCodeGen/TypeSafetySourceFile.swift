@@ -8,12 +8,19 @@ public enum TypeSafetySourceFile {
         assemblyName: String,
         imports: [ImportDeclSyntax],
         extensionTarget: String,
-        registrations: [Registration]
+        registrations allRegistrations: [Registration]
     ) -> SourceFileSyntax {
-        let registrations = registrations.filter { $0.accessLevel != .hidden }
-        let namedGroups = NamedRegistrationGroup.make(from: registrations)
-        let unnamedRegistrations = registrations.filter { $0.name == nil }
-        let identifiedGetterRegistrations = unnamedRegistrations.filter { $0.identifiedGetter }
+        let visibleRegistrations = allRegistrations.filter {
+            // Exclude hidden registrations always
+            $0.accessLevel != .hidden
+        }
+        let callAsFunctionRegistrations = visibleRegistrations.filter {
+            // Don't include generated `callAsFunction` when only generating identified getter
+            $0.identifiedGetter != .identifiedGetterOnly
+        }
+        let namedGroups = NamedRegistrationGroup.make(from: callAsFunctionRegistrations)
+        let unnamedRegistrations = callAsFunctionRegistrations.filter { $0.name == nil }
+        let identifiedGetterRegistrations = visibleRegistrations.filter { $0.identifiedGetter != .off }
         return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             for importItem in imports {
                 importItem

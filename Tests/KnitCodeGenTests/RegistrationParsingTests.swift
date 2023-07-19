@@ -86,14 +86,24 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testNamedVarRegistrations() throws {
+    func testIdentifiedGetterRegistrations() throws {
         assertMultipleRegistrationsString(
             """
             // @knit public named-getter
             container.register(A.self) { }
             """,
             registrations: [
-                .init(service: "A", accessLevel: .public, identifiedGetter: true)
+                .init(service: "A", accessLevel: .public, identifiedGetter: .both)
+            ]
+        )
+
+        assertMultipleRegistrationsString(
+            """
+            // @knit public named-getter-only
+            container.register(A.self) { }
+            """,
+            registrations: [
+                .init(service: "A", accessLevel: .public, identifiedGetter: .identifiedGetterOnly)
             ]
         )
     }

@@ -13,8 +13,8 @@ public struct Registration: Equatable, Codable {
     /// This registration is forwarded to another service entry.
     public var isForwarded: Bool
 
-    /// This registration should have an identified getter generated.
-    public var identifiedGetter: Bool
+    /// This registration's identified getter setting.
+    public var identifiedGetter: IdentifiedGetter
 
     public init(
         service: String,
@@ -22,7 +22,7 @@ public struct Registration: Equatable, Codable {
         accessLevel: AccessLevel,
         arguments: [Argument] = [],
         isForwarded: Bool = false,
-        identifiedGetter: Bool = false
+        identifiedGetter: IdentifiedGetter = .off
     ) {
         self.service = service
         self.name = name
@@ -55,6 +55,15 @@ extension Registration {
             case computed
         }
 
+    }
+
+    public enum IdentifiedGetter: Codable {
+        /// No identified getter, only the `callAsFunction()` accessor is generated.
+        case off
+        /// Both the identified getter and the `callAsFunction()` accessors are generated.
+        case both
+        /// Only the identified getter is generated.
+        case identifiedGetterOnly
     }
 
 }
