@@ -14,13 +14,14 @@ public enum TypeSafetySourceFile {
             // Exclude hidden registrations always
             $0.accessLevel != .hidden
         }
+        let identifiedGetterRegistrations = visibleRegistrations.filter {
+            $0.getterConfig != .callAsFunction && $0.name == nil
+        }
         let callAsFunctionRegistrations = visibleRegistrations.filter {
             // Don't include generated `callAsFunction` when only generating identified getter
-            $0.identifiedGetter != .identifiedGetterOnly
+            $0.getterConfig != .identifiedGetter && $0.name == nil
         }
-        let namedGroups = NamedRegistrationGroup.make(from: callAsFunctionRegistrations)
-        let unnamedRegistrations = callAsFunctionRegistrations.filter { $0.name == nil }
-        let identifiedGetterRegistrations = visibleRegistrations.filter { $0.identifiedGetter != .off }
+        let namedGroups = NamedRegistrationGroup.make(from: visibleRegistrations)
         return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             for importItem in imports {
                 importItem
@@ -32,14 +33,19 @@ public enum TypeSafetySourceFile {
                           extension \(extensionTarget)
                           """) {
 
-                for registration in unnamedRegistrations {
+                for registration in identifiedGetterRegistrations {
+                    makeResolver(registration: registration, identifiedGetter: true)
+                }
+                for registration in callAsFunctionRegistrations {
                     makeResolver(registration: registration)
                 }
                 for namedGroup in namedGroups {
-                    makeResolver(registration: namedGroup.registrations[0], enumName: "\(assemblyName).\(namedGroup.enumName)")
-                }
-                for registration in identifiedGetterRegistrations {
-                    makeResolver(registration: registration, identifiedGetter: true)
+                    let firstGetterConfig = namedGroup.registrations[0].getterConfig
+                    makeResolver(
+                        registration: namedGroup.registrations[0],
+                        enumName: "\(assemblyName).\(namedGroup.enumName)",
+                        identifiedGetter: firstGetterConfig != .callAsFunction
+                    )
                 }
             }
             if !namedGroups.isEmpty {

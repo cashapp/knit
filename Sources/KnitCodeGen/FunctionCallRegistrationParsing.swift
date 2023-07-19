@@ -154,20 +154,21 @@ private func makeRegistrationFor(
     } else {
         accessLevel = .internal
     }
-    let identifiedGetterBoth = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-getter")
-    let identifiedGetterOnly = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-getter-only")
+    let identifiedGetterOnly = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("getter-named")
+    let callAsFuncOnly =       leadingTriviaText.contains("@knit") && leadingTriviaText.contains("getter-callAsFunction")
     let name = try getName(arguments: arguments)
 
-    let identifiedGetter: Registration.IdentifiedGetter
-    switch (identifiedGetterBoth, identifiedGetterOnly) {
+    let getterConfig: Registration.GetterConfig
+    switch (identifiedGetterOnly, callAsFuncOnly) {
     case (false, false):
-        identifiedGetter = .off
+        // Use the default
+        getterConfig = .default
     case (true, false):
-        identifiedGetter = .both
+        getterConfig = .identifiedGetter
     case (false, true):
-        fatalError("This case never hit because the string 'named-getter-only' matches both")
+        getterConfig = .callAsFunction
     case (true, true):
-        identifiedGetter = .identifiedGetterOnly
+        getterConfig = .both
     }
 
     return Registration(
@@ -176,7 +177,7 @@ private func makeRegistrationFor(
         accessLevel: accessLevel,
         arguments: registrationArguments,
         isForwarded: isForwarded,
-        identifiedGetter: identifiedGetter
+        getterConfig: getterConfig
     )
 }
 
