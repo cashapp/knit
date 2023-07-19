@@ -154,8 +154,21 @@ private func makeRegistrationFor(
     } else {
         accessLevel = .internal
     }
-    let identifiedGetter = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-getter")
+    let identifiedGetterBoth = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-getter")
+    let identifiedGetterOnly = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("named-getter-only")
     let name = try getName(arguments: arguments)
+
+    let identifiedGetter: Registration.IdentifiedGetter
+    switch (identifiedGetterBoth, identifiedGetterOnly) {
+    case (false, false):
+        identifiedGetter = .off
+    case (true, false):
+        identifiedGetter = .both
+    case (false, true):
+        fatalError("This case never hit because the string 'named-getter-only' matches both")
+    case (true, true):
+        identifiedGetter = .identifiedGetterOnly
+    }
 
     return Registration(
         service: registrationText,
