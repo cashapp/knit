@@ -55,6 +55,23 @@ final class TypeNamerTests: XCTestCase {
         XCTAssertFalse(TypeNamer.isClosure(type: "String"))
     }
 
+    func testSanitizeWithGenerics() {
+        XCTAssertEqual(
+            TypeNamer.sanitizeType(type: "Array<String>", keepGenerics: true),
+            "Array_String"
+        )
+
+        XCTAssertEqual(
+            TypeNamer.sanitizeType(type: "Result<String, Error>", keepGenerics: true),
+            "Result_String_Error"
+        )
+
+        XCTAssertEqual(
+            TypeNamer.sanitizeType(type: "Array<String>", keepGenerics: false),
+            "Array"
+        )
+    }
+
 }
 
 private func assertComputedIdentifier(

@@ -25,7 +25,8 @@ struct NamedRegistrationGroup {
     }
 
     var enumName: String {
-        return "\(service)_ResolutionKey"
+        let sanitizedType = TypeNamer.sanitizeType(type: service, keepGenerics: true)
+        return "\(sanitizedType)_ResolutionKey"
     }
 
 }

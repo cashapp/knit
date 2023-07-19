@@ -28,4 +28,17 @@ final class NamedRegistrationGroupTests: XCTestCase {
 
     }
 
+    func testComplexEnumNaming() throws {
+        let registrations: [Registration] = [
+            .init(service: "AnyProfileValueProvider<BalanceSnapshot?>", name: "name1", accessLevel: .internal)
+        ]
+
+        let namedGroup = NamedRegistrationGroup.make(from: registrations)[0]
+
+        XCTAssertEqual(
+            namedGroup.enumName,
+            "AnyProfileValueProvider_BalanceSnapshot_ResolutionKey"
+        )
+    }
+
 }
