@@ -3,6 +3,7 @@
 import Foundation
 import Knit
 
+// @knit internal
 final class KnitExampleAssembly: Assembly {
 
     func assemble(container: Container) {

@@ -85,8 +85,9 @@ private class AssemblyFileVisitor: SyntaxVisitor {
             // Only the first class declaration should be visited
             return .skipChildren
         }
+        let directives = KnitDirectives.parse(leadingTrivia: node.leadingTrivia)
         moduleName = node.moduleNameForAssembly
-        classDeclVisitor = ClassDeclVisitor(viewMode: .fixedUp)
+        classDeclVisitor = ClassDeclVisitor(viewMode: .fixedUp, directives: directives)
         classDeclVisitor?.walk(node)
         return .skipChildren
     }
@@ -94,6 +95,8 @@ private class AssemblyFileVisitor: SyntaxVisitor {
 }
 
 private class ClassDeclVisitor: SyntaxVisitor {
+
+    private let directives: KnitDirectives
 
     /// The registrations that were found in the tree.
     private(set) var registrations = [Registration]()
@@ -103,9 +106,14 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     private(set) var registrationErrors = [Error]()
 
+    init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives) {
+        self.directives = directives
+        super.init(viewMode: viewMode)
+    }
+
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         do {
-            let (registrations, registrationsIntoCollections) = try node.getRegistrations()
+            let (registrations, registrationsIntoCollections) = try node.getRegistrations(defaultDirectives: directives)
             self.registrations.append(contentsOf: registrations)
             self.registrationsIntoCollections.append(contentsOf: registrationsIntoCollections)
         } catch {

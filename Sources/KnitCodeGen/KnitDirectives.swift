@@ -2,13 +2,13 @@
 
 import SwiftSyntax
 
-struct KnitDirectives {
+struct KnitDirectives: Codable {
     let accessLevel: AccessLevel?
     let getterConfig: GetterConfig?
 
     static func parse(leadingTrivia: Trivia?) -> KnitDirectives {
         guard let leadingTriviaText = leadingTrivia?.description, leadingTriviaText.contains("@knit") else {
-            return .init(accessLevel: nil, getterConfig: nil)
+            return .empty
         }
         let accessLevel: AccessLevel? = AccessLevel.allCases.first { leadingTriviaText.contains($0.rawValue) }
 
@@ -28,6 +28,10 @@ struct KnitDirectives {
         }
 
         return KnitDirectives(accessLevel: accessLevel, getterConfig: getterConfig)
+    }
+
+    static var empty: KnitDirectives {
+        return .init(accessLevel: nil, getterConfig: nil)
     }
 }
 
