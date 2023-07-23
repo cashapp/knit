@@ -145,39 +145,16 @@ private func makeRegistrationFor(
     guard firstParam.name.text == "self" else { return nil }
 
     let registrationText = firstParam.base!.withoutTrivia().description
-    let accessLevel: AccessLevel
-    let leadingTriviaText = leadingTrivia?.description ?? ""
-    if leadingTriviaText.contains("@knit public") {
-        accessLevel = .public
-    } else if leadingTriviaText.contains("@knit hidden") {
-        accessLevel = .hidden
-    } else {
-        accessLevel = .internal
-    }
-    let identifiedGetterOnly = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("getter-named")
-    let callAsFuncOnly =       leadingTriviaText.contains("@knit") && leadingTriviaText.contains("getter-callAsFunction")
     let name = try getName(arguments: arguments)
-
-    let getterConfig: Registration.GetterConfig
-    switch (identifiedGetterOnly, callAsFuncOnly) {
-    case (false, false):
-        // Use the default
-        getterConfig = .default
-    case (true, false):
-        getterConfig = .identifiedGetter
-    case (false, true):
-        getterConfig = .callAsFunction
-    case (true, true):
-        getterConfig = .both
-    }
+    let directives = KnitDirectives.parse(leadingTrivia: leadingTrivia)
 
     return Registration(
         service: registrationText,
         name: name,
-        accessLevel: accessLevel,
+        accessLevel: directives.accessLevel ?? .default,
         arguments: registrationArguments,
         isForwarded: isForwarded,
-        getterConfig: getterConfig
+        getterConfig: directives.getterConfig ?? .default
     )
 }
 
