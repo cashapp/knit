@@ -60,7 +60,7 @@ The following commands are available:
 
 #### Default Setting
 
-By default Knit generates named getters for its type safety. 
+By default Knit generates `callAsFunction` getters for its type safety. 
 
 ---
 
