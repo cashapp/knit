@@ -19,8 +19,9 @@ Commands can be applied at either the Assembly level or the registration level. 
 Knit can change the visibility of the generated type-safe accessors.
 The following commands are available:
 
-* `public`: Make the type safe function public (default is internal)
-* `hidden`: Do not generate any type safe function
+* `public`: Make the type safe function(s) public (default is internal).
+* `internal`: Make the type safe function(s) internal. This is a useful override when the assembly is set to `public`.
+* `hidden`: Do not generate any type safe function.
 
 #### Examples:
 
