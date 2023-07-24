@@ -19,7 +19,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 .init(service: "ServiceC", name: nil, accessLevel: .hidden, isForwarded: false), // No resolver is created
                 .init(service: "ServiceD", name: nil, accessLevel: .public, isForwarded: true, getterConfig: .both),
                 .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [.init(type: "() -> Void")]),
-                .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: .callAsFunction),
+                .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: .identifiedGetter),
             ]
         )
 
@@ -32,22 +32,22 @@ final class TypeSafetySourceFileTests: XCTestCase {
         // The correct resolution of each of these types is enforced by a matching automated unit test
         // If a type registration is missing or broken then the automated tests will fail for that PR
         extension Resolve {
-            func serviceA() -> ServiceA {
-                self.resolve(ServiceA.self)!
-            }
             public func serviceD() -> ServiceD {
                 self.resolve(ServiceD.self)!
             }
-            public func serviceE(closure: @escaping () -> Void) -> ServiceE {
-                self.resolve(ServiceE.self, argument: closure)!
+            public func serviceF() -> ServiceF {
+                self.resolve(ServiceF.self)!
+            }
+            func callAsFunction() -> ServiceA {
+                self.resolve(ServiceA.self)!
             }
             public func callAsFunction() -> ServiceD {
                 self.resolve(ServiceD.self)!
             }
-            public func callAsFunction() -> ServiceF {
-                self.resolve(ServiceF.self)!
+            public func callAsFunction(closure: @escaping () -> Void) -> ServiceE {
+                self.resolve(ServiceE.self, argument: closure)!
             }
-            func serviceB(name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
+            func callAsFunction(name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
                 self.resolve(ServiceB.self, name: name.rawValue)!
             }
         }

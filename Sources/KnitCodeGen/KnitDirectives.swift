@@ -45,7 +45,7 @@ public enum GetterConfig: Codable, CaseIterable {
     case both
 
     /// Centralized control of the default behavior.
-    public static var `default`: GetterConfig = .identifiedGetter
+    public static var `default`: GetterConfig = .callAsFunction
 }
 
 public enum AccessLevel: String, CaseIterable, Codable {
