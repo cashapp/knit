@@ -56,23 +56,4 @@ extension Registration {
         }
 
     }
-
-    public enum GetterConfig: Codable {
-        /// Only the `callAsFunction()` accessor is generated.
-        case callAsFunction
-        /// Only the identified getter is generated.
-        case identifiedGetter
-        /// Both the identified getter and the `callAsFunction()` accessors are generated.
-        case both
-
-        /// Centralized control of the default behavior.
-        public static var `default`: GetterConfig = .identifiedGetter
-    }
-
-}
-
-public enum AccessLevel: String, Codable {
-    case `public`
-    case `internal`
-    case hidden
 }

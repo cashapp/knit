@@ -21,7 +21,9 @@ extension FunctionCallExprSyntax {
 
     /// Retrieve any registrations if they exist in the function call expression.
     /// Function call expressions can contain chained function calls, and this method will parse the chain.
-    func getRegistrations() throws -> (registrations: [Registration], registrationsIntoCollections: [RegistrationIntoCollection]) {
+    func getRegistrations(
+        defaultDirectives: KnitDirectives = .empty
+    ) throws -> (registrations: [Registration], registrationsIntoCollections: [RegistrationIntoCollection]) {
 
         let (calledMethods, baseIdentifier) = recurseAllCalledMethods(startingWith: self)
 
@@ -65,6 +67,7 @@ extension FunctionCallExprSyntax {
 
         // The primary registration (not `.implements()`)
         guard let primaryRegistration = try makeRegistrationFor(
+            defaultDirectives: defaultDirectives,
             arguments: primaryRegisterMethod.arguments,
             registrationArguments: registrationArguments,
             leadingTrivia: self.leadingTrivia,
@@ -84,6 +87,7 @@ extension FunctionCallExprSyntax {
             let leadingTrivia = implementsCalledMethod.calledExpression.dot.leadingTrivia
 
             if let forwardedRegistration = try makeRegistrationFor(
+                defaultDirectives: defaultDirectives,
                 arguments: implementsCalledMethod.arguments,
                 registrationArguments: registrationArguments,
                 leadingTrivia: leadingTrivia,
@@ -135,6 +139,7 @@ func recurseAllCalledMethods(
 }
 
 private func makeRegistrationFor(
+    defaultDirectives: KnitDirectives,
     arguments: TupleExprElementListSyntax,
     registrationArguments: [Registration.Argument],
     leadingTrivia: Trivia?,
@@ -145,39 +150,16 @@ private func makeRegistrationFor(
     guard firstParam.name.text == "self" else { return nil }
 
     let registrationText = firstParam.base!.withoutTrivia().description
-    let accessLevel: AccessLevel
-    let leadingTriviaText = leadingTrivia?.description ?? ""
-    if leadingTriviaText.contains("@knit public") {
-        accessLevel = .public
-    } else if leadingTriviaText.contains("@knit hidden") {
-        accessLevel = .hidden
-    } else {
-        accessLevel = .internal
-    }
-    let identifiedGetterOnly = leadingTriviaText.contains("@knit") && leadingTriviaText.contains("getter-named")
-    let callAsFuncOnly =       leadingTriviaText.contains("@knit") && leadingTriviaText.contains("getter-callAsFunction")
     let name = try getName(arguments: arguments)
-
-    let getterConfig: Registration.GetterConfig
-    switch (identifiedGetterOnly, callAsFuncOnly) {
-    case (false, false):
-        // Use the default
-        getterConfig = .default
-    case (true, false):
-        getterConfig = .identifiedGetter
-    case (false, true):
-        getterConfig = .callAsFunction
-    case (true, true):
-        getterConfig = .both
-    }
+    let directives = KnitDirectives.parse(leadingTrivia: leadingTrivia)
 
     return Registration(
         service: registrationText,
         name: name,
-        accessLevel: accessLevel,
+        accessLevel: directives.accessLevel ?? defaultDirectives.accessLevel ?? .default,
         arguments: registrationArguments,
         isForwarded: isForwarded,
-        getterConfig: getterConfig
+        getterConfig: directives.getterConfig ?? defaultDirectives.getterConfig ?? .default
     )
 }
 

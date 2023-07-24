@@ -12,6 +12,8 @@ your registrations with that additional information.
 This is accomplished by adding a comment directly above the registration starting with `// @knit` and then
 followed with the configuration command.
 
+Commands can be applied at either the Assembly level or the registration level. Options set at the registration level will override any from the Assembly.
+
 ### Registration Visibility
 
 Knit can change the visibility of the generated type-safe accessors.

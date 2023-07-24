@@ -87,6 +87,28 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
+    func testKnitDirectives() throws {
+        let sourceFile: SourceFile = """
+            // @knit public getter-named
+            class TestAssembly: Assembly {
+                func assemble(container: Container) {
+                    container.register(A.self) { }
+                    // @knit internal getter-callAsFunction
+                    container.register(B.self) { }
+                }
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(
+            config.registrations,
+            [
+                .init(service: "A", accessLevel: .public, getterConfig: .identifiedGetter),
+                .init(service: "B", accessLevel: .internal, getterConfig: .callAsFunction)
+            ]
+        )
+    }
+
     func testOnlyFirstOfMultipleAssemblies() throws {
         let sourceFile: SourceFile = """
                 class KeyValueStoreAssembly: Assembly {
