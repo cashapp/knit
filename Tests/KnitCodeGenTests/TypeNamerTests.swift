@@ -48,6 +48,16 @@ final class TypeNamerTests: XCTestCase {
             expectedIdentifier: "serviceA"
         )
 
+        assertComputedIdentifier(
+            type: "[Key: Value]",
+            expectedIdentifier: "keyValue"
+        )
+
+        assertComputedIdentifier(
+            type: "ProtocolA & ProtocolB",
+            expectedIdentifier: "protocolAProtocolB"
+        )
+
     }
 
     func testClosureDetection() {
