@@ -1,51 +1,97 @@
 // Copyright © Square, Inc. All rights reserved.
 
+import Foundation
 import SwiftSyntax
 
-struct KnitDirectives: Codable {
+struct KnitDirectives: Codable, Equatable {
     let accessLevel: AccessLevel?
-    let getterConfig: GetterConfig?
+    let getterConfig: Set<GetterConfig>
 
-    static func parse(leadingTrivia: Trivia?) -> KnitDirectives {
-        guard let leadingTriviaText = leadingTrivia?.description, leadingTriviaText.contains("@knit") else {
+    static func parse(leadingTrivia: Trivia?) throws -> KnitDirectives {
+        guard let leadingTriviaText = leadingTrivia?.description else {
             return .empty
         }
-        let accessLevel: AccessLevel? = AccessLevel.allCases.first { leadingTriviaText.contains($0.rawValue) }
+        var tokens = leadingTriviaText
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty && $0 != "//" }
+        guard tokens.first == "@knit" else {
+            return .empty
+        }
+        tokens = Array(tokens.dropFirst())
 
-        let identifiedGetterOnly = leadingTriviaText.contains("getter-named")
-        let callAsFuncOnly =       leadingTriviaText.contains("getter-callAsFunction")
+        var accessLevel: AccessLevel?
+        var getterConfigs: Set<GetterConfig> = []
 
-        let getterConfig: GetterConfig?
-        switch (identifiedGetterOnly, callAsFuncOnly) {
-        case (false, false):
-            getterConfig = nil
-        case (true, false):
-            getterConfig = .identifiedGetter
-        case (false, true):
-            getterConfig = .callAsFunction
-        case (true, true):
-            getterConfig = .both
+        for token in tokens {
+            let parsed = try parse(token: token)
+            if let level = parsed.accessLevel {
+                accessLevel = level
+            }
+            if let getter = parsed.getterConfig {
+                getterConfigs.insert(getter)
+            }
         }
 
-        return KnitDirectives(accessLevel: accessLevel, getterConfig: getterConfig)
+        return KnitDirectives(accessLevel: accessLevel, getterConfig: getterConfigs)
+    }
+
+    static func parse(token: String) throws -> (accessLevel: AccessLevel?, getterConfig: GetterConfig?) {
+        if let accessLevel = AccessLevel(rawValue: token) {
+            return (accessLevel, nil)
+        }
+        if token == "getter-callAsFunction" {
+            return (nil, .callAsFunction)
+        }
+        if let nameMatch = getterNamedRegex.firstMatch(in: token, range: NSMakeRange(0, token.count)) {
+            if nameMatch.numberOfRanges >= 2, nameMatch.range(at: 1).location != NSNotFound {
+                var range = nameMatch.range(at: 1)
+                range = NSRange(location: range.location + 2, length: range.length - 4)
+                let name = (token as NSString).substring(with: range)
+                return (nil, .identifiedGetter(name))
+            }
+            return (nil, .identifiedGetter(nil))
+        }
+        
+        throw Error.unexpectedToken(token: token)
     }
 
     static var empty: KnitDirectives {
-        return .init(accessLevel: nil, getterConfig: nil)
+        return .init(accessLevel: nil, getterConfig: [])
+    }
+
+    private static let getterNamedRegex = try! NSRegularExpression(pattern: "getter-named(\\(\"\\w*\"\\))?")
+}
+
+extension KnitDirectives {
+    enum Error: LocalizedError {
+        case unexpectedToken(token: String)
+
+        var errorDescription: String? {
+            switch self {
+            case let .unexpectedToken(token):
+                return "Unexpected knit comment rule \(token)"
+            }
+        }
     }
 }
 
-
-public enum GetterConfig: Codable, CaseIterable {
+public enum GetterConfig: Codable, Equatable, Hashable {
     /// Only the `callAsFunction()` accessor is generated.
     case callAsFunction
     /// Only the identified getter is generated.
-    case identifiedGetter
-    /// Both the identified getter and the `callAsFunction()` accessors are generated.
-    case both
+    case identifiedGetter(_ name: String?)
 
     /// Centralized control of the default behavior.
-    public static var `default`: GetterConfig = .callAsFunction
+    public static var `default`: Set<GetterConfig> = [.callAsFunction]
+
+    public static var both: Set<GetterConfig> = [.callAsFunction, .identifiedGetter(nil)]
+
+    public var isNamed: Bool {
+        switch self {
+        case .identifiedGetter: return true
+        default: return false
+        }
+    }
 }
 
 public enum AccessLevel: String, CaseIterable, Codable {

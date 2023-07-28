@@ -93,7 +93,7 @@ final class RegistrationParsingTests: XCTestCase {
             container.register(A.self) { }
             """,
             registrations: [
-                .init(service: "A", accessLevel: .public, getterConfig: .identifiedGetter)
+                .init(service: "A", accessLevel: .public, getterConfig: [.identifiedGetter(nil)])
             ]
         )
 
@@ -103,7 +103,7 @@ final class RegistrationParsingTests: XCTestCase {
             container.register(A.self) { }
             """,
             registrations: [
-                .init(service: "A", accessLevel: .public, getterConfig: .callAsFunction)
+                .init(service: "A", accessLevel: .public, getterConfig: [.callAsFunction])
             ]
         )
 
@@ -113,7 +113,7 @@ final class RegistrationParsingTests: XCTestCase {
             container.register(A.self) { }
             """,
             registrations: [
-                .init(service: "A", accessLevel: .public, getterConfig: .both)
+                .init(service: "A", accessLevel: .public, getterConfig: GetterConfig.both)
             ]
         )
     }

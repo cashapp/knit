@@ -17,9 +17,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 .init(service: "ServiceB", name: "name", accessLevel: .internal, isForwarded: false),
                 .init(service: "ServiceB", name: "otherName", accessLevel: .internal, isForwarded: false),
                 .init(service: "ServiceC", name: nil, accessLevel: .hidden, isForwarded: false), // No resolver is created
-                .init(service: "ServiceD", name: nil, accessLevel: .public, isForwarded: true, getterConfig: .both),
+                .init(service: "ServiceD", name: nil, accessLevel: .public, isForwarded: true, getterConfig: GetterConfig.both),
                 .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [.init(type: "() -> Void")]),
-                .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: .identifiedGetter),
+                .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
             ]
         )
 
@@ -32,20 +32,20 @@ final class TypeSafetySourceFileTests: XCTestCase {
         // The correct resolution of each of these types is enforced by a matching automated unit test
         // If a type registration is missing or broken then the automated tests will fail for that PR
         extension Resolve {
-            public func serviceD() -> ServiceD {
-                self.resolve(ServiceD.self)!
-            }
-            public func serviceF() -> ServiceF {
-                self.resolve(ServiceF.self)!
-            }
             func callAsFunction() -> ServiceA {
                 self.resolve(ServiceA.self)!
             }
             public func callAsFunction() -> ServiceD {
                 self.resolve(ServiceD.self)!
             }
+            public func serviceD() -> ServiceD {
+                self.resolve(ServiceD.self)!
+            }
             public func callAsFunction(closure: @escaping () -> Void) -> ServiceE {
                 self.resolve(ServiceE.self, argument: closure)!
+            }
+            public func serviceF() -> ServiceF {
+                self.resolve(ServiceF.self)!
             }
             func callAsFunction(name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
                 self.resolve(ServiceB.self, name: name.rawValue)!

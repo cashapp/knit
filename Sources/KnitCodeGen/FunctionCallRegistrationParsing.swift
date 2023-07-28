@@ -151,7 +151,14 @@ private func makeRegistrationFor(
 
     let registrationText = firstParam.base!.withoutTrivia().description
     let name = try getName(arguments: arguments)
-    let directives = KnitDirectives.parse(leadingTrivia: leadingTrivia)
+    let directives = try KnitDirectives.parse(leadingTrivia: leadingTrivia)
+
+    var getterConfig: Set<GetterConfig> = GetterConfig.default
+    if !directives.getterConfig.isEmpty {
+        getterConfig = directives.getterConfig
+    } else if !defaultDirectives.getterConfig.isEmpty {
+        getterConfig = defaultDirectives.getterConfig
+    }
 
     return Registration(
         service: registrationText,
@@ -159,7 +166,7 @@ private func makeRegistrationFor(
         accessLevel: directives.accessLevel ?? defaultDirectives.accessLevel ?? .default,
         arguments: registrationArguments,
         isForwarded: isForwarded,
-        getterConfig: directives.getterConfig ?? defaultDirectives.getterConfig ?? .default
+        getterConfig: getterConfig
     )
 }
 
