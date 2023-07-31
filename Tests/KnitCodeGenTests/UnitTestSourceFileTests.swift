@@ -9,6 +9,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation() {
         let result = UnitTestSourceFile.make(
+            assemblyName: "MyModuleAssembly",
             importDecls: [ImportDeclSyntax("import Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
@@ -36,10 +37,10 @@ final class UnitTestSourceFileTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
-                let assembler = makeAssemblerForTests()
+                let assembler = MyModuleAssembly.makeAssemblerForTests()
                 // In the test target for your module, please provide a static method that provides
                 // an instance of KnitRegistrationTestArguments
-                let args: KnitRegistrationTestArguments = makeArgumentsForTests()
+                let args: KnitRegistrationTestArguments = MyModuleAssembly.makeArgumentsForTests()
                 let resolver = assembler.resolver
                 resolver.assertTypeResolves(ServiceA.self)
                 resolver.assertTypeResolves(ServiceB.self, name: "name")
@@ -104,6 +105,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation_emptyRegistrations() {
         let result = UnitTestSourceFile.make(
+            assemblyName: "MyModuleAssembly",
             importDecls: [ImportDeclSyntax("import Swinject")],
             registrations: [],
             registrationsIntoCollections: []
@@ -122,7 +124,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
-                let assembler = makeAssemblerForTests()
+                let assembler = MyModuleAssembly.makeAssemblerForTests()
                 let _ = assembler.resolver
             }
         }
@@ -135,6 +137,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation_onlySingleRegistrations() {
         let result = UnitTestSourceFile.make(
+            assemblyName: "MyModuleAssembly",
             importDecls: [ImportDeclSyntax("import Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
@@ -155,7 +158,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
-                let assembler = makeAssemblerForTests()
+                let assembler = MyModuleAssembly.makeAssemblerForTests()
                 let resolver = assembler.resolver
                 resolver.assertTypeResolves(ServiceA.self)
             }
@@ -182,6 +185,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation_onlyRegistrationsIntoCollections() {
         let result = UnitTestSourceFile.make(
+            assemblyName: "MyModuleAssembly",
             importDecls: [ImportDeclSyntax("import Swinject")],
             registrations: [],
             registrationsIntoCollections: [
@@ -202,7 +206,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
-                let assembler = makeAssemblerForTests()
+                let assembler = MyModuleAssembly.makeAssemblerForTests()
                 let resolver = assembler.resolver
                 resolver.assertCollectionResolves(ServiceA.self, count: 1)
             }
