@@ -49,6 +49,7 @@ public extension Configuration {
         allImports.append("import XCTest")
 
         return UnitTestSourceFile.make(
+            assemblyName: "\(name)Assembly",
             importDecls: sortImports(allImports),
             registrations: registrations,
             registrationsIntoCollections: registrationsIntoCollections

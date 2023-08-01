@@ -4,15 +4,18 @@ import Foundation
 import Knit
 @testable import KnitExample
 
-func makeAssemblerForTests() -> Assembler {
-    Assembler([KnitExampleAssembly()])
-}
+extension KnitExampleAssembly {
+    static func makeAssemblerForTests() -> Assembler {
+        Assembler([KnitExampleAssembly()])
+    }
 
-func makeArgumentsForTests() -> KnitRegistrationTestArguments {
-    return .init(
-        exampleArgumentServiceArg: "Test",
-        exampleArgumentServiceArgument: .init(string: "Test"),
-        closureServiceClosure: {},
-        closureServiceArg1: {}
-    )
+    static func makeArgumentsForTests() -> KnitRegistrationTestArguments {
+        return .init(
+            exampleArgumentServiceArg: "Test",
+            exampleArgumentServiceArgument: .init(string: "Test"),
+            closureServiceClosure: {},
+            closureServiceArg1: {}
+        )
+    }
+
 }

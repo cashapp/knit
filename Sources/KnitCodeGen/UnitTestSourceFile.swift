@@ -4,6 +4,7 @@ import SwiftSyntaxBuilder
 public enum UnitTestSourceFile {
 
     public static func make(
+        assemblyName: String,
         importDecls: [ImportDeclSyntax],
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection]
@@ -22,14 +23,14 @@ public enum UnitTestSourceFile {
                     DeclSyntax("""
                         // In the test target for your module, please provide a static method that creates a
                         // ModuleAssembler instance for testing.
-                        let assembler = makeAssemblerForTests()
+                        let assembler = \(raw: assemblyName).makeAssemblerForTests()
                         """)
 
                     if hasArguments {
                         DeclSyntax("""
                             // In the test target for your module, please provide a static method that provides
                             // an instance of KnitRegistrationTestArguments
-                            let args: KnitRegistrationTestArguments = makeArgumentsForTests()
+                            let args: KnitRegistrationTestArguments = \(raw: assemblyName).makeArgumentsForTests()
                             """)
                     }
 
