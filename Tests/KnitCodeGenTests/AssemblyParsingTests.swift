@@ -103,8 +103,8 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(
             config.registrations,
             [
-                .init(service: "A", accessLevel: .public, getterConfig: .identifiedGetter),
-                .init(service: "B", accessLevel: .internal, getterConfig: .callAsFunction)
+                .init(service: "A", accessLevel: .public, getterConfig: [.identifiedGetter(nil)]),
+                .init(service: "B", accessLevel: .internal, getterConfig: [.callAsFunction])
             ]
         )
     }

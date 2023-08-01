@@ -14,7 +14,7 @@ public struct Registration: Equatable, Codable {
     public var isForwarded: Bool
 
     /// This registration's getter setting.
-    public var getterConfig: GetterConfig
+    public var getterConfig: Set<GetterConfig>
 
     public init(
         service: String,
@@ -22,7 +22,7 @@ public struct Registration: Equatable, Codable {
         accessLevel: AccessLevel,
         arguments: [Argument] = [],
         isForwarded: Bool = false,
-        getterConfig: GetterConfig = .default
+        getterConfig: Set<GetterConfig> = GetterConfig.default
     ) {
         self.service = service
         self.name = name

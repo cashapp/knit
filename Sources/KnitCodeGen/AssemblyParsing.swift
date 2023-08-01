@@ -32,6 +32,7 @@ func parseSyntaxTree(
         throw AssemblyParsingError.missingModuleName
     }
 
+    errorsToPrint.append(contentsOf: assemblyFileVisitor.assemblyErrors)
     errorsToPrint.append(contentsOf: assemblyFileVisitor.registrationErrors)
 
     return Configuration(
@@ -50,6 +51,8 @@ private class AssemblyFileVisitor: SyntaxVisitor {
     private(set) var moduleName: String?
 
     private var classDeclVisitor: ClassDeclVisitor?
+
+    private(set) var assemblyErrors: [Error] = []
 
     var registrations: [Registration] {
         return classDeclVisitor?.registrations ?? []
@@ -85,7 +88,13 @@ private class AssemblyFileVisitor: SyntaxVisitor {
             // Only the first class declaration should be visited
             return .skipChildren
         }
-        let directives = KnitDirectives.parse(leadingTrivia: node.leadingTrivia)
+        var directives: KnitDirectives = .empty
+        do {
+             directives = try KnitDirectives.parse(leadingTrivia: node.leadingTrivia)
+        } catch {
+            assemblyErrors.append(error)
+        }
+
         moduleName = node.moduleNameForAssembly
         classDeclVisitor = ClassDeclVisitor(viewMode: .fixedUp, directives: directives)
         classDeclVisitor?.walk(node)

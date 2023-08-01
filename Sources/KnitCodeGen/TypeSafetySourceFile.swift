@@ -14,13 +14,7 @@ public enum TypeSafetySourceFile {
             // Exclude hidden registrations always
             $0.accessLevel != .hidden
         }
-        let identifiedGetterRegistrations = visibleRegistrations.filter {
-            $0.getterConfig != .callAsFunction && $0.name == nil
-        }
-        let callAsFunctionRegistrations = visibleRegistrations.filter {
-            // Don't include generated `callAsFunction` when only generating identified getter
-            $0.getterConfig != .identifiedGetter && $0.name == nil
-        }
+        let unnamedRegistrations = visibleRegistrations.filter { $0.name == nil }
         let namedGroups = NamedRegistrationGroup.make(from: visibleRegistrations)
         return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             for importItem in imports {
@@ -33,18 +27,20 @@ public enum TypeSafetySourceFile {
                           extension \(extensionTarget)
                           """) {
 
-                for registration in identifiedGetterRegistrations {
-                    makeResolver(registration: registration, identifiedGetter: true)
-                }
-                for registration in callAsFunctionRegistrations {
-                    makeResolver(registration: registration)
+                for registration in unnamedRegistrations {
+                    if registration.getterConfig.contains(.callAsFunction) {
+                        makeResolver(registration: registration, getterType: .callAsFunction)
+                    }
+                    if let namedGetter = registration.getterConfig.first(where: { $0.isNamed }) {
+                        makeResolver(registration: registration, getterType: namedGetter)
+                    }
                 }
                 for namedGroup in namedGroups {
-                    let firstGetterConfig = namedGroup.registrations[0].getterConfig
+                    let firstGetterConfig = namedGroup.registrations[0].getterConfig.first ?? .callAsFunction
                     makeResolver(
                         registration: namedGroup.registrations[0],
                         enumName: "\(assemblyName).\(namedGroup.enumName)",
-                        identifiedGetter: firstGetterConfig != .callAsFunction
+                        getterType: firstGetterConfig
                     )
                 }
             }
@@ -58,7 +54,7 @@ public enum TypeSafetySourceFile {
     static func makeResolver(
         registration: Registration,
         enumName: String? = nil,
-        identifiedGetter: Bool = false
+        getterType: GetterConfig = .callAsFunction
     ) -> FunctionDeclSyntax {
         let modifier = registration.accessLevel == .public ? "public " : ""
         let nameInput = enumName.map { "name: \($0)" }
@@ -66,7 +62,13 @@ public enum TypeSafetySourceFile {
         let (argInput, argUsage) = argumentString(registration: registration)
         let inputs = [nameInput, argInput].compactMap { $0 }.joined(separator: ", ")
         let usages = ["\(registration.service).self", nameUsage, argUsage].compactMap { $0 }.joined(separator: ", ")
-        let funcName = identifiedGetter ? TypeNamer.computedIdentifierName(type: registration.service) : "callAsFunction"
+        let funcName: String
+        switch getterType {
+        case .callAsFunction:
+            funcName = "callAsFunction"
+        case let .identifiedGetter(name):
+            funcName = name ?? TypeNamer.computedIdentifierName(type: registration.service)
+        }
 
         return FunctionDeclSyntax("\(modifier)func \(funcName)(\(inputs)) -> \(registration.service)") {
             ForcedValueExprSyntax("self.resolve(\(raw: usages))!")
