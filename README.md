@@ -26,7 +26,7 @@ The following commands are available:
 #### Examples:
 
 Make the generated type-safe accessor `public`:
-```
+``` swift
 // @knit public
 container.register(MyType.self, factory: { /*...*/ })
 ```
@@ -55,7 +55,8 @@ In both situations the method call is type-safe.
 #### Commands
 
 The following commands are available:
-* `getter-named`: Generate a named accessor function.
+* `getter-named`: Generate a named accessor function. Knit will provide an automatic name based from the type.
+* `getter-named("myCustomName")`: Generate a named accessor function with a custom name. Provide the custom name as an argument to the command.
 * `getter-callAsFunction`: Generate `callAsFunction` accessor.
 * Both commands can be included to specify that both accessors should be generated. `// @knit getter-named getter-callAsFunction`
 
