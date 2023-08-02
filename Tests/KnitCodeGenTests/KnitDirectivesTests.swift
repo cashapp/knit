@@ -45,6 +45,18 @@ final class KnitDirectivesTests: XCTestCase {
         )
     }
 
+    func testMultilLneComments() throws {
+        XCTAssertEqual(
+            try parse("// @knit public\n\n// another comment"),
+            .init(accessLevel: .public, getterConfig: [])
+        )
+
+        XCTAssertEqual(
+            try parse("// Comment\n// @knit public\n// another comment"),
+            .init(accessLevel: .public, getterConfig: [])
+        )
+    }
+
     func testGetterConfig() {
         XCTAssertEqual(
             try parse("// @knit getter-named"),

@@ -503,6 +503,20 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testMultiLineComments() {
+        assertMultipleRegistrationsString(
+            """
+            // General comment
+            // @knit public
+            container.register(AType.self) {}
+                .inObjectScope(.container)
+            """,
+            registrations: [
+                .init(service: "AType", accessLevel: .public),
+            ]
+        )
+    }
+
     func testIncorrectRegistrations() {
         assertNoRegistrationsString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
         assertNoRegistrationsString("container.register(A)", message: "First param is not a metatype")

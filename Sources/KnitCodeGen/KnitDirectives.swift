@@ -7,14 +7,25 @@ struct KnitDirectives: Codable, Equatable {
     let accessLevel: AccessLevel?
     let getterConfig: Set<GetterConfig>
 
+    private static let directiveMarker = "@knit"
+
     static func parse(leadingTrivia: Trivia?) throws -> KnitDirectives {
         guard let leadingTriviaText = leadingTrivia?.description else {
             return .empty
         }
-        var tokens = leadingTriviaText
-            .components(separatedBy: .whitespacesAndNewlines)
+        let matchingLine = leadingTriviaText
+            .components(separatedBy: .newlines)
+            .filter { $0.contains(Self.directiveMarker) }
+            .first
+
+        guard let directiveLine = matchingLine else {
+            return .empty
+        }
+
+        var tokens = directiveLine
+            .components(separatedBy: .whitespaces)
             .filter { !$0.isEmpty && $0 != "//" }
-        guard tokens.first == "@knit" else {
+        guard tokens.first == Self.directiveMarker else {
             return .empty
         }
         tokens = Array(tokens.dropFirst())
