@@ -9,7 +9,7 @@ extension KnitExampleAssembly {
         Assembler([KnitExampleAssembly()])
     }
 
-    static func makeArgumentsForTests() -> KnitRegistrationTestArguments {
+    static func makeArgumentsForTests() -> KnitExampleRegistrationTestArguments {
         return .init(
             exampleArgumentServiceArg: "Test",
             exampleArgumentServiceArgument: .init(string: "Test"),
@@ -18,4 +18,10 @@ extension KnitExampleAssembly {
         )
     }
 
+}
+
+extension KnitExampleUserAssembly {
+    static func makeAssemblerForTests() -> Assembler {
+        Assembler([KnitExampleUserAssembly(), KnitExampleAssembly()])
+    }
 }

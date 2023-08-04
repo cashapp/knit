@@ -10,7 +10,6 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func test_generation() {
         let result = TypeSafetySourceFile.make(
             assemblyName: "ModuleAssembly",
-            imports: [ImportDeclSyntax("import Swinject")],
             extensionTarget: "Resolve",
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
@@ -24,13 +23,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
         )
 
         let expected = """
-
-        // Generated using Knit
-        // Do not edit directly!
-
-        import Swinject
-        // The correct resolution of each of these types is enforced by a matching automated unit test
-        // If a type registration is missing or broken then the automated tests will fail for that PR
+        
+        // Generated from ModuleAssembly
         extension Resolve {
             func callAsFunction() -> ServiceA {
                 self.resolve(ServiceA.self)!

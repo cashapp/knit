@@ -9,7 +9,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation() {
         let result = UnitTestSourceFile.make(
-            assemblyName: "MyModuleAssembly",
+            name: "MyModule",
             importDecls: [ImportDeclSyntax("import Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
@@ -29,18 +29,14 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let expected = #"""
 
-        // Generated using Knit
-        // Do not edit directly!
-
-        import Swinject
-        final class KnitDIRegistrationTests: XCTestCase {
+        final class MyModuleRegistrationTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
                 let assembler = MyModuleAssembly.makeAssemblerForTests()
                 // In the test target for your module, please provide a static method that provides
-                // an instance of KnitRegistrationTestArguments
-                let args: KnitRegistrationTestArguments = MyModuleAssembly.makeArgumentsForTests()
+                // an instance of MyModuleRegistrationTestArguments
+                let args: MyModuleRegistrationTestArguments = MyModuleAssembly.makeArgumentsForTests()
                 let resolver = assembler.resolver
                 resolver.assertTypeResolves(ServiceA.self)
                 resolver.assertTypeResolves(ServiceB.self, name: "name")
@@ -50,53 +46,8 @@ final class UnitTestSourceFileTests: XCTestCase {
                 resolver.assertCollectionResolves(ServiceD.self, count: 2)
             }
         }
-        struct KnitRegistrationTestArguments {
+        struct MyModuleRegistrationTestArguments {
             let serviceDString: String
-        }
-        private extension Resolver {
-            func assertTypeResolves < T > (
-                _ type: T.Type,
-                name: String? = nil,
-                file: StaticString = #filePath,
-                line: UInt = #line
-            ) {
-                XCTAssertNotNil(
-                    resolve(type, name: name),
-                    "The container did not resolve the type: \(type). Check that this type is registered correctly.",
-                    file: file,
-                    line: line
-                )
-            }
-            func assertTypeResolved < T > (
-                _ result: T?,
-                file: StaticString = #filePath,
-                line: UInt = #line
-            ) {
-                XCTAssertNotNil(
-                    result,
-                    "The container did not resolve the type: \(T.self). Check that this type is registered correctly.",
-                    file: file,
-                    line: line
-                )
-            }
-            func assertCollectionResolves < T > (
-                _ type: T.Type,
-                count expectedCount: Int,
-                file: StaticString = #filePath,
-                line: UInt = #line
-            ) {
-                let actualCount = resolveCollection(type).entries.count
-                XCTAssert(
-                    actualCount >= expectedCount,
-                    """
-                The resolved ServiceCollection<\(type)> did not contain the expected number of services \
-                (resolved \(actualCount), expected \(expectedCount)).
-                Make sure your assembler contains a ServiceCollector behavior.
-                """,
-                    file: file,
-                    line: line
-                )
-            }
         }
         """#
 
@@ -105,7 +56,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation_emptyRegistrations() {
         let result = UnitTestSourceFile.make(
-            assemblyName: "MyModuleAssembly",
+            name: "MyModule",
             importDecls: [ImportDeclSyntax("import Swinject")],
             registrations: [],
             registrationsIntoCollections: []
@@ -116,19 +67,13 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let expected = #"""
 
-        // Generated using Knit
-        // Do not edit directly!
-
-        import Swinject
-        final class KnitDIRegistrationTests: XCTestCase {
+        final class MyModuleRegistrationTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
                 let assembler = MyModuleAssembly.makeAssemblerForTests()
                 let _ = assembler.resolver
             }
-        }
-        private extension Resolver {
         }
         """#
 
@@ -137,7 +82,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation_onlySingleRegistrations() {
         let result = UnitTestSourceFile.make(
-            assemblyName: "MyModuleAssembly",
+            name: "MyModule",
             importDecls: [ImportDeclSyntax("import Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
@@ -150,32 +95,13 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let expected = #"""
 
-        // Generated using Knit
-        // Do not edit directly!
-
-        import Swinject
-        final class KnitDIRegistrationTests: XCTestCase {
+        final class MyModuleRegistrationTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
                 let assembler = MyModuleAssembly.makeAssemblerForTests()
                 let resolver = assembler.resolver
                 resolver.assertTypeResolves(ServiceA.self)
-            }
-        }
-        private extension Resolver {
-            func assertTypeResolves < T > (
-                _ type: T.Type,
-                name: String? = nil,
-                file: StaticString = #filePath,
-                line: UInt = #line
-            ) {
-                XCTAssertNotNil(
-                    resolve(type, name: name),
-                    "The container did not resolve the type: \(type). Check that this type is registered correctly.",
-                    file: file,
-                    line: line
-                )
             }
         }
         """#
@@ -185,7 +111,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation_onlyRegistrationsIntoCollections() {
         let result = UnitTestSourceFile.make(
-            assemblyName: "MyModuleAssembly",
+            name: "MyModule",
             importDecls: [ImportDeclSyntax("import Swinject")],
             registrations: [],
             registrationsIntoCollections: [
@@ -198,11 +124,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let expected = #"""
 
-        // Generated using Knit
-        // Do not edit directly!
-
-        import Swinject
-        final class KnitDIRegistrationTests: XCTestCase {
+        final class MyModuleRegistrationTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
@@ -211,42 +133,23 @@ final class UnitTestSourceFileTests: XCTestCase {
                 resolver.assertCollectionResolves(ServiceA.self, count: 1)
             }
         }
-        private extension Resolver {
-            func assertCollectionResolves < T > (
-                _ type: T.Type,
-                count expectedCount: Int,
-                file: StaticString = #filePath,
-                line: UInt = #line
-            ) {
-                let actualCount = resolveCollection(type).entries.count
-                XCTAssert(
-                    actualCount >= expectedCount,
-                    """
-                The resolved ServiceCollection<\(type)> did not contain the expected number of services \
-                (resolved \(actualCount), expected \(expectedCount)).
-                Make sure your assembler contains a ServiceCollector behavior.
-                """,
-                    file: file,
-                    line: line
-                )
-            }
-        }
         """#
 
         XCTAssertEqual(formattedResult, expected)
     }
 
     func test_argumentStruct() {
-        let result = UnitTestSourceFile.makeArgumentStruct(registrations: [
+        let registrations = [
             Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String")]),
             Registration(service: "B", accessLevel: .public, arguments: [.init(identifier: "field", type: "String"), .init(type: "String")]),
             Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Int"), .init(type: "String")]),
-        ])
+        ]
+        let result = UnitTestSourceFile.makeArgumentStruct(registrations: registrations, moduleName: "MyModule")
 
         let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
 
         let expected = """
-        struct KnitRegistrationTestArguments {
+        struct MyModuleRegistrationTestArguments {
             let aString: String
             let bField: String
             let bString: String
@@ -299,5 +202,23 @@ final class UnitTestSourceFileTests: XCTestCase {
         let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
         let expected = "resolver.assertTypeResolved(resolver.resolve(A.self, arguments: args.aString1, args.aString2))"
         XCTAssertEqual(formattedResult, expected)
+    }
+}
+
+private extension UnitTestSourceFile {
+
+    static func make(
+        name: String,
+        importDecls: [ImportDeclSyntax],
+        registrations: [Registration],
+        registrationsIntoCollections: [RegistrationIntoCollection]
+    ) -> SourceFileSyntax {
+        let configuration = Configuration(
+            name: name,
+            registrations: registrations,
+            registrationsIntoCollections: registrationsIntoCollections,
+            imports: importDecls
+        )
+        return UnitTestSourceFile.make(configuration: configuration)
     }
 }

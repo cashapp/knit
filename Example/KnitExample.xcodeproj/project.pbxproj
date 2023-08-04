@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C40D0D1F2A838D140095AC59 /* KnitExampleUserAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = C40D0D1E2A838D140095AC59 /* KnitExampleUserAssembly.swift */; };
 		C43334F32A3FDD43003BA9E3 /* KnitExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43334F22A3FDD43003BA9E3 /* KnitExampleApp.swift */; };
 		C43334F52A3FDD43003BA9E3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43334F42A3FDD43003BA9E3 /* ContentView.swift */; };
 		C43334F72A3FDD44003BA9E3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C43334F62A3FDD44003BA9E3 /* Assets.xcassets */; };
@@ -29,6 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C40D0D1E2A838D140095AC59 /* KnitExampleUserAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnitExampleUserAssembly.swift; sourceTree = "<group>"; };
 		C43334EF2A3FDD43003BA9E3 /* KnitExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KnitExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C43334F22A3FDD43003BA9E3 /* KnitExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnitExampleApp.swift; sourceTree = "<group>"; };
 		C43334F42A3FDD43003BA9E3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -90,6 +92,7 @@
 				C43334F62A3FDD44003BA9E3 /* Assets.xcassets */,
 				C43334F82A3FDD44003BA9E3 /* Preview Content */,
 				C43335052A3FDDD3003BA9E3 /* KnitExampleAssembly.swift */,
+				C40D0D1E2A838D140095AC59 /* KnitExampleUserAssembly.swift */,
 			);
 			path = KnitExample;
 			sourceTree = "<group>";
@@ -236,7 +239,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/bin/xcrun --sdk macosx swift run knit \\\n--assembly-input-path KnitExample/KnitExampleAssembly.swift \\\n--type-safety-extensions-output-path KnitExample/KnitDITypeSafety.swift \\\n--unit-test-output-path KnitExampleTests/KnitDIRegistrationTests.swift\n";
+			shellScript = "/usr/bin/xcrun --sdk macosx swift run knit \\\n--assembly-input-path KnitExample/KnitExampleAssembly.swift \\\n--assembly-input-path KnitExample/KnitExampleUserAssembly.swift \\\n--type-safety-extensions-output-path KnitExample/KnitDITypeSafety.swift \\\n--unit-test-output-path KnitExampleTests/KnitDIRegistrationTests.swift\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -245,6 +248,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C40D0D1F2A838D140095AC59 /* KnitExampleUserAssembly.swift in Sources */,
 				C43334F52A3FDD43003BA9E3 /* ContentView.swift in Sources */,
 				C43334F32A3FDD43003BA9E3 /* KnitExampleApp.swift in Sources */,
 				C44754F72A3FE7570072333A /* KnitDITypeSafety.swift in Sources */,
