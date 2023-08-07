@@ -32,20 +32,20 @@ public struct Configuration: Encodable {
 
 public extension Configuration {
 
-    func makeTypeSafetySourceFile() -> SourceFileSyntax {
-        return TypeSafetySourceFile.make(
+    func makeTypeSafetySourceFile() throws -> SourceFileSyntax {
+        return try TypeSafetySourceFile.make(
             assemblyName: "\(name)Assembly",
             extensionTarget: "Resolver",
             registrations: registrations
         )
     }
 
-    func makeUnitTestSourceFile() -> SourceFileSyntax {
+    func makeUnitTestSourceFile() throws -> SourceFileSyntax {
         var allImports = imports
-        allImports.append("@testable import \(raw: self.name)")
-        allImports.append("import XCTest")
+        allImports.append(try ImportDeclSyntax("@testable import \(raw: self.name)"))
+        allImports.append(try ImportDeclSyntax("import XCTest"))
 
-        return UnitTestSourceFile.make(
+        return try UnitTestSourceFile.make(
             configuration: self
         )
     }
@@ -76,7 +76,11 @@ public extension ImportDeclSyntax {
 
     init(moduleName: String) {
         self.init(
-            path: [ AccessPathComponentSyntax(name: moduleName) ]
+            path: [ 
+                ImportPathComponentSyntax(
+                    name: "\(raw: moduleName)"
+                )
+            ]
         )
     }
 

@@ -55,7 +55,7 @@ struct GenCommand: ParsableCommand {
             throw ExitCode(1)
         }
 
-        parsedConfig.writeGeneratedFiles(
+        try parsedConfig.writeGeneratedFiles(
             typeSafetyExtensionsOutputPath: typeSafetyExtensionsOutputPath,
             unitTestOutputPath: unitTestOutputPath
         )

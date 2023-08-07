@@ -10,7 +10,7 @@ import XCTest
 final class AssemblyParsingTests: XCTestCase {
 
     func testAssemblyImports() throws {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
             import A
             import B // Comment after import should be stripped
             class FooTestAssembly: Assembly { }
@@ -29,7 +29,7 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testTestableImport() throws {
         // Unclear if this is a use case we care about, but we will retain attributes before the import statement
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
             @testable import A
             class FooTestAssembly: Assembly { }
             """
@@ -44,7 +44,7 @@ final class AssemblyParsingTests: XCTestCase {
     }
 
     func testAssemblyModuleName() throws {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
             class FooTestAssembly: Assembly {
                 func assemble(container: Container) {
                     container.register(A.self) { }
@@ -57,7 +57,7 @@ final class AssemblyParsingTests: XCTestCase {
     }
 
     func testAssemblyStructModuleName() throws {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
             struct FooTestAssembly: Assembly {
                 func assemble(container: Container) {
                     container.register(A.self) { }
@@ -70,7 +70,7 @@ final class AssemblyParsingTests: XCTestCase {
     }
 
     func testAssemblyRegistrations() throws {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
             class TestAssembly: Assembly {
                 func assemble(container: Container) {
                     container.register(A.self) { }
@@ -88,7 +88,7 @@ final class AssemblyParsingTests: XCTestCase {
     }
 
     func testKnitDirectives() throws {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
             // @knit public getter-named
             class TestAssembly: Assembly {
                 func assemble(container: Container) {
@@ -110,7 +110,7 @@ final class AssemblyParsingTests: XCTestCase {
     }
 
     func testOnlyFirstOfMultipleAssemblies() throws {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
                 class KeyValueStoreAssembly: Assembly {
                     func assemble(container: Container) {
                         container.register(KeyValueStore.self) { }
@@ -135,7 +135,7 @@ final class AssemblyParsingTests: XCTestCase {
     }
 
     func testAdditionalFunctions() throws {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
                 class ExampleAssembly: Assembly {
                     func assemble(container: Container) {
                         partialAssemble(container: container)
@@ -164,7 +164,7 @@ final class AssemblyParsingTests: XCTestCase {
     }
 
     func testAdditionalFunctionsInComputedPropertyAreNotParsed() throws {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
                 class ExampleAssembly: Assembly {
                     func assemble(container: Container) {
                         container.register(MyService.self) { }
@@ -188,23 +188,27 @@ final class AssemblyParsingTests: XCTestCase {
 
     // MARK: - ClassDecl Extension
 
-    func testClassDeclExtension() {
-        var classDecl: ClassDecl
+    func testClassDeclExtension() throws {
+        var classDecl: ClassDeclSyntax
 
-        classDecl = "class BarAssembly {}"
+        func makeClassDecl(from string: String) throws -> ClassDeclSyntax {
+            return try ClassDeclSyntax("\(raw: string)")
+        }
+
+        classDecl = try makeClassDecl(from: "class BarAssembly {}")
         XCTAssertEqual(classDecl.moduleNameForAssembly, "Bar")
 
-        classDecl = "public final class FooAssembly {}"
+        classDecl = try makeClassDecl(from: "public final class FooAssembly {}")
         XCTAssertEqual(classDecl.moduleNameForAssembly, "Foo")
 
-        classDecl = "class AssemblyMissing {}"
+        classDecl = try makeClassDecl(from: "class AssemblyMissing {}")
         XCTAssertNil(classDecl.moduleNameForAssembly)
     }
 
     // MARK: - Error Throwing
 
     func testSyntaxParsingError() {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
                 class SomeClass { }
                 // missing an assembly
             """
@@ -218,7 +222,7 @@ final class AssemblyParsingTests: XCTestCase {
     }
 
     func testRegistrationParsingErrorToPrint() throws {
-        let sourceFile: SourceFile = """
+        let sourceFile: SourceFileSyntax = """
             class MyAssembly: Assembly {
                 func assemble(container: Container) {
                     container.register(A.self) { resolver, arg1 in A(arg: arg1) }
@@ -243,7 +247,7 @@ final class AssemblyParsingTests: XCTestCase {
 }
 
 private func assertParsesSyntaxTree(
-    _ sourceFile: SourceFile,
+    _ sourceFile: SourceFileSyntax,
     assertErrorsToPrint assertErrorsCallback: (([Error]) -> Void)? = nil,
     file: StaticString = #filePath,
     line: UInt = #line

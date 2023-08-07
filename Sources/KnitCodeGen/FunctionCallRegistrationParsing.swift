@@ -11,7 +11,7 @@ struct CalledMethod {
     let calledExpression: MemberAccessExprSyntax
 
     // The arguments passed to the method, e.g. `arg1: String` from the example above.
-    let arguments: TupleExprElementListSyntax
+    let arguments: LabeledExprListSyntax
 
     // A trailing closure after the called method (which is the last argument for that method call).
     let trailingClosure: ClosureExprSyntax?
@@ -34,7 +34,7 @@ extension FunctionCallExprSyntax {
 
         let registrationIntoCollection = calledMethods
             .first { method in
-                let name = method.calledExpression.name.text
+                let name = method.calledExpression.declName.baseName.text
                 return name == "registerIntoCollection" || name == "autoregisterIntoCollection"
             }
             .flatMap { method in
@@ -47,7 +47,7 @@ extension FunctionCallExprSyntax {
         }
 
         let registerMethods = calledMethods.filter { method in
-            let name = method.calledExpression.name.text
+            let name = method.calledExpression.declName.baseName.text
             return name == "register" || name == "autoregister" || name == "registerAbstract"
         }
 
@@ -77,14 +77,14 @@ extension FunctionCallExprSyntax {
         }
 
         let implementsCalledMethods = calledMethods.filter { method in
-            method.calledExpression.name.text == "implements"
+            method.calledExpression.declName.baseName.text == "implements"
         }
 
         var forwardedRegistrations = [Registration]()
 
         for implementsCalledMethod in implementsCalledMethods {
-            // For `.implements()` the leading trivia is attached to the Dot syntax node
-            let leadingTrivia = implementsCalledMethod.calledExpression.dot.leadingTrivia
+            // For `.implements()` the leading trivia is attached to the Period syntax node
+            let leadingTrivia = implementsCalledMethod.calledExpression.period.leadingTrivia
 
             if let forwardedRegistration = try makeRegistrationFor(
                 defaultDirectives: defaultDirectives,
@@ -121,10 +121,10 @@ func recurseAllCalledMethods(
         // Append each method call as we recurse
         calledMethods.append(CalledMethod(
             calledExpression: calledExpr,
-            arguments: funcCall.argumentList,
+            arguments: funcCall.arguments,
             trailingClosure: funcCall.trailingClosure
         ))
-        if let identifierToken = calledExpr.base?.as(IdentifierExprSyntax.self)?.identifier {
+        if let identifierToken = calledExpr.base?.as(DeclReferenceExprSyntax.self)?.baseName {
             return identifierToken
         } else {
             let innerFunctionCall = calledExpr.base!.as(FunctionCallExprSyntax.self)!
@@ -140,16 +140,16 @@ func recurseAllCalledMethods(
 
 private func makeRegistrationFor(
     defaultDirectives: KnitDirectives,
-    arguments: TupleExprElementListSyntax,
+    arguments: LabeledExprListSyntax,
     registrationArguments: [Registration.Argument],
     leadingTrivia: Trivia?,
     isForwarded: Bool
 ) throws -> Registration? {
-    guard let firstParam = arguments.first?.as(TupleExprElementSyntax.self)?
+    guard let firstParam = arguments.first?.as(LabeledExprSyntax.self)?
         .expression.as(MemberAccessExprSyntax.self) else { return nil }
-    guard firstParam.name.text == "self" else { return nil }
+    guard firstParam.declName.baseName.text == "self" else { return nil }
 
-    let registrationText = firstParam.base!.withoutTrivia().description
+    let registrationText = firstParam.base!.trimmed.description
     let name = try getName(arguments: arguments)
     let directives = try KnitDirectives.parse(leadingTrivia: leadingTrivia)
 
@@ -171,17 +171,17 @@ private func makeRegistrationFor(
 }
 
 private func makeRegistrationIntoCollection(
-    arguments: TupleExprElementListSyntax
+    arguments: LabeledExprListSyntax
 ) -> RegistrationIntoCollection? {
-    guard let firstParam = arguments.first?.as(TupleExprElementSyntax.self)?
+    guard let firstParam = arguments.first?.as(LabeledExprSyntax.self)?
         .expression.as(MemberAccessExprSyntax.self) else { return nil }
-    guard firstParam.name.text == "self" else { return nil }
+    guard firstParam.declName.baseName.text == "self" else { return nil }
 
-    let registrationText = firstParam.base!.withoutTrivia().description
+    let registrationText = firstParam.base!.trimmed.description
     return RegistrationIntoCollection(service: registrationText)
 }
 
-private func getName(arguments: TupleExprElementListSyntax) throws -> String? {
+private func getName(arguments: LabeledExprListSyntax) throws -> String? {
     guard let nameParam = arguments.first(where: {$0.label?.text == "name"}) else {
         return nil
     }
@@ -192,7 +192,7 @@ private func getName(arguments: TupleExprElementListSyntax) throws -> String? {
 }
 
 private func getArguments(
-    arguments: TupleExprElementListSyntax,
+    arguments: LabeledExprListSyntax,
     trailingClosure: ClosureExprSyntax?
 ) throws -> [Registration.Argument] {
     // `autoregister` parsing
@@ -236,20 +236,22 @@ private func getArguments(
         factoryClosure = nil
     }
 
-    // This type of closure param list syntax cannot include types, so force using `ParameterClauseSyntax`
+    // This type of closure param list syntax cannot include types, so force using `ClosureParameterClauseSyntax`
     // when there is more that one param.
     // If there is only one param then it is always the `Resolver`.
-    if let paramList = factoryClosure?.signature?.input?.as(ClosureParamListSyntax.self), paramList.count >= 2 {
-        throw RegistrationParsingError.unwrappedClosureParams(syntax: paramList)
+    if let paramList = factoryClosure?.signature?.parameterClause?.as(ClosureShorthandParameterListSyntax.self), 
+        paramList.count >= 2 {
+            throw RegistrationParsingError.unwrappedClosureParams(syntax: paramList)
     }
 
     // Register methods take a closure with resolver and arguments. Argument types must be provided
-    if let closureParameters = factoryClosure?.signature?.input?.as(ParameterClauseSyntax.self) {
-        let params = closureParameters.parameterList
+    if let closureParameters = factoryClosure?.signature?.parameterClause?.as(ClosureParameterClauseSyntax.self) {
+        let params = closureParameters.parameters
         // The first param is the resolver, everything after that is an argument
         return try params[params.index(after: params.startIndex)..<params.endIndex].compactMap { element in
-            guard let identifier = element.firstName?.text, let type = getArgumentType(arg: element)  else {
-                throw RegistrationParsingError.missingArgumentType(syntax: element, name: element.firstName?.text ?? "_")
+            let identifier = element.firstName.text
+            guard let type = getArgumentType(arg: element) else {
+                throw RegistrationParsingError.missingArgumentType(syntax: element, name: element.firstName.text)
             }
             if identifier == "_" {
                 return .init(identifier: nil, type: type)
@@ -262,17 +264,14 @@ private func getArguments(
     return []
 }
 
-private func getArgumentType(arg: TupleExprElementSyntax) -> String? {
+private func getArgumentType(arg: LabeledExprSyntax) -> String? {
     return arg.expression.as(MemberAccessExprSyntax.self)?.base?.description
         .replacingOccurrences(of: "@escaping", with: " ")
         .trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-private func getArgumentType(arg: FunctionParameterSyntax) -> String? {
-    guard let type = arg.type else {
-        return nil
-    }
-    return type.description
+private func getArgumentType(arg: ClosureParameterSyntax) -> String? {
+    return arg.type?.description
         .replacingOccurrences(of: "@escaping", with: " ")
         .trimmingCharacters(in: .whitespacesAndNewlines)
 }

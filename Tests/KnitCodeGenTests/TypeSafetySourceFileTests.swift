@@ -7,8 +7,8 @@ import XCTest
 
 final class TypeSafetySourceFileTests: XCTestCase {
 
-    func test_generation() {
-        let result = TypeSafetySourceFile.make(
+    func test_generation() throws {
+        let result = try TypeSafetySourceFile.make(
             assemblyName: "ModuleAssembly",
             extensionTarget: "Resolve",
             registrations: [
@@ -24,7 +24,6 @@ final class TypeSafetySourceFileTests: XCTestCase {
         )
 
         let expected = """
-        
         // Generated from ModuleAssembly
         extension Resolve {
             func serviceA() -> ServiceA {
@@ -63,7 +62,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationMultipleArguments() {
         let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String"), .init(type: "URL")])
         XCTAssertEqual(
-            TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolver(
                 registration: registration,
                 enumName: nil
             ).formatted().description,
@@ -78,7 +77,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationSingleArgument() {
         let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String")])
         XCTAssertEqual(
-            TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolver(
                 registration: registration,
                 enumName: nil
             ).formatted().description,
@@ -93,7 +92,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationDuplicateParamType() {
         let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String"), .init(type: "String")])
         XCTAssertEqual(
-            TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolver(
                 registration: registration,
                 enumName: nil
             ).formatted().description,
@@ -108,7 +107,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationArgumentAndName() {
         let registration = Registration(service: "A", name: "test", accessLevel: .public, arguments: [.init(type: "String")])
         XCTAssertEqual(
-            TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolver(
                 registration: registration,
                 enumName: "MyAssembly.A_ResolutionKey"
             ).formatted().description,
@@ -123,7 +122,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationWithPrenamedArguments() {
         let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(identifier: "arg", type: "String")])
         XCTAssertEqual(
-            TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolver(
                 registration: registration,
                 enumName: nil
             ).formatted().description,

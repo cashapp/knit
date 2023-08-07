@@ -14,37 +14,46 @@ public enum ModuleAssemblyExtensionSourceFile {
         currentModuleName: String,
         dependencyModuleNames: [String],
         additionalAssemblies: [String]
-    ) -> SourceFileSyntax {
-        return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
+    ) throws -> SourceFileSyntax {
+        return try SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             DeclSyntax("import Knit")
             for dependencyModuleName in dependencyModuleNames where !dependencyModuleName.hasSuffix("Assembly") {
                 DeclSyntax("import \(raw: dependencyModuleName)")
             }
 
-            ExtensionDeclSyntax("extension \(currentModuleName)Assembly: GeneratedModuleAssembly") {
+            try ExtensionDeclSyntax("extension \(raw: currentModuleName)Assembly: GeneratedModuleAssembly") {
 
                 // `public static var generatedDependencies: [any ModuleAssembly.Type]`
                 VariableDeclSyntax(
                     modifiers: [
-                        DeclModifierSyntax(name: TokenSyntax(.publicKeyword, presence: .present)),
-                        DeclModifierSyntax(name: TokenSyntax(.staticKeyword, presence: .present)),
+                        DeclModifierSyntax(name: TokenSyntax(.keyword(.public), presence: .present)),
+                        DeclModifierSyntax(name: TokenSyntax(.keyword(.static), presence: .present)),
                     ],
-                    name: "generatedDependencies",
-                    type: TypeAnnotationSyntax(type: "[any ModuleAssembly.Type]" as TypeSyntax),
+                    bindingSpecifier: .keyword(.var),
+                    bindingsBuilder: {
+                        PatternBindingSyntax(
+                            pattern: IdentifierPatternSyntax(identifier: .identifier("generatedDependencies")),
+                            typeAnnotation: TypeAnnotationSyntax(type: "[any ModuleAssembly.Type]" as TypeSyntax),
+                            accessorBlock: AccessorBlockSyntax(
+                                
+                                // Make the computed property accessor
+                                accessors: .getter(.init(
+                                    itemsBuilder: {
+                                        let elements = ArrayElementListSyntax {
+                                            // Turn each module name string into a meta type of the Assembly
+                                            for name in (dependencyModuleNames + additionalAssemblies) {
+                                                ArrayElementSyntax(
+                                                    leadingTrivia: [ .newlines(1) ],
+                                                    expression: "\(raw: typeName(name)).self" as ExprSyntax
+                                                )
+                                            }
+                                        }
 
-                    // Make the computed property accessor
-                    accessor: {
-                        let elements = ArrayElementList {
-                            // Turn each module name string into a meta type of the Assembly
-                            for name in (dependencyModuleNames + additionalAssemblies) {
-                                ArrayElementSyntax(
-                                    leadingTrivia: [ .newlines(1) ],
-                                    expression: "\(raw: typeName(name)).self" as MemberAccessExprSyntax
-                                )
-                            }
-                        }
-
-                        ArrayExpr(elements: elements)
+                                        ArrayExprSyntax(elements: elements)
+                                    }
+                                ))
+                            )
+                        )
                     }
                 )
             }
