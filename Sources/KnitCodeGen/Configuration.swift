@@ -33,11 +33,8 @@ public struct Configuration: Encodable {
 public extension Configuration {
 
     func makeTypeSafetySourceFile() -> SourceFileSyntax {
-        var allImports = imports
-        allImports.append("import Swinject")
         return TypeSafetySourceFile.make(
             assemblyName: "\(name)Assembly",
-            imports: sortImports(allImports),
             extensionTarget: "Resolver",
             registrations: registrations
         )
@@ -49,45 +46,18 @@ public extension Configuration {
         allImports.append("import XCTest")
 
         return UnitTestSourceFile.make(
-            assemblyName: "\(name)Assembly",
-            importDecls: sortImports(allImports),
-            registrations: registrations,
-            registrationsIntoCollections: registrationsIntoCollections
+            configuration: self
         )
     }
 
-    func sortImports(_ imports: [ImportDeclSyntax]) -> [ImportDeclSyntax] {
-        return imports.sorted { import1, import2 in
-            let i1Name = import1.description.replacingOccurrences(of: "@testable ", with: "")
-            let i2Name = import2.description.replacingOccurrences(of: "@testable ", with: "")
-            return i1Name < i2Name
-        }
-    }
-
-    func writeGeneratedFiles(
-        typeSafetyExtensionsOutputPath: String?,
-        unitTestOutputPath: String?
-    ) {
-        if let typeSafetyExtensionsOutputPath {
-            write(
-                sourceFile: makeTypeSafetySourceFile(),
-                to: typeSafetyExtensionsOutputPath
-            )
-        }
-
-        if let unitTestOutputPath {
-            write(
-                sourceFile: makeUnitTestSourceFile(),
-                to: unitTestOutputPath
-            )
-        }
+    var assemblyName: String {
+        "\(name)Assembly"
     }
 
 }
 
-func write(sourceFile: SourceFileSyntax, to path: String) {
-    let data = sourceFile.formatted().description.data(using: .utf8)!
-
+func write(text: String, to path: String) {
+    let data = text.data(using: .utf8)!
     let pathURL = URL(fileURLWithPath: path, isDirectory: false)
 
     do {

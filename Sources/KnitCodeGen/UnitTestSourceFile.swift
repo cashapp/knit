@@ -4,47 +4,40 @@ import SwiftSyntaxBuilder
 public enum UnitTestSourceFile {
 
     public static func make(
-        assemblyName: String,
-        importDecls: [ImportDeclSyntax],
-        registrations: [Registration],
-        registrationsIntoCollections: [RegistrationIntoCollection]
+        configuration: Configuration
     ) -> SourceFileSyntax {
-        let withArguments = registrations.filter { !$0.arguments.isEmpty }
+        let withArguments = configuration.registrations.filter { !$0.arguments.isEmpty }
         let hasArguments = !withArguments.isEmpty
-        return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
-            for importDecl in importDecls {
-                importDecl
-            }
-
-            ClassDeclSyntax("final class KnitDIRegistrationTests: XCTestCase") {
+        return SourceFileSyntax() {
+            ClassDeclSyntax("final class \(configuration.name)RegistrationTests: XCTestCase") {
 
                 FunctionDeclSyntax("func testRegistrations()") {
 
                     DeclSyntax("""
                         // In the test target for your module, please provide a static method that creates a
                         // ModuleAssembler instance for testing.
-                        let assembler = \(raw: assemblyName).makeAssemblerForTests()
+                        let assembler = \(raw: configuration.assemblyName).makeAssemblerForTests()
                         """)
 
                     if hasArguments {
                         DeclSyntax("""
                             // In the test target for your module, please provide a static method that provides
-                            // an instance of KnitRegistrationTestArguments
-                            let args: KnitRegistrationTestArguments = \(raw: assemblyName).makeArgumentsForTests()
+                            // an instance of \(raw: configuration.name)RegistrationTestArguments
+                            let args: \(raw: configuration.name)RegistrationTestArguments = \(raw: configuration.assemblyName).makeArgumentsForTests()
                             """)
                     }
 
-                    if registrations.isEmpty && registrationsIntoCollections.isEmpty {
+                    if configuration.registrations.isEmpty && configuration.registrationsIntoCollections.isEmpty {
                         DeclSyntax("let _ = assembler.resolver")
                     } else {
                         DeclSyntax("let resolver = assembler.resolver")
                     }
 
-                    for registration in registrations {
+                    for registration in configuration.registrations {
                         makeAssertCall(registration: registration)
                     }
 
-                    for (service, count) in groupByService(registrationsIntoCollections) {
+                    for (service, count) in groupByService(configuration.registrationsIntoCollections) {
                         FunctionCallExprSyntax(
                             "resolver.assertCollectionResolves(\(raw: service).self, count: \(raw: count))"
                         )
@@ -53,9 +46,18 @@ public enum UnitTestSourceFile {
             }
 
             if hasArguments {
-                makeArgumentStruct(registrations: registrations)
+                makeArgumentStruct(registrations: configuration.registrations, moduleName: configuration.name)
             }
+        }
+    }
 
+    static func resolverExtensions(
+        registrations: [Registration],
+        registrationsIntoCollections: [RegistrationIntoCollection]
+    ) -> SourceFileSyntax {
+        let withArguments = registrations.filter { !$0.arguments.isEmpty }
+
+        return SourceFileSyntax() {
             // swiftlint:disable line_length
             ExtensionDeclSyntax("private extension Resolver") {
                 // This assert is only needed if there are registrations without arguments
@@ -64,7 +66,7 @@ public enum UnitTestSourceFile {
                 }
 
                 // This assert is only needed if there are registrations with arguments
-                if hasArguments {
+                if !withArguments.isEmpty {
                     makeResultAssert()
                 }
 
@@ -167,7 +169,7 @@ public enum UnitTestSourceFile {
     }
 
     /// Generate code for a struct that contains all of the parameters used to resolve services
-    static func makeArgumentStruct(registrations: [Registration]) -> StructDeclSyntax {
+    static func makeArgumentStruct(registrations: [Registration], moduleName: String) -> StructDeclSyntax {
         let fields = registrations.flatMap { $0.serviceNamedArguments() }
         var seen: Set<String> = []
         // Make sure duplicate parameters don't get created
@@ -180,7 +182,7 @@ public enum UnitTestSourceFile {
             return true
         }
 
-        return StructDeclSyntax("struct KnitRegistrationTestArguments") {
+        return StructDeclSyntax("struct \(moduleName)RegistrationTestArguments") {
             for field in uniqueFields {
                 DeclSyntax("let \(raw: field.resolvedIdentifier()): \(raw: field.type)")
             }

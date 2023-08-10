@@ -6,7 +6,6 @@ public enum TypeSafetySourceFile {
 
     public static func make(
         assemblyName: String,
-        imports: [ImportDeclSyntax],
         extensionTarget: String,
         registrations allRegistrations: [Registration]
     ) -> SourceFileSyntax {
@@ -16,14 +15,9 @@ public enum TypeSafetySourceFile {
         }
         let unnamedRegistrations = visibleRegistrations.filter { $0.name == nil }
         let namedGroups = NamedRegistrationGroup.make(from: visibleRegistrations)
-        return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
-            for importItem in imports {
-                importItem
-            }
-
+        return SourceFileSyntax() {
             ExtensionDeclSyntax("""
-                          // The correct resolution of each of these types is enforced by a matching automated unit test
-                          // If a type registration is missing or broken then the automated tests will fail for that PR
+                          // Generated from \(assemblyName)
                           extension \(extensionTarget)
                           """) {
 

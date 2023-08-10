@@ -2,23 +2,23 @@ import Foundation
 import SwiftSyntax
 import SwiftSyntaxParser
 
-public func parseAssembly(at path: String) throws -> Configuration {
-    let url = URL(fileURLWithPath: path, isDirectory: false)
+public func parseAssemblies(at paths: [String]) throws -> ConfigurationSet {
+    var configs = [Configuration]()
+    for path in paths {
+        let url = URL(fileURLWithPath: path, isDirectory: false)
+        var errorsToPrint = [Error]()
 
-    let syntaxTree: SourceFileSyntax
-    do {
-        syntaxTree = try SwiftSyntaxParser.SyntaxParser.parse(url)
-    } catch {
-        throw AssemblyParsingError.syntaxParsingError(error, path: path)
+        let syntaxTree: SourceFileSyntax
+        do {
+            syntaxTree = try SwiftSyntaxParser.SyntaxParser.parse(url)
+        } catch {
+            throw AssemblyParsingError.syntaxParsingError(error, path: path)
+        }
+        let configuration = try parseSyntaxTree(syntaxTree, errorsToPrint: &errorsToPrint)
+        configs.append(configuration)
+        printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
     }
-
-    var errorsToPrint = [Error]()
-
-    let configuration = try parseSyntaxTree(syntaxTree, errorsToPrint: &errorsToPrint)
-
-    printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
-
-    return configuration
+    return ConfigurationSet(assemblies: configs)
 }
 
 func parseSyntaxTree(

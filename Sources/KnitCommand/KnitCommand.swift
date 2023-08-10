@@ -15,7 +15,7 @@ public struct KnitCommand: ParsableCommand {
                   Path to the file location in the current module where the Assembly source is located.
                   For example: `${PODS_TARGET_SRCROOT}/Sources/DI/ModuleNameAssembly.swift`
                   """)
-    var assemblyInputPath: String
+    var assemblyInputPath: [String]
 
     @Option(help: """
                   Path to the file location in the current module where the unit test source should be written.
@@ -37,11 +37,11 @@ public struct KnitCommand: ParsableCommand {
     public init() {}
 
     public func run() throws {
-        let parsedConfig: Configuration
+        let parsedConfig: ConfigurationSet
         do {
-            parsedConfig = try parseAssembly(at: assemblyInputPath)
+            parsedConfig = try parseAssemblies(at: assemblyInputPath)
             if let jsonDataOutputPath {
-                let data = try JSONEncoder().encode(parsedConfig)
+                let data = try JSONEncoder().encode(parsedConfig.assemblies)
                 try data.write(to: URL(fileURLWithPath: jsonDataOutputPath))
             }
         } catch {
