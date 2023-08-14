@@ -9,7 +9,7 @@ extension Container: TestResolver {}
 
 extension ModuleAssembly {
 
-    // Default to TestResolver to prevent needing to define for all 
+    // Default to TestResolver to prevent needing to always define this
     typealias TargetResolver = TestResolver
 
 }
