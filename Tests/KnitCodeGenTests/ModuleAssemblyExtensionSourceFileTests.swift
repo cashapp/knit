@@ -24,7 +24,7 @@ final class ModuleAssemblyExtensionSourceFileTests: XCTestCase {
         // Generated using Knit
         // Do not edit directly!
 
-        import DependencyInjection
+        import Knit
         import DependencyA
         import DependencyB
         extension CurrentModuleAssembly: GeneratedModuleAssembly {
@@ -54,7 +54,7 @@ final class ModuleAssemblyExtensionSourceFileTests: XCTestCase {
         // Generated using Knit
         // Do not edit directly!
 
-        import DependencyInjection
+        import Knit
         extension CurrentModuleAssembly: GeneratedModuleAssembly {
             public static var generatedDependencies: [any ModuleAssembly.Type] {
                 []

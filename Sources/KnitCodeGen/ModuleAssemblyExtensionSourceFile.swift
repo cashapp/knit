@@ -15,7 +15,7 @@ public enum ModuleAssemblyExtensionSourceFile {
         dependencyModuleNames: [String]
     ) -> SourceFileSyntax {
         return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
-            DeclSyntax("import DependencyInjection")
+            DeclSyntax("import Knit")
             for dependencyModuleName in dependencyModuleNames {
                 DeclSyntax("import \(raw: dependencyModuleName)")
             }
