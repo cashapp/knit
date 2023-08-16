@@ -251,7 +251,11 @@ private func getArguments(
             guard let identifier = element.firstName?.text, let type = getArgumentType(arg: element)  else {
                 throw RegistrationParsingError.missingArgumentType(syntax: element, name: element.firstName?.text ?? "_")
             }
-            return .init(identifier: identifier, type: type)
+            if identifier == "_" {
+                return .init(identifier: nil, type: type)
+            } else {
+                return .init(identifier: identifier, type: type)
+            }
         }
     }
 
