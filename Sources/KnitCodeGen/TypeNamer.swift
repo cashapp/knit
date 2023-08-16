@@ -26,7 +26,7 @@ enum TypeNamer {
             // The naming doesn't work for function types, just return closure
             return "closure"
         }
-        let removedCharacters = CharacterSet(charactersIn: "?[]:& ")
+        let removedCharacters = CharacterSet(charactersIn: "?[]():&, ")
         var type = type.components(separatedBy: removedCharacters).joined(separator: "")
         let regex = try! NSRegularExpression(pattern: "<.*>")
         let nsString = type as NSString

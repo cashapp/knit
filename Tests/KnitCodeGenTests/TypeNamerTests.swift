@@ -58,6 +58,10 @@ final class TypeNamerTests: XCTestCase {
             expectedIdentifier: "protocolAProtocolB"
         )
 
+        assertComputedIdentifier(
+            type: "(String, Int?)",
+            expectedIdentifier: "stringInt"
+        )
     }
 
     func testClosureDetection() {
@@ -73,7 +77,7 @@ final class TypeNamerTests: XCTestCase {
 
         XCTAssertEqual(
             TypeNamer.sanitizeType(type: "Result<String, Error>", keepGenerics: true),
-            "Result_String_Error"
+            "Result_StringError"
         )
 
         XCTAssertEqual(

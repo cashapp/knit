@@ -242,6 +242,24 @@ final class RegistrationParsingTests: XCTestCase {
                 )
             ]
         )
+
+        // Unused arguments (for test/abstract usages)
+        assertMultipleRegistrationsString(
+            """
+            container.register(A.self, factory: { (_: Resolver, _: String) in
+                A()
+            })
+            """,
+            registrations: [
+                Registration(
+                    service: "A",
+                    accessLevel: .internal,
+                    arguments: [
+                        .init(identifier: nil, type: "String"),
+                    ]
+                )
+            ]
+        )
     }
 
     func testAutoregisterWithArguments() {
@@ -396,6 +414,16 @@ final class RegistrationParsingTests: XCTestCase {
                         .init(type: "Result<Int, Error>"),
                         .init(type: "Optional<Int>"),
                     ]),
+            ]
+        )
+
+        assertMultipleRegistrationsString(
+            """
+            // @knit getter-named
+            container.autoregister((String, Int?).self, initializer: Factory.make)
+            """,
+            registrations: [
+                .init(service: "(String, Int?)", accessLevel: .internal, getterConfig: [.identifiedGetter(nil)])
             ]
         )
     }

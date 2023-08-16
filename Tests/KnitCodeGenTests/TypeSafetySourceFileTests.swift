@@ -19,6 +19,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 .init(service: "ServiceD", name: nil, accessLevel: .public, isForwarded: true, getterConfig: GetterConfig.both),
                 .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [.init(type: "() -> Void")]),
                 .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
+                .init(service: "(String, Int?)", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
             ]
         )
 
@@ -40,6 +41,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
             }
             public func serviceF() -> ServiceF {
                 self.resolve(ServiceF.self)!
+            }
+            public func stringInt() -> (String, Int?) {
+                self.resolve((String, Int?).self)!
             }
             func callAsFunction(name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
                 self.resolve(ServiceB.self, name: name.rawValue)!
