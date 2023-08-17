@@ -66,6 +66,10 @@ By default Knit generates `callAsFunction` getters for its type safety.
 
 ---
 
+## Module Guide
+
+Located in the [Modules.md](Modules.md) file.
+
 ## Release Guide
 
 Located in the [Release.md](Release.md) file.
