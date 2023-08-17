@@ -139,9 +139,14 @@ final class AssemblyParsingTests: XCTestCase {
                 class ExampleAssembly: Assembly {
                     func assemble(container: Container) {
                         partialAssemble(container: container)
+                        Self.fulfillAbstractRegistrations(container: container)
                     }
                     func partialAssemble(container: Container) {
                         container.register(MyService.self) { }
+                    }
+                    static func fulfillAbstractRegistrations(container: Container) {
+                        // @knit hidden
+                        container.register(OtherService.self) { }
                     }
                 }
             """
@@ -149,8 +154,11 @@ final class AssemblyParsingTests: XCTestCase {
         let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.name, "Example")
         XCTAssertEqual(
-            config.registrations.map { $0.service },
-            ["MyService"],
+            config.registrations,
+            [
+                .init(service: "MyService", accessLevel: .internal), // `partialAssemble`
+                .init(service: "OtherService", accessLevel: .hidden), // `fulfillAbstractRegistrations`
+            ],
             "Check that services can be registered in other functions"
         )
     }
