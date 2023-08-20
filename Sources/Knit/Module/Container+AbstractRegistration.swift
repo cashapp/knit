@@ -38,13 +38,26 @@ extension Container {
 
 extension Container {
 
-    enum AbstractRegistrationError: LocalizedError {
-        case missingRegistrations(_ message: String)
+    struct AbstractRegistrationError: LocalizedError {
+        let serviceType: String
+        let file: String
+        let name: String?
 
         var errorDescription: String? {
-            switch self {
-            case let .missingRegistrations(message): return message
+            var string = "Unsatisfied abstract registration. Service: \(serviceType), File: \(file)"
+            if let name = name {
+                string += ", Name: \(name)"
             }
+            return string
+        }
+    }
+
+    // Collect
+    struct AbstractRegistrationErrors: LocalizedError {
+        let errors: [AbstractRegistrationError]
+
+        var errorDescription: String? {
+            return errors.map { $0.localizedDescription }.joined(separator: "\n")
         }
     }
 
@@ -88,14 +101,14 @@ extension Container {
         func validate() throws {
             let remainingAbstract = abstractRegistrations.filter { !concreteRegistrations.contains($0) }
             guard !remainingAbstract.isEmpty else { return }
-            let errorMessage = remainingAbstract.map {
-                var string = "Unsatisfied abstract registration. Service: \($0.serviceType), File: \($0.file)"
-                if let name = $0.name {
-                    string += ", Name: \(name)"
-                }
-                return string
+            let errors = remainingAbstract.map {
+                return AbstractRegistrationError(
+                    serviceType: "\($0.serviceType)",
+                    file: $0.file,
+                    name: $0.name
+                )
             }
-            throw AbstractRegistrationError.missingRegistrations(errorMessage.joined(separator: "\n"))
+            throw AbstractRegistrationErrors(errors: errors)
         }
 
     }

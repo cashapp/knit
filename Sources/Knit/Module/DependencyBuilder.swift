@@ -123,17 +123,24 @@ final class DependencyBuilder {
         return type
     }
 
-    func sourcePath(moduleType: any ModuleAssembly.Type) -> [any ModuleAssembly.Type] {
-        let name = String(describing: moduleType)
-        guard let source = moduleSources[name] else {
-            return [moduleType]
+    func sourcePath(moduleType: any ModuleAssembly.Type) -> [String] {
+        return sourcePath(moduleName: String(describing: moduleType))
+    }
+
+    func sourcePath(moduleName: String) -> [String] {
+        guard let source = moduleSources[moduleName] else {
+            return [moduleName]
         }
-        return sourcePath(moduleType: source) + [moduleType]
+        return sourcePath(moduleType: source) + [moduleName]
+    }
+
+    func sourcePathString(moduleName: String) -> String {
+        let modules = sourcePath(moduleName: moduleName).joined(separator: " -> ")
+        return "Dependency path: \(modules)"
     }
 
     func sourcePathString(moduleType: any ModuleAssembly.Type) -> String {
-        let modules = sourcePath(moduleType: moduleType).map { "\($0)"}.joined(separator: " -> ")
-        return "Dependency path: \(modules)"
+        return sourcePathString(moduleName: String(describing: moduleType))
     }
 
 }
