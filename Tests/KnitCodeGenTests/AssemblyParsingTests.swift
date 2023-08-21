@@ -163,6 +163,29 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
+    func testAdditionalFunctionsInComputedPropertyAreNotParsed() throws {
+        let sourceFile: SourceFile = """
+                class ExampleAssembly: Assembly {
+                    func assemble(container: Container) {
+                        container.register(MyService.self) { }
+                    }
+                    static var dependencies: [any ModuleAssembly.Type] {
+                        return ExampleAssembly.generatedDependencies.filter { $0.resolverType == AppResolver.self }
+                    }
+                }
+            """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.name, "Example")
+        XCTAssertEqual(
+            config.registrations,
+            [
+                .init(service: "MyService", accessLevel: .internal),
+            ],
+            "The `dependencies` computed property should be ignored"
+        )
+    }
+
     // MARK: - ClassDecl Extension
 
     func testClassDeclExtension() {
