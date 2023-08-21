@@ -15,12 +15,12 @@ final class ModuleCycleTests: XCTestCase {
         XCTAssertTrue(assembler.isRegistered(Assembly4.self))
 
         XCTAssertEqual(
-            assembler.builder.sourcePath(moduleType: Assembly1.self).map { "\($0)"},
+            assembler.builder.sourcePath(moduleType: Assembly1.self),
             ["\(Assembly1.self)"]
         )
 
         XCTAssertEqual(
-            assembler.builder.sourcePath(moduleType: Assembly3.self).map { "\($0)"},
+            assembler.builder.sourcePath(moduleType: Assembly3.self),
             ["\(Assembly1.self)", "\(Assembly3.self)"]
         )
     }

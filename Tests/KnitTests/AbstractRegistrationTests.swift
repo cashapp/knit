@@ -57,4 +57,31 @@ final class AbstractRegistrationTests: XCTestCase {
         XCTAssertNoThrow(try abstractRegistrations.validate())
     }
 
+    func testAbstractErrorFormatting() throws {
+        let builder = try DependencyBuilder(modules: [Assembly1()])
+        let error = Container.AbstractRegistrationError(serviceType: "String", file: "Assembly2.swift", name: nil)
+        let errors = Container.AbstractRegistrationErrors(errors: [error])
+        let result = ModuleAssembler.formatErrors(dependencyBuilder: builder, error: errors)
+        XCTAssertEqual(
+            result,
+            """
+            Unsatisfied abstract registration. Service: String, File: Assembly2.swift
+            Dependency path: Assembly1 -> Assembly2
+            Error creating ModuleAssembler. Please make sure all necessary assemblies are provided.
+            """
+        )
+    }
+
+}
+
+private struct Assembly1: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] { [ Assembly2.self] }
+    func assemble(container: Container) {}
+}
+
+private struct Assembly2: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] { [] }
+    func assemble(container: Container) {
+        container.registerAbstract(String.self)
+    }
 }

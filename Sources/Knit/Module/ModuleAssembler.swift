@@ -39,6 +39,8 @@ public final class ModuleAssembler {
     ) {
         let moduleAssemblies = modules.compactMap { $0 as? any ModuleAssembly }
         let nonModuleAssemblies = modules.filter { !($0 is any ModuleAssembly) }
+        // Hold an optional reference to be used by error handling later
+        var createdBuilder: DependencyBuilder?
         do {
             self.builder = try DependencyBuilder(
                 modules: moduleAssemblies,
@@ -46,6 +48,7 @@ public final class ModuleAssembler {
             ) { type in
                 return parent?.isRegistered(type) ?? false
             }
+            createdBuilder = self.builder
 
             self.parent = parent
             self.container = Container(parent: parent?.container)
@@ -60,12 +63,26 @@ public final class ModuleAssembler {
             try abstractRegistrations.validate()
             abstractRegistrations.reset()
         } catch {
+            let message = Self.formatErrors(dependencyBuilder: createdBuilder, error: error)
             fatalError(
-                "Error creating ModuleAssembler. Please make sure all necessary assemblies are provided.\n" +
-                "Error: \(error.localizedDescription)",
+                message,
                 file: file,
                 line: line
             )
+        }
+    }
+
+    static func formatErrors(dependencyBuilder: DependencyBuilder?, error: Error) -> String {
+        let info = "Error creating ModuleAssembler. Please make sure all necessary assemblies are provided."
+        if let abstractErrors = error as? Container.AbstractRegistrationErrors, let builder = dependencyBuilder {
+            let messages = abstractErrors.errors.map { abstractError in
+                let assemblyName = abstractError.file.replacingOccurrences(of: ".swift", with: "")
+                let path = builder.sourcePathString(moduleName: assemblyName)
+                return "\(abstractError.localizedDescription)\n\(path)"
+            }
+            return "\(messages.joined(separator: "\n"))\n\(info)"
+        } else {
+            return "Error: \(error.localizedDescription)\(info)"
         }
     }
 
