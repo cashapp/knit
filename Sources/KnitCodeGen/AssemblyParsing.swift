@@ -132,6 +132,11 @@ private class ClassDeclVisitor: SyntaxVisitor {
         return .skipChildren
     }
 
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        // There could be computed properties that contain other function calls we don't want to parse
+        return .skipChildren
+    }
+
 }
 
 extension IdentifiedDeclSyntax {
