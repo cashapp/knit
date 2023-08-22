@@ -10,7 +10,10 @@ public final class ModuleAssembler {
     let parent: ModuleAssembler?
 
     /// The resolver for this ModuleAssemblers container
-    public var resolver: Resolver { container }
+    public var resolver: Resolver {
+        // https://github.com/Swinject/Swinject/blob/master/Documentation/ThreadSafety.md
+        container.synchronize()
+    }
 
     // Module types that were registered into the container owned by this ModuleAssembler
     var registeredModules: [any ModuleAssembly.Type] {
