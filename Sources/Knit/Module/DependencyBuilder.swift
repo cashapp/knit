@@ -163,7 +163,13 @@ extension DependencyBuilder {
                 \(testAdvice)
                 """
             case let .invalidDefault(overrideType, moduleType):
-                return "\(overrideType) used as default override does not implement \(moduleType)"
+                let suggestion = """
+                SUGGESTED FIX:
+                public static var implements: [any ModuleAssembly.Type] {
+                    return [\(moduleType).self]
+                }
+                """
+                return "\(overrideType) used as default override does not implement \(moduleType)\n\(suggestion)"
             }
         }
     }

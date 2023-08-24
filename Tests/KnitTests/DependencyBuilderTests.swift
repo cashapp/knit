@@ -64,6 +64,21 @@ final class DependencyBuilderTests: XCTestCase {
         }
     }
 
+    func test_invalidOverride() {
+        XCTAssertThrowsError(try DependencyBuilder(modules: [Assembly7()])) { error in
+            XCTAssertEqual(
+                error.localizedDescription,
+                """
+                Assembly6 used as default override does not implement Assembly5
+                SUGGESTED FIX:
+                public static var implements: [any ModuleAssembly.Type] {
+                    return [Assembly5.self]
+                }
+                """
+            )
+        }
+    }
+
 }
 
 // Assembly1 depends on Assembly2
@@ -103,4 +118,22 @@ private struct Assembly4: ModuleAssembly {
         [ Assembly2.self, Assembly1.self ]
 
     func assemble(container: Container) {}
+}
+
+private struct Assembly5: ModuleAssembly, DefaultModuleAssemblyOverride {
+    func assemble(container: Container) {}
+    static var dependencies: [any ModuleAssembly.Type] { [] }
+
+    // This is not valid because Assembly6 does not implement Assembly5
+    typealias OverrideType = Assembly6
+}
+
+private struct Assembly6: AutoInitModuleAssembly {
+    func assemble(container: Container) {}
+    static var dependencies: [any ModuleAssembly.Type] { [] }
+}
+
+private struct Assembly7: ModuleAssembly {
+    func assemble(container: Container) {}
+    static var dependencies: [any ModuleAssembly.Type] { [Assembly5.self] }
 }
