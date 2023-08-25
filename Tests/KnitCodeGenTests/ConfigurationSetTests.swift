@@ -24,7 +24,7 @@ final class ConfigurationSetTests: XCTestCase {
 
             // Generated from Module1Assembly
             extension Resolver {
-                public func callAsFunction() -> Service1 {
+                public func service1() -> Service1 {
                     self.resolve(Service1.self)!
                 }
             }
@@ -34,7 +34,7 @@ final class ConfigurationSetTests: XCTestCase {
                 func callAsFunction() -> Service2 {
                     self.resolve(Service2.self)!
                 }
-                func callAsFunction(string: String) -> ArgumentService {
+                func argumentService(string: String) -> ArgumentService {
                     self.resolve(ArgumentService.self, argument: string)!
                 }
             }
@@ -154,7 +154,7 @@ private enum Factory {
     static let config2 = Configuration(
         name: "Module2",
         registrations: [
-            .init(service: "Service2", accessLevel: .internal),
+            .init(service: "Service2", accessLevel: .internal, getterConfig: [.callAsFunction]),
             .init(service: "ArgumentService", accessLevel: .internal, arguments: [.init(type: "String")])
 
         ],

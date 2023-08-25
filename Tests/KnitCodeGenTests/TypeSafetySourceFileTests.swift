@@ -27,7 +27,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         
         // Generated from ModuleAssembly
         extension Resolve {
-            func callAsFunction() -> ServiceA {
+            func serviceA() -> ServiceA {
                 self.resolve(ServiceA.self)!
             }
             public func callAsFunction() -> ServiceD {
@@ -36,7 +36,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             public func serviceD() -> ServiceD {
                 self.resolve(ServiceD.self)!
             }
-            public func callAsFunction(closure: @escaping () -> Void) -> ServiceE {
+            public func serviceE(closure: @escaping () -> Void) -> ServiceE {
                 self.resolve(ServiceE.self, argument: closure)!
             }
             public func serviceF() -> ServiceF {
@@ -45,7 +45,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             public func stringInt() -> (String, Int?) {
                 self.resolve((String, Int?).self)!
             }
-            func callAsFunction(name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
+            func serviceB(name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
                 self.resolve(ServiceB.self, name: name.rawValue)!
             }
         }

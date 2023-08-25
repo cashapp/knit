@@ -93,7 +93,7 @@ public enum GetterConfig: Codable, Equatable, Hashable {
     case identifiedGetter(_ name: String?)
 
     /// Centralized control of the default behavior.
-    public static var `default`: Set<GetterConfig> = [.callAsFunction]
+    public static var `default`: Set<GetterConfig> = [.identifiedGetter(nil)]
 
     public static var both: Set<GetterConfig> = [.callAsFunction, .identifiedGetter(nil)]
 
