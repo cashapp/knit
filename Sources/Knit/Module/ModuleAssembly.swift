@@ -3,6 +3,7 @@
 //
 
 import Foundation
+import Swinject
 
 public protocol ModuleAssembly: Assembly {
 
@@ -18,6 +19,10 @@ public protocol ModuleAssembly: Assembly {
     /// The override is generally expected to live in a separate module so it can be imported just for tests
     static var implements: [any ModuleAssembly.Type] { get }
 
+    /// Filter the list of dependencies down to those which match the scope of this assembly
+    /// This can be overridden in apps with custom Resolver hierarchies
+    static func scoped(_ dependencies: [any ModuleAssembly.Type]) -> [any ModuleAssembly.Type]
+
 }
 
 public extension ModuleAssembly {
@@ -27,6 +32,13 @@ public extension ModuleAssembly {
     }
 
     static var implements: [any ModuleAssembly.Type] { [] }
+
+    static func scoped(_ dependencies: [any ModuleAssembly.Type]) -> [any ModuleAssembly.Type] {
+        return dependencies.filter {
+            // Default the scoped implementation to match types directly
+            return self.resolverType == $0.resolverType
+        }
+    }
 }
 
 /// A ModuleAssembly that can be initialised without any parameters
@@ -46,8 +58,8 @@ public protocol GeneratedModuleAssembly: ModuleAssembly {
 }
 
 extension ModuleAssembly where Self: GeneratedModuleAssembly {
-    // Default the dependencies to using generatedDependencies
-    public static var dependencies: [any ModuleAssembly.Type] { generatedDependencies }
+    // Default the dependencies to using generatedDependencies scoped to those with compatible resolvers
+    public static var dependencies: [any ModuleAssembly.Type] { scoped(generatedDependencies) }
 }
 
 public enum DefaultOverrideState {
