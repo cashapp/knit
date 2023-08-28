@@ -16,7 +16,8 @@ final class ModuleAssemblyExtensionSourceFileTests: XCTestCase {
             dependencyModuleNames: [
                 "DependencyA",
                 "DependencyB",
-            ]
+            ],
+            additionalAssemblies: []
         )
 
         let expected = #"""
@@ -46,7 +47,8 @@ final class ModuleAssemblyExtensionSourceFileTests: XCTestCase {
         let result = ModuleAssemblyExtensionSourceFile.make(
             currentModuleName: "CurrentModule",
             dependencyModuleNames: [
-            ]
+            ],
+            additionalAssemblies: []
         )
 
         let expected = #"""
@@ -58,6 +60,41 @@ final class ModuleAssemblyExtensionSourceFileTests: XCTestCase {
         extension CurrentModuleAssembly: GeneratedModuleAssembly {
             public static var generatedDependencies: [any ModuleAssembly.Type] {
                 []
+            }
+        }
+        """#
+
+        XCTAssertEqual(
+            result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n"),
+            expected
+        )
+    }
+
+    func test_generation_additionalAssemblies() {
+        let result = ModuleAssemblyExtensionSourceFile.make(
+            currentModuleName: "CurrentModule",
+            dependencyModuleNames: [
+                "DependencyA",
+                "DependencyASubAssembly",
+            ],
+            additionalAssemblies: [
+                "DependencyAOtherAssembly",
+            ]
+        )
+
+        let expected = #"""
+
+        // Generated using Knit
+        // Do not edit directly!
+
+        import Knit
+        import DependencyA
+        extension CurrentModuleAssembly: GeneratedModuleAssembly {
+            public static var generatedDependencies: [any ModuleAssembly.Type] {
+                [
+                DependencyAAssembly.self,
+                DependencyASubAssembly.self,
+                DependencyAOtherAssembly.self]
             }
         }
         """#

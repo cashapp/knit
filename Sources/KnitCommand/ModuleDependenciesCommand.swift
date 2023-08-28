@@ -25,16 +25,24 @@ struct ModuleDependenciesCommand: ParsableCommand {
                   """)
     var outputPath: String
 
+    @Option(help: """
+                  Any additional assembly dependencies that are not bound directly to a module
+                  """)
+    var additionalAssemblies = [String]()
+
     @Argument(help: """
                     An array of string arguments for the name of each module dependency.
                     If none are provided a file will still be written to the outputPath.
+                    If the module name ends in "Assembly" it will be treated as an additional assembly.
                     """)
     var dependencyModuleNames = [String]()
+    
 
     func run() throws {
         let result = ModuleAssemblyExtensionSourceFile.make(
             currentModuleName: currentModuleName,
-            dependencyModuleNames: dependencyModuleNames
+            dependencyModuleNames: dependencyModuleNames,
+            additionalAssemblies: additionalAssemblies
         )
 
         result.write(to: outputPath)

@@ -12,11 +12,12 @@ public enum ModuleAssemblyExtensionSourceFile {
 
     public static func make(
         currentModuleName: String,
-        dependencyModuleNames: [String]
+        dependencyModuleNames: [String],
+        additionalAssemblies: [String]
     ) -> SourceFileSyntax {
         return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
             DeclSyntax("import Knit")
-            for dependencyModuleName in dependencyModuleNames {
+            for dependencyModuleName in dependencyModuleNames where !dependencyModuleName.hasSuffix("Assembly") {
                 DeclSyntax("import \(raw: dependencyModuleName)")
             }
 
@@ -35,10 +36,10 @@ public enum ModuleAssemblyExtensionSourceFile {
                     accessor: {
                         let elements = ArrayElementList {
                             // Turn each module name string into a meta type of the Assembly
-                            for name in dependencyModuleNames {
+                            for name in (dependencyModuleNames + additionalAssemblies) {
                                 ArrayElementSyntax(
                                     leadingTrivia: [ .newlines(1) ],
-                                    expression: "\(raw: name)Assembly.self" as MemberAccessExprSyntax
+                                    expression: "\(raw: typeName(name)).self" as MemberAccessExprSyntax
                                 )
                             }
                         }
@@ -50,4 +51,10 @@ public enum ModuleAssemblyExtensionSourceFile {
         }
     }
 
+    private static func typeName(_ name: String) -> String {
+        if name.hasSuffix("Assembly") {
+            return name
+        }
+        return "\(name)Assembly"
+    }
 }
