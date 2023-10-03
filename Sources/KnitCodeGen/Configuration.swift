@@ -58,12 +58,15 @@ public extension Configuration {
 
 func write(text: String, to path: String) {
     let data = text.data(using: .utf8)!
-    let pathURL = URL(fileURLWithPath: path, isDirectory: false)
-
-    do {
-        try data.write(to: pathURL)
-    } catch {
-        fatalError("\(error)")
+    let fileManager = FileManager.default
+    // Write the file and mark as readonly
+    let result = fileManager.createFile(
+        atPath: path,
+        contents: data,
+        attributes: [.posixPermissions: 0o444]
+    )
+    if !result {
+        fatalError("Could not write to \(path)")
     }
 }
 
