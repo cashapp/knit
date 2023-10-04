@@ -28,9 +28,28 @@ final class SynchronizationTests: XCTestCase {
         XCTAssertEqual(result.0.service1.id, result.1.service1.id)
     }
 
+    func testMultiThreadingScopedAssembler() async throws {
+        let assembler = ScopedModuleAssembler<TestScopedResolver>([Assembly2()])
+
+        // Resolve the same service in 2 separate tasks
+        async let task1 = try Task {
+            return assembler.resolver.resolve(Service2.self)!
+        }.result.get()
+
+        async let task2 = try Task {
+            return assembler.resolver.resolve(Service2.self)!
+        }.result.get()
+
+        let result = try await (task1, task2)
+
+        // Make sure that the weak services correctly return the same value
+        XCTAssertEqual(result.0.service1.id, result.1.service1.id)
+    }
+
 }
 
-private struct Assembly1: ModuleAssembly {
+private struct Assembly1: AutoInitModuleAssembly {
+    typealias TargetResolver = TestScopedResolver
     static var dependencies: [any ModuleAssembly.Type] { [] }
     func assemble(container: Container) {
         container.autoregister(Service1.self, initializer: Service1.init)
@@ -38,6 +57,7 @@ private struct Assembly1: ModuleAssembly {
 }
 
 private struct Assembly2: ModuleAssembly {
+    typealias TargetResolver = TestScopedResolver
     static var dependencies: [any ModuleAssembly.Type] { [Assembly1.self] }
     func assemble(container: Container) {
         container.autoregister(Service2.self, initializer: Service2.init)
@@ -56,3 +76,6 @@ private final class Service2 {
         self.service1 = service1
     }
 }
+
+public protocol TestScopedResolver: Resolver { }
+extension Container: TestScopedResolver {}

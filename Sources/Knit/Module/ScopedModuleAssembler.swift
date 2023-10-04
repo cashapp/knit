@@ -11,7 +11,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
 
     public var resolver: ScopedResolver {
         // swiftlint:disable:next force_cast
-        internalAssembler.container as! ScopedResolver
+        internalAssembler.resolver as! ScopedResolver
     }
 
     public init(
