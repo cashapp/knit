@@ -10,10 +10,7 @@ public final class ModuleAssembler {
     let parent: ModuleAssembler?
 
     /// The resolver for this ModuleAssemblers container
-    public var resolver: Resolver {
-        // https://github.com/Swinject/Swinject/blob/master/Documentation/ThreadSafety.md
-        container.synchronize()
-    }
+    public let resolver: Resolver
 
     // Module types that were registered into the container owned by this ModuleAssembler
     var registeredModules: [any ModuleAssembly.Type] {
@@ -73,6 +70,8 @@ public final class ModuleAssembler {
                 line: line
             )
         }
+        // https://github.com/Swinject/Swinject/blob/master/Documentation/ThreadSafety.md
+        self.resolver = container.synchronize()
     }
 
     static func formatErrors(dependencyBuilder: DependencyBuilder?, error: Error) -> String {
