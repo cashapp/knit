@@ -33,8 +33,9 @@ public struct ConfigurationSet {
     }
 
     var allImports: [ImportDeclSyntax] {
-        let all = assemblies.flatMap { $0.imports }
-        return Array(Set(all))
+        assemblies
+            .flatMap { $0.imports }
+            .uniqued(by: \.description)
     }
 }
 
@@ -83,4 +84,13 @@ public extension ConfigurationSet {
                 // If a type registration is missing or broken then the automated tests will fail for that PR
                 """
 
+}
+
+// MARK: - Private Extensions
+
+private extension Sequence {
+    func uniqued<T: Hashable>(by keyPath: KeyPath<Element, T>) -> [Element] {
+        var set = Set<T>()
+        return filter { set.insert($0[keyPath: keyPath]).inserted }
+    }
 }

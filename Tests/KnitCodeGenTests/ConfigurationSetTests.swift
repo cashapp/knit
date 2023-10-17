@@ -6,7 +6,7 @@ import XCTest
 final class ConfigurationSetTests: XCTestCase {
 
     func testTypeSafetyOutput() {
-        let configSet = ConfigurationSet(assemblies: [Factory.config1, Factory.config2])
+        let configSet = ConfigurationSet(assemblies: [Factory.config1, Factory.config2, Factory.config3])
 
         XCTAssertEqual(
             configSet.makeTypeSafetySourceFile(),
@@ -36,6 +36,13 @@ final class ConfigurationSetTests: XCTestCase {
                 }
                 func argumentService(string: String) -> ArgumentService {
                     self.resolve(ArgumentService.self, argument: string)!
+                }
+            }
+
+            // Generated from Module3Assembly
+            extension Resolver {
+                public func service3() -> Service3 {
+                    self.resolve(Service3.self)!
                 }
             }
             """
@@ -164,4 +171,14 @@ private enum Factory {
         ]
     )
 
+    static let config3 = Configuration(
+        name: "Module3",
+        registrations: [
+            .init(service: "Service3", accessLevel: .public),
+        ],
+        registrationsIntoCollections: [],
+        imports: [
+            .init(moduleName: "Dependency2")
+        ]
+    )
 }
