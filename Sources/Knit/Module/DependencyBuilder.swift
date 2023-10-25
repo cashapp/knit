@@ -14,10 +14,11 @@ final class DependencyBuilder {
     private let defaultOverrides: DefaultOverrideState
     private var moduleSources: [String: any ModuleAssembly.Type] = [:]
 
-    init(modules: [any ModuleAssembly],
-         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
-         defaultOverrides: DefaultOverrideState = .whenTesting,
-         isRegisteredInParent: ((any ModuleAssembly.Type) -> Bool)? = nil
+    init(
+        modules: [any ModuleAssembly],
+        assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
+        defaultOverrides: DefaultOverrideState = .whenTesting,
+        isRegisteredInParent: ((any ModuleAssembly.Type) -> Bool)? = nil
     ) throws {
         self.assemblyValidation = assemblyValidation
         self.defaultOverrides = defaultOverrides

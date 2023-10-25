@@ -14,7 +14,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         internalAssembler.resolver as! ScopedResolver
     }
 
-    public init(
+    public convenience init(
         parent: ModuleAssembler? = nil,
         _ modules: [any Assembly],
         defaultOverrides: DefaultOverrideState = .whenTesting,
@@ -22,34 +22,61 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        self.internalAssembler = ModuleAssembler(
-            parent: parent,
-            modules,
-            defaultOverrides: defaultOverrides,
-            postAssemble: postAssemble,
-            file: file,
-            line: line
-        )
-
-        let invalidAssemblies = internalAssembler.registeredModules.filter({
-            $0.resolverType != ScopedResolver.self
-        })
-
-        if invalidAssemblies.count > 0 {
-            // Crash if any unexpected module assemblies are registered
-            let assemblyLines = invalidAssemblies.map { assemblyType in
-                let pathString = internalAssembler.builder.sourcePathString(moduleType: assemblyType)
-                return "\n\(assemblyType) - Target resolver: \(assemblyType.resolverType)\n\(pathString)"
-
-            }
+        do {
+            try self.init(
+                parent: parent,
+                _modules: modules,
+                defaultOverrides: defaultOverrides,
+                postAssemble: postAssemble
+            )
+        } catch {
             fatalError(
-                "Registered \(invalidAssemblies.count) invalid assembly(s). " +
-                "Expected target resolver: \(ScopedResolver.self)" +
-                assemblyLines.joined(),
+                error.localizedDescription,
                 file: file,
                 line: line
             )
         }
     }
 
+    // Internal required init that throws rather than fatal errors
+    required init(
+        parent: ModuleAssembler? = nil,
+        _modules modules: [any Assembly],
+        defaultOverrides: DefaultOverrideState = .whenTesting,
+        postAssemble: ((Container) -> Void)? = nil
+    ) throws {
+        self.internalAssembler = try ModuleAssembler(
+            parent: parent,
+            _modules: modules,
+            defaultOverrides: defaultOverrides,
+            assemblyValidation: { moduleAssemblyType in
+                guard moduleAssemblyType.resolverType == ScopedResolver.self else {
+                    throw ScopedModuleAssemblerError.incorrectTargetResolver(
+                        expected: String(describing: ScopedResolver.self),
+                        actual: String(describing: moduleAssemblyType.resolverType)
+                    )
+                }
+            },
+            postAssemble: postAssemble
+        )
+    }
+
+}
+
+// MARK: - Errors
+
+enum ScopedModuleAssemblerError: LocalizedError {
+
+    case incorrectTargetResolver(expected: String, actual: String)
+
+    var errorDescription: String? {
+        switch self {
+        case let .incorrectTargetResolver(expected, actual):
+            return """
+                The ModuleAssembly's TargetResolver is incorrect.
+                Expected: \(expected)
+                Actual: \(actual)
+                """
+        }
+    }
 }
