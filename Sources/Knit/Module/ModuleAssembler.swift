@@ -33,6 +33,7 @@ public final class ModuleAssembler {
         parent: ModuleAssembler? = nil,
         _ modules: [any Assembly],
         defaultOverrides: DefaultOverrideState = .whenTesting,
+        assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         postAssemble: ((Container) -> Void)? = nil,
         file: StaticString = #file,
         line: UInt = #line
@@ -44,6 +45,7 @@ public final class ModuleAssembler {
         do {
             self.builder = try DependencyBuilder(
                 modules: moduleAssemblies,
+                assemblyValidation: assemblyValidation,
                 defaultOverrides: defaultOverrides
             ) { type in
                 return parent?.isRegistered(type) ?? false
