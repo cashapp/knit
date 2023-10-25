@@ -7,6 +7,7 @@ import Foundation
 /// Class for building a list of module dependencies based on the dependency tree
 final class DependencyBuilder {
 
+    private let assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)?
     private var inputModules: [any ModuleAssembly] = []
     var assemblies: [any ModuleAssembly] = []
     let isRegisteredInParent: (any ModuleAssembly.Type) -> Bool
@@ -14,9 +15,11 @@ final class DependencyBuilder {
     private var moduleSources: [String: any ModuleAssembly.Type] = [:]
 
     init(modules: [any ModuleAssembly],
+         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
          defaultOverrides: DefaultOverrideState = .whenTesting,
          isRegisteredInParent: ((any ModuleAssembly.Type) -> Bool)? = nil
     ) throws {
+        self.assemblyValidation = assemblyValidation
         self.defaultOverrides = defaultOverrides
 
         inputModules = modules
@@ -79,6 +82,18 @@ final class DependencyBuilder {
     ) throws {
         moduleSources[String(describing: from)] = source
         let resolved = try resolvedType(from)
+
+        // Assembly validation should be performed "up front"
+        // For example if we are validating the assemblies' `TargetResolver`, we should not walk the tree
+        // if the root assembly is targeting an incorrect resolver.
+        if let assemblyValidation {
+            do {
+                try assemblyValidation(resolved)
+            } catch {
+                throw DependencyBuilder.Error.assemblyValidationFailure(resolved, reason: error)
+            }
+        }
+
         guard !result.contains(where: {$0 == resolved}) else {
             return
         }
@@ -149,6 +164,7 @@ extension DependencyBuilder {
     enum Error: LocalizedError {
         case moduleNotProvided(_ moduleType: any ModuleAssembly.Type, _ sourcePath: String)
         case invalidDefault(_ overrideType: any ModuleAssembly.Type, _ moduleType: any ModuleAssembly.Type)
+        case assemblyValidationFailure(_ moduleType: any ModuleAssembly.Type, reason: Swift.Error)
 
         var errorDescription: String? {
             switch self {
@@ -170,6 +186,8 @@ extension DependencyBuilder {
                 }
                 """
                 return "\(overrideType) used as default override does not implement \(moduleType)\n\(suggestion)"
+            case let .assemblyValidationFailure(moduleType, reason):
+                return "\(moduleType) did not pass assembly validation check: \(reason.localizedDescription)"
             }
         }
     }

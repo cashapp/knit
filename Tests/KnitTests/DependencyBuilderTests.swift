@@ -43,9 +43,12 @@ final class DependencyBuilderTests: XCTestCase {
     }
 
     func test_parentRegistered() throws {
-        let builder = try DependencyBuilder(modules: [Assembly1()]) { type in
-            return type == Assembly2.self
-        }
+        let builder = try DependencyBuilder(
+            modules: [Assembly1()],
+            isRegisteredInParent:  { type in
+                return type == Assembly2.self
+            }
+        )
         // Assembly2 is not registered because the builder was told that it had been done by the parent
         XCTAssertEqual(builder.assemblies.count, 1)
         XCTAssertTrue(builder.assemblies[0] is Assembly1)
@@ -77,6 +80,48 @@ final class DependencyBuilderTests: XCTestCase {
                 """
             )
         }
+    }
+
+    func test_validation() throws {
+        XCTAssertThrowsError(
+            try DependencyBuilder(
+                modules: [Assembly3()],
+                assemblyValidation: { assembly in
+                    guard assembly != Assembly1.self else {
+                        throw DependencyBuilderTestError.failedValidation
+                    }
+                }
+            ),
+            "Should throw validation error",
+            { error in
+                XCTAssertEqual(
+                    error.localizedDescription,
+                    "Assembly1 did not pass assembly validation check: Test case validation failure.",
+                    "'Assembly1' is the assembly that should fail, and the reason from the embedded error should also be displayed"
+                )
+
+                if case let DependencyBuilder.Error.assemblyValidationFailure(moduleType, reason: reasonError) = error {
+                    XCTAssert(moduleType == Assembly1.self)
+                    if case DependencyBuilderTestError.failedValidation = reasonError {
+                        // Correct `reasonError`
+                    } else {
+                        XCTFail("The `reasonError` in the `assemblyValidationFailure` was incorrect")
+                    }
+                } else {
+                    XCTFail("The error thrown by `DependencyBuilder.init` was incorrect")
+                }
+            }
+        )
+
+        // Should pass validation
+        XCTAssertNotNil(try DependencyBuilder(
+            modules: [Assembly1()],
+            assemblyValidation: { assembly in
+                guard assembly != Assembly3.self else {
+                    throw DependencyBuilderTestError.failedValidation
+                }
+            }
+        ))
     }
 
 }
@@ -136,4 +181,14 @@ private struct Assembly6: AutoInitModuleAssembly {
 private struct Assembly7: ModuleAssembly {
     func assemble(container: Container) {}
     static var dependencies: [any ModuleAssembly.Type] { [Assembly5.self] }
+}
+
+private enum DependencyBuilderTestError: LocalizedError {
+    case failedValidation
+
+    var errorDescription: String? {
+        switch self {
+        case .failedValidation: return "Test case validation failure."
+        }
+    }
 }
