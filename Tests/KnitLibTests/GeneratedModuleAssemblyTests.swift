@@ -3,7 +3,7 @@
 //
 
 import Foundation
-@testable import Knit
+@testable import KnitLib
 import XCTest
 
 final class GeneratedModuleAssemblyTests: XCTestCase {

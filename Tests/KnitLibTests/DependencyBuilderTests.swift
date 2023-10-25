@@ -2,7 +2,7 @@
 // Copyright © Square, Inc. All rights reserved.
 //
 
-@testable import Knit
+@testable import KnitLib
 import XCTest
 
 final class DependencyBuilderTests: XCTestCase {

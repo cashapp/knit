@@ -1,6 +1,8 @@
-//  Created by Alexander skorulis on 28/8/2023.
+//
+// Copyright © Block, Inc. All rights reserved.
+//
 
-@testable import Knit
+@testable import KnitLib
 import XCTest
 
 final class ModuleAssemblyScopingTests: XCTestCase {
