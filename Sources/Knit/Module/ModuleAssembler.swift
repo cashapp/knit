@@ -29,7 +29,7 @@ public final class ModuleAssembler {
         - postAssemble: Hook after all assemblies are registered to make changes to the container.
 
      */
-    public init(
+    public convenience init(
         parent: ModuleAssembler? = nil,
         _ modules: [any Assembly],
         defaultOverrides: DefaultOverrideState = .whenTesting,
@@ -38,32 +38,17 @@ public final class ModuleAssembler {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let moduleAssemblies = modules.compactMap { $0 as? any ModuleAssembly }
-        let nonModuleAssemblies = modules.filter { !($0 is any ModuleAssembly) }
         // Hold an optional reference to be used by error handling later
         var createdBuilder: DependencyBuilder?
         do {
-            self.builder = try DependencyBuilder(
-                modules: moduleAssemblies,
+            try self.init(
+                parent: parent,
+                _modules: modules,
+                defaultOverrides: defaultOverrides,
                 assemblyValidation: assemblyValidation,
-                defaultOverrides: defaultOverrides
-            ) { type in
-                return parent?.isRegistered(type) ?? false
-            }
+                postAssemble: postAssemble
+            )
             createdBuilder = self.builder
-
-            self.parent = parent
-            self.container = Container(parent: parent?.container)
-            self.container.addBehavior(ServiceCollector())
-            let abstractRegistrations = self.container.registerAbstractContainer()
-
-            let assembler = Assembler(container: self.container)
-            assembler.apply(assemblies: nonModuleAssemblies)
-            assembler.apply(assemblies: builder.assemblies)
-            postAssemble?(container)
-
-            try abstractRegistrations.validate()
-            abstractRegistrations.reset()
         } catch {
             let message = Self.formatErrors(dependencyBuilder: createdBuilder, error: error)
             fatalError(
@@ -72,6 +57,41 @@ public final class ModuleAssembler {
                 line: line
             )
         }
+    }
+
+    // Internal required init that throws rather than fatal errors
+    required init(
+        parent: ModuleAssembler? = nil,
+        _modules modules: [any Assembly],
+        defaultOverrides: DefaultOverrideState = .whenTesting,
+        assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
+        postAssemble: ((Container) -> Void)? = nil
+    ) throws {
+        let moduleAssemblies = modules.compactMap { $0 as? any ModuleAssembly }
+        let nonModuleAssemblies = modules.filter { !($0 is any ModuleAssembly) }
+
+        self.builder = try DependencyBuilder(
+            modules: moduleAssemblies,
+            assemblyValidation: assemblyValidation,
+            defaultOverrides: defaultOverrides,
+            isRegisteredInParent: { type in
+                return parent?.isRegistered(type) ?? false
+            }
+        )
+
+        self.parent = parent
+        self.container = Container(parent: parent?.container)
+        self.container.addBehavior(ServiceCollector())
+        let abstractRegistrations = self.container.registerAbstractContainer()
+
+        let assembler = Assembler(container: self.container)
+        assembler.apply(assemblies: nonModuleAssemblies)
+        assembler.apply(assemblies: builder.assemblies)
+        postAssemble?(container)
+
+        try abstractRegistrations.validate()
+        abstractRegistrations.reset()
+
         // https://github.com/Swinject/Swinject/blob/master/Documentation/ThreadSafety.md
         self.resolver = container.synchronize()
     }
