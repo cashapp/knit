@@ -22,8 +22,8 @@ jobs:
           git config user.email "noreply@github.com"
 
           # Build the binary
-          swift build -c release --arch x86_64 --arch arm64 --product knit
-          mv .build/apple/Products/Release/knit knit
+          swift build -c release --arch x86_64 --arch arm64 --product knit-cli
+          mv .build/apple/Products/Release/knit-cli knit
 
           # Archive the repository
           # Considerations:

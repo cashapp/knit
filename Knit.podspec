@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   # TODO: Update this endpoint to be GitHub once this repository is public.
   s.source           = { http: "https://artifactory.global.square/artifactory/squarepods/knit-#{s.version}.zip" }
 
-  s.source_files     = 'Sources/Knit/**/*.swift'
+  s.source_files     = 'Sources/KnitLib/**/*.swift'
   s.preserve_paths   = '*'
   s.ios.deployment_target = '14.0'
   s.dependency 'Swinject', '2.8.3'

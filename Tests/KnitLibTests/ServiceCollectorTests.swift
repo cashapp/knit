@@ -1,4 +1,4 @@
-import Knit
+import KnitLib
 import XCTest
 
 protocol ServiceProtocol {}

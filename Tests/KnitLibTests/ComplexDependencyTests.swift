@@ -2,7 +2,7 @@
 // Copyright © Block, Inc. All rights reserved.
 //
 
-@testable import Knit
+@testable import KnitLib
 import XCTest
 
 final class ComplexDependencyTests: XCTestCase {

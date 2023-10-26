@@ -9,8 +9,8 @@ let package = Package(
         .macOS(.v12),
     ],
     products: [
-        .library(name: "Knit", targets: ["Knit"]),
-        .executable(name: "knit", targets: ["KnitCommand"])
+        .library(name: "Knit", targets: ["KnitLib"]),
+        .executable(name: "knit-cli", targets: ["KnitCommand"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", from: "508.0.1"),
@@ -20,7 +20,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Knit",
+            name: "KnitLib",
             dependencies: [
                 .product(name: "Swinject", package: "Swinject"),
                 .product(name: "SwinjectAutoregistration", package: "SwinjectAutoregistration"),
@@ -43,9 +43,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "KnitTests",
+            name: "KnitLibTests",
             dependencies: [
-                "Knit",
+                "KnitLib",
             ]
         ),
         .testTarget(
