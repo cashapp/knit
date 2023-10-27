@@ -7,10 +7,10 @@ import XCTest
 
 final class UnitTestSourceFileTests: XCTestCase {
 
-    func test_generation() {
-        let result = UnitTestSourceFile.make(
+    func test_generation() throws {
+        let result = try UnitTestSourceFile.make(
             name: "MyModule",
-            importDecls: [ImportDeclSyntax("import Swinject")],
+            importDecls: [try ImportDeclSyntax("import Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
                 .init(service: "ServiceB", name: "name", accessLevel: .internal, isForwarded: false),
@@ -25,10 +25,9 @@ final class UnitTestSourceFileTests: XCTestCase {
         )
 
         //Remote trailing line spaces
-        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+        let formattedResult = result.formatted().description
 
         let expected = #"""
-
         final class MyModuleRegistrationTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
@@ -54,19 +53,18 @@ final class UnitTestSourceFileTests: XCTestCase {
         XCTAssertEqual(formattedResult, expected)
     }
 
-    func test_generation_emptyRegistrations() {
-        let result = UnitTestSourceFile.make(
+    func test_generation_emptyRegistrations() throws {
+        let result = try UnitTestSourceFile.make(
             name: "MyModule",
-            importDecls: [ImportDeclSyntax("import Swinject")],
+            importDecls: [try ImportDeclSyntax("import Swinject")],
             registrations: [],
             registrationsIntoCollections: []
         )
 
         //Remote trailing line spaces
-        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+        let formattedResult = result.formatted().description
 
         let expected = #"""
-
         final class MyModuleRegistrationTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
@@ -80,10 +78,10 @@ final class UnitTestSourceFileTests: XCTestCase {
         XCTAssertEqual(formattedResult, expected)
     }
 
-    func test_generation_onlySingleRegistrations() {
-        let result = UnitTestSourceFile.make(
+    func test_generation_onlySingleRegistrations() throws {
+        let result = try UnitTestSourceFile.make(
             name: "MyModule",
-            importDecls: [ImportDeclSyntax("import Swinject")],
+            importDecls: [try ImportDeclSyntax("import Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
             ],
@@ -91,10 +89,9 @@ final class UnitTestSourceFileTests: XCTestCase {
         )
 
         //Remote trailing line spaces
-        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+        let formattedResult = result.formatted().description
 
         let expected = #"""
-
         final class MyModuleRegistrationTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
@@ -109,10 +106,10 @@ final class UnitTestSourceFileTests: XCTestCase {
         XCTAssertEqual(formattedResult, expected)
     }
 
-    func test_generation_onlyRegistrationsIntoCollections() {
-        let result = UnitTestSourceFile.make(
+    func test_generation_onlyRegistrationsIntoCollections() throws {
+        let result = try UnitTestSourceFile.make(
             name: "MyModule",
-            importDecls: [ImportDeclSyntax("import Swinject")],
+            importDecls: [try ImportDeclSyntax("import Swinject")],
             registrations: [],
             registrationsIntoCollections: [
                 .init(service: "ServiceA"),
@@ -120,10 +117,9 @@ final class UnitTestSourceFileTests: XCTestCase {
         )
 
         //Remote trailing line spaces
-        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+        let formattedResult = result.formatted().description
 
         let expected = #"""
-
         final class MyModuleRegistrationTests: XCTestCase {
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
@@ -138,15 +134,15 @@ final class UnitTestSourceFileTests: XCTestCase {
         XCTAssertEqual(formattedResult, expected)
     }
 
-    func test_argumentStruct() {
+    func test_argumentStruct() throws {
         let registrations = [
             Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String")]),
             Registration(service: "B", accessLevel: .public, arguments: [.init(identifier: "field", type: "String"), .init(type: "String")]),
             Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Int"), .init(type: "String")]),
         ]
-        let result = UnitTestSourceFile.makeArgumentStruct(registrations: registrations, moduleName: "MyModule")
+        let result = try UnitTestSourceFile.makeArgumentStruct(registrations: registrations, moduleName: "MyModule")
 
-        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+        let formattedResult = result.formatted().description
 
         let expected = """
         struct MyModuleRegistrationTestArguments {
@@ -162,14 +158,14 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_registrationAssertPlain() {
         let result = UnitTestSourceFile.makeAssertCall(registration: .init(service: "A", accessLevel: .hidden))
-        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+        let formattedResult = result.formatted().description
         let expected = "resolver.assertTypeResolves(A.self)"
         XCTAssertEqual(formattedResult, expected)
     }
 
     func test_registrationAssertNamed() {
         let result = UnitTestSourceFile.makeAssertCall(registration: .init(service: "A", name: "Name", accessLevel: .hidden))
-        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+        let formattedResult = result.formatted().description
         let expected = "resolver.assertTypeResolves(A.self, name: \"Name\")"
         XCTAssertEqual(formattedResult, expected)
     }
@@ -184,7 +180,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             ]
         )
         let result = UnitTestSourceFile.makeAssertCall(registration: registration)
-        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+        let formattedResult = result.formatted().description
         let expected = "resolver.assertTypeResolved(resolver.resolve(A.self, name: \"Name\", argument: args.aString))"
         XCTAssertEqual(formattedResult, expected)
     }
@@ -199,7 +195,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             ]
         )
         let result = UnitTestSourceFile.makeAssertCall(registration: registration)
-        let formattedResult = result.formatted().description.replacingOccurrences(of: ", \n", with: ",\n")
+        let formattedResult = result.formatted().description
         let expected = "resolver.assertTypeResolved(resolver.resolve(A.self, arguments: args.aString1, args.aString2))"
         XCTAssertEqual(formattedResult, expected)
     }
@@ -212,13 +208,13 @@ private extension UnitTestSourceFile {
         importDecls: [ImportDeclSyntax],
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection]
-    ) -> SourceFileSyntax {
+    ) throws -> SourceFileSyntax {
         let configuration = Configuration(
             name: name,
             registrations: registrations,
             registrationsIntoCollections: registrationsIntoCollections,
             imports: importDecls
         )
-        return UnitTestSourceFile.make(configuration: configuration)
+        return try UnitTestSourceFile.make(configuration: configuration)
     }
 }

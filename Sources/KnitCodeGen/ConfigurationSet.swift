@@ -1,7 +1,6 @@
-//  Created by Alexander skorulis on 4/8/2023.
-
 import Foundation
 import SwiftSyntax
+import SwiftSyntaxBuilder
 
 // Multiple assemblies that are grouped together
 public struct ConfigurationSet {
@@ -16,17 +15,17 @@ public struct ConfigurationSet {
     public func writeGeneratedFiles(
         typeSafetyExtensionsOutputPath: String?,
         unitTestOutputPath: String?
-    ) {
+    ) throws {
         if let typeSafetyExtensionsOutputPath {
             write(
-                text: makeTypeSafetySourceFile(),
+                text: try makeTypeSafetySourceFile(),
                 to: typeSafetyExtensionsOutputPath
             )
         }
 
         if let unitTestOutputPath {
             write(
-                text: makeUnitTestSourceFile(),
+                text: try makeUnitTestSourceFile(),
                 to: unitTestOutputPath
             )
         }
@@ -41,24 +40,24 @@ public struct ConfigurationSet {
 
 public extension ConfigurationSet {
 
-    func makeTypeSafetySourceFile() -> String {
+    func makeTypeSafetySourceFile() throws -> String {
         var allImports = allImports
-        allImports.append("import Swinject")
+        allImports.append(try ImportDeclSyntax("import Swinject"))
         let header = HeaderSourceFile.make(importDecls: sortImports(allImports), comment: Self.typeSafetyIntro)
-        let body = assemblies.map { $0.makeTypeSafetySourceFile() }
+        let body = try assemblies.map { try $0.makeTypeSafetySourceFile() }
         let sourceFiles = [header] + body
         return Self.join(sourceFiles: sourceFiles)
     }
 
-    func makeUnitTestSourceFile() -> String {
+    func makeUnitTestSourceFile() throws -> String {
         var allImports = allImports
-        allImports.append("@testable import \(raw: primaryAssembly.name)")
-        allImports.append("import XCTest")
+        allImports.append(try ImportDeclSyntax("@testable import \(raw: primaryAssembly.name)"))
+        allImports.append(try ImportDeclSyntax("import XCTest"))
         let header = HeaderSourceFile.make(importDecls: sortImports(allImports), comment: nil)
-        let body = assemblies.map { $0.makeUnitTestSourceFile() }
+        let body = try assemblies.map { try $0.makeUnitTestSourceFile() }
         let allRegistrations = assemblies.flatMap { $0.registrations }
         let allRegistrationsIntoCollections = assemblies.flatMap { $0.registrationsIntoCollections }
-        let resolverExtensions = UnitTestSourceFile.resolverExtensions(
+        let resolverExtensions = try UnitTestSourceFile.resolverExtensions(
             registrations: allRegistrations,
             registrationsIntoCollections: allRegistrationsIntoCollections
         )
@@ -68,7 +67,7 @@ public extension ConfigurationSet {
 
     private static func join(sourceFiles: [SourceFileSyntax]) -> String {
         let result = sourceFiles.map { $0.formatted().description }.joined(separator: "\n")
-        return result.replacingOccurrences(of: ", \n", with: ",\n")
+        return result
     }
 
     private func sortImports(_ imports: [ImportDeclSyntax]) -> [ImportDeclSyntax] {

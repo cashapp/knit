@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -13,7 +13,7 @@ let package = Package(
         .executable(name: "knit-cli", targets: ["KnitCommand"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "508.0.1"),
+        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.1"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
         .package(url: "https://github.com/Swinject/Swinject.git", from: "2.8.3"),
         .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.8.3"),
@@ -29,8 +29,7 @@ let package = Package(
         .executableTarget(
             name: "KnitCommand",
             dependencies: [
-                .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxParser", package: "swift-syntax"),
+                .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .target(name: "KnitCodeGen"),
             ]
@@ -38,8 +37,9 @@ let package = Package(
         .target(
             name: "KnitCodeGen",
             dependencies: [
+                .product(name: "SwiftSyntax", package: "swift-syntax"),
+                .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxParser", package: "swift-syntax"),
             ]
         ),
         .testTarget(

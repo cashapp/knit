@@ -39,7 +39,7 @@ struct ModuleDependenciesCommand: ParsableCommand {
     
 
     func run() throws {
-        let result = ModuleAssemblyExtensionSourceFile.make(
+        let result = try ModuleAssemblyExtensionSourceFile.make(
             currentModuleName: currentModuleName,
             dependencyModuleNames: dependencyModuleNames,
             additionalAssemblies: additionalAssemblies

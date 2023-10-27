@@ -5,13 +5,13 @@ public enum UnitTestSourceFile {
 
     public static func make(
         configuration: Configuration
-    ) -> SourceFileSyntax {
+    ) throws -> SourceFileSyntax {
         let withArguments = configuration.registrations.filter { !$0.arguments.isEmpty }
         let hasArguments = !withArguments.isEmpty
-        return SourceFileSyntax() {
-            ClassDeclSyntax("final class \(configuration.name)RegistrationTests: XCTestCase") {
+        return try SourceFileSyntax() {
+            try ClassDeclSyntax("final class \(raw: configuration.name)RegistrationTests: XCTestCase") {
 
-                FunctionDeclSyntax("func testRegistrations()") {
+                try FunctionDeclSyntax("func testRegistrations()") {
 
                     DeclSyntax("""
                         // In the test target for your module, please provide a static method that creates a
@@ -38,7 +38,7 @@ public enum UnitTestSourceFile {
                     }
 
                     for (service, count) in groupByService(configuration.registrationsIntoCollections) {
-                        FunctionCallExprSyntax(
+                        ExprSyntax(
                             "resolver.assertCollectionResolves(\(raw: service).self, count: \(raw: count))"
                         )
                     }
@@ -46,7 +46,7 @@ public enum UnitTestSourceFile {
             }
 
             if hasArguments {
-                makeArgumentStruct(registrations: configuration.registrations, moduleName: configuration.name)
+                try makeArgumentStruct(registrations: configuration.registrations, moduleName: configuration.name)
             }
         }
     }
@@ -54,24 +54,24 @@ public enum UnitTestSourceFile {
     static func resolverExtensions(
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection]
-    ) -> SourceFileSyntax {
+    ) throws -> SourceFileSyntax {
         let withArguments = registrations.filter { !$0.arguments.isEmpty }
 
-        return SourceFileSyntax() {
+        return try SourceFileSyntax() {
             // swiftlint:disable line_length
-            ExtensionDeclSyntax("private extension Resolver") {
+            try ExtensionDeclSyntax("private extension Resolver") {
                 // This assert is only needed if there are registrations without arguments
                 if registrations.count > withArguments.count {
-                    makeTypeAssert()
+                    try makeTypeAssert()
                 }
 
                 // This assert is only needed if there are registrations with arguments
                 if !withArguments.isEmpty {
-                    makeResultAssert()
+                    try makeResultAssert()
                 }
 
                 if !groupByService(registrationsIntoCollections).isEmpty {
-                    makeCollectionAssert()
+                    try makeCollectionAssert()
                 }
             }
             // swiftlint:enable line_length
@@ -88,26 +88,22 @@ public enum UnitTestSourceFile {
     }
 
     /// Generate a function call to test a single registration resolves
-    static func makeAssertCall(registration: Registration) -> FunctionCallExprSyntax {
+    static func makeAssertCall(registration: Registration) -> ExprSyntax {
         if !registration.arguments.isEmpty {
             let argParams = argumentParams(registration: registration)
             let nameParam = registration.name.map { "name: \"\($0)\""}
             let params = ["\(registration.service).self", nameParam, argParams].compactMap { $0 }.joined(separator: ", ")
-            return FunctionCallExprSyntax(
-                "resolver.assertTypeResolved(resolver.resolve(\(raw: params)))"
-            )
+            return "resolver.assertTypeResolved(resolver.resolve(\(raw: params)))"
         } else if let name = registration.name {
-            return FunctionCallExprSyntax(
-                "resolver.assertTypeResolves(\(raw: registration.service).self, name: \"\(raw: name)\")"
-            )
+            return "resolver.assertTypeResolves(\(raw: registration.service).self, name: \"\(raw: name)\")"
         } else {
-            return FunctionCallExprSyntax("resolver.assertTypeResolves(\(raw: registration.service).self)")
+            return "resolver.assertTypeResolves(\(raw: registration.service).self)"
         }
     }
 
-    private static func makeCollectionAssert() -> FunctionDeclSyntax {
-        let string = #"""
-        func assertCollectionResolves <T> (
+    private static func makeCollectionAssert() throws -> FunctionDeclSyntax {
+        let string: SyntaxNodeString = #"""
+        func assertCollectionResolves<T>(
             _ type: T.Type,
             count expectedCount: Int,
             file: StaticString = #filePath,
@@ -126,12 +122,12 @@ public enum UnitTestSourceFile {
             )
         }
         """#
-        return FunctionDeclSyntax(stringLiteral: string)
+        return try FunctionDeclSyntax(string)
     }
 
     /// Generate a function to assert that a type can be resolved
-    private static func makeTypeAssert() -> FunctionDeclSyntax {
-        let string = """
+    private static func makeTypeAssert() throws -> FunctionDeclSyntax {
+        let string: SyntaxNodeString = """
         func assertTypeResolves<T>(
             _ type: T.Type,
             name: String? = nil,
@@ -146,12 +142,12 @@ public enum UnitTestSourceFile {
             )
         }
         """
-        return FunctionDeclSyntax(stringLiteral: string)
+        return try FunctionDeclSyntax(string)
     }
 
     /// Generate a function to assert that a value resolved correctly
-    private static func makeResultAssert() -> FunctionDeclSyntax {
-        let string = """
+    private static func makeResultAssert() throws -> FunctionDeclSyntax {
+        let string: SyntaxNodeString = """
         func assertTypeResolved<T>(
             _ result: T?,
             file: StaticString = #filePath,
@@ -165,11 +161,11 @@ public enum UnitTestSourceFile {
             )
         }
         """
-        return FunctionDeclSyntax(stringLiteral: string)
+        return try FunctionDeclSyntax(string)
     }
 
     /// Generate code for a struct that contains all of the parameters used to resolve services
-    static func makeArgumentStruct(registrations: [Registration], moduleName: String) -> StructDeclSyntax {
+    static func makeArgumentStruct(registrations: [Registration], moduleName: String) throws -> StructDeclSyntax {
         let fields = registrations.flatMap { $0.serviceNamedArguments() }
         var seen: Set<String> = []
         // Make sure duplicate parameters don't get created
@@ -182,7 +178,7 @@ public enum UnitTestSourceFile {
             return true
         }
 
-        return StructDeclSyntax("struct \(moduleName)RegistrationTestArguments") {
+        return try StructDeclSyntax("struct \(raw: moduleName)RegistrationTestArguments") {
             for field in uniqueFields {
                 DeclSyntax("let \(raw: field.resolvedIdentifier()): \(raw: field.type)")
             }

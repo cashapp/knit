@@ -9,9 +9,8 @@ final class ConfigurationSetTests: XCTestCase {
         let configSet = ConfigurationSet(assemblies: [Factory.config1, Factory.config2, Factory.config3])
 
         XCTAssertEqual(
-            configSet.makeTypeSafetySourceFile(),
+            try configSet.makeTypeSafetySourceFile(),
             """
-
             // Generated using Knit
             // Do not edit directly!
 
@@ -21,14 +20,12 @@ final class ConfigurationSetTests: XCTestCase {
 
             // The correct resolution of each of these types is enforced by a matching automated unit test
             // If a type registration is missing or broken then the automated tests will fail for that PR
-
             // Generated from Module1Assembly
             extension Resolver {
                 public func service1() -> Service1 {
                     self.resolve(Service1.self)!
                 }
             }
-
             // Generated from Module2Assembly
             extension Resolver {
                 func callAsFunction() -> Service2 {
@@ -38,7 +35,6 @@ final class ConfigurationSetTests: XCTestCase {
                     self.resolve(ArgumentService.self, argument: string)!
                 }
             }
-
             // Generated from Module3Assembly
             extension Resolver {
                 public func service3() -> Service3 {
@@ -53,9 +49,8 @@ final class ConfigurationSetTests: XCTestCase {
         let configSet = ConfigurationSet(assemblies: [Factory.config1, Factory.config2])
 
         XCTAssertEqual(
-            configSet.makeUnitTestSourceFile(),
+            try configSet.makeUnitTestSourceFile(),
             #"""
-
             // Generated using Knit
             // Do not edit directly!
 
@@ -63,7 +58,6 @@ final class ConfigurationSetTests: XCTestCase {
             import XCTest
             import Dependency1
             import Dependency2
-
             final class Module1RegistrationTests: XCTestCase {
                 func testRegistrations() {
                     // In the test target for your module, please provide a static method that creates a
@@ -74,7 +68,6 @@ final class ConfigurationSetTests: XCTestCase {
                     resolver.assertCollectionResolves(CollectionService.self, count: 1)
                 }
             }
-
             final class Module2RegistrationTests: XCTestCase {
                 func testRegistrations() {
                     // In the test target for your module, please provide a static method that creates a
@@ -91,9 +84,8 @@ final class ConfigurationSetTests: XCTestCase {
             struct Module2RegistrationTestArguments {
                 let argumentServiceString: String
             }
-
             private extension Resolver {
-                func assertTypeResolves < T > (
+                func assertTypeResolves<T>(
                     _ type: T.Type,
                     name: String? = nil,
                     file: StaticString = #filePath,
@@ -106,7 +98,7 @@ final class ConfigurationSetTests: XCTestCase {
                         line: line
                     )
                 }
-                func assertTypeResolved < T > (
+                func assertTypeResolved<T>(
                     _ result: T?,
                     file: StaticString = #filePath,
                     line: UInt = #line
@@ -118,7 +110,7 @@ final class ConfigurationSetTests: XCTestCase {
                         line: line
                     )
                 }
-                func assertCollectionResolves < T > (
+                func assertCollectionResolves<T>(
                     _ type: T.Type,
                     count expectedCount: Int,
                     file: StaticString = #filePath,
@@ -128,10 +120,10 @@ final class ConfigurationSetTests: XCTestCase {
                     XCTAssert(
                         actualCount >= expectedCount,
                         """
-                    The resolved ServiceCollection<\(type)> did not contain the expected number of services \
-                    (resolved \(actualCount), expected \(expectedCount)).
-                    Make sure your assembler contains a ServiceCollector behavior.
-                    """,
+                        The resolved ServiceCollection<\(type)> did not contain the expected number of services \
+                        (resolved \(actualCount), expected \(expectedCount)).
+                        Make sure your assembler contains a ServiceCollector behavior.
+                        """,
                         file: file,
                         line: line
                     )

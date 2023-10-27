@@ -8,30 +8,30 @@ public enum TypeSafetySourceFile {
         assemblyName: String,
         extensionTarget: String,
         registrations allRegistrations: [Registration]
-    ) -> SourceFileSyntax {
+    ) throws -> SourceFileSyntax {
         let visibleRegistrations = allRegistrations.filter {
             // Exclude hidden registrations always
             $0.accessLevel != .hidden
         }
         let unnamedRegistrations = visibleRegistrations.filter { $0.name == nil }
         let namedGroups = NamedRegistrationGroup.make(from: visibleRegistrations)
-        return SourceFileSyntax() {
-            ExtensionDeclSyntax("""
-                          // Generated from \(assemblyName)
-                          extension \(extensionTarget)
+        return try SourceFileSyntax() {
+            try ExtensionDeclSyntax("""
+                          // Generated from \(raw: assemblyName)
+                          extension \(raw: extensionTarget)
                           """) {
 
                 for registration in unnamedRegistrations {
                     if registration.getterConfig.contains(.callAsFunction) {
-                        makeResolver(registration: registration, getterType: .callAsFunction)
+                        try makeResolver(registration: registration, getterType: .callAsFunction)
                     }
                     if let namedGetter = registration.getterConfig.first(where: { $0.isNamed }) {
-                        makeResolver(registration: registration, getterType: namedGetter)
+                        try makeResolver(registration: registration, getterType: namedGetter)
                     }
                 }
                 for namedGroup in namedGroups {
                     let firstGetterConfig = namedGroup.registrations[0].getterConfig.first ?? .callAsFunction
-                    makeResolver(
+                    try makeResolver(
                         registration: namedGroup.registrations[0],
                         enumName: "\(assemblyName).\(namedGroup.enumName)",
                         getterType: firstGetterConfig
@@ -39,7 +39,7 @@ public enum TypeSafetySourceFile {
                 }
             }
             if !namedGroups.isEmpty {
-                makeNamedEnums(assemblyName: assemblyName, namedGroups: namedGroups)
+                try makeNamedEnums(assemblyName: assemblyName, namedGroups: namedGroups)
             }
         }
     }
@@ -49,7 +49,7 @@ public enum TypeSafetySourceFile {
         registration: Registration,
         enumName: String? = nil,
         getterType: GetterConfig = .callAsFunction
-    ) -> FunctionDeclSyntax {
+    ) throws -> FunctionDeclSyntax {
         let modifier = registration.accessLevel == .public ? "public " : ""
         let nameInput = enumName.map { "name: \($0)" }
         let nameUsage = enumName != nil ? "name: name.rawValue" : nil
@@ -64,8 +64,8 @@ public enum TypeSafetySourceFile {
             funcName = name ?? TypeNamer.computedIdentifierName(type: registration.service)
         }
 
-        return FunctionDeclSyntax("\(modifier)func \(funcName)(\(inputs)) -> \(registration.service)") {
-            ForcedValueExprSyntax("self.resolve(\(raw: usages))!")
+        return try FunctionDeclSyntax("\(raw: modifier)func \(raw: funcName)(\(raw: inputs)) -> \(raw: registration.service)") {
+            "self.resolve(\(raw: usages))!"
         }
     }
 
@@ -82,13 +82,13 @@ public enum TypeSafetySourceFile {
     private static func makeNamedEnums(
         assemblyName: String,
         namedGroups: [NamedRegistrationGroup]
-    ) -> ExtensionDeclSyntax {
-        ExtensionDeclSyntax("extension \(assemblyName)") {
+    ) throws -> ExtensionDeclSyntax {
+        try ExtensionDeclSyntax("extension \(raw: assemblyName)") {
             for namedGroup in namedGroups {
                 let modifier = namedGroup.accessLevel == .public ? "public " : ""
-                EnumDeclSyntax("\(modifier)enum \(namedGroup.enumName): String, CaseIterable") {
+                try EnumDeclSyntax("\(raw: modifier)enum \(raw: namedGroup.enumName): String, CaseIterable") {
                     for test in namedGroup.registrations {
-                        EnumCaseDeclSyntax("case \(raw: test.name!)")
+                        "case \(raw: test.name!)" as DeclSyntax
                     }
                 }
             }

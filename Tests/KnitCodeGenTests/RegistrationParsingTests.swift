@@ -3,21 +3,22 @@
 //
 
 @testable import KnitCodeGen
+import SwiftSyntax
 import SwiftSyntaxBuilder
 import XCTest
 
 final class RegistrationParsingTests: XCTestCase {
 
-    func testRegistrationStatements() {
-        assertRegistrationString(
+    func testRegistrationStatements() throws {
+        try assertRegistrationString(
             "container.register(AType.self)",
             serviceName: "AType"
         )
-        assertRegistrationString(
+        try assertRegistrationString(
             "container.autoregister(BType.self)",
             serviceName: "BType"
         )
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(AType.self) { _ in }
             .implements(AnotherType.self)
@@ -28,7 +29,7 @@ final class RegistrationParsingTests: XCTestCase {
                 Registration(service: "AnotherType", name: nil, accessLevel: .internal, isForwarded: true),
             ]
         )
-        assertRegistrationString(
+        try assertRegistrationString(
             """
             container.autoregister(
                 AnyPublisher<DataState, Never>.self,
@@ -37,7 +38,7 @@ final class RegistrationParsingTests: XCTestCase {
             """,
             serviceName: "AnyPublisher<DataState, Never>"
         )
-        assertRegistrationString(
+        try assertRegistrationString(
             """
             container.autoregister(
                 ((String) -> EntityGainLossDataArchiver).self,
@@ -47,7 +48,7 @@ final class RegistrationParsingTests: XCTestCase {
             serviceName: "((String) -> EntityGainLossDataArchiver)"
         )
 
-        assertRegistrationString(
+        try assertRegistrationString(
             """
             // @knit public
             container.register(AType.self)
@@ -57,8 +58,8 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testHiddenRegistrations() {
-        assertRegistrationString(
+    func testHiddenRegistrations() throws {
+        try assertRegistrationString(
             """
             // @knit hidden
             container.register(AType.self)
@@ -69,7 +70,7 @@ final class RegistrationParsingTests: XCTestCase {
     }
 
     func testNamedRegistrations() throws {
-        assertRegistrationString(
+        try assertRegistrationString(
             """
             container.register(A.self, name: "service") { }
             """,
@@ -77,7 +78,7 @@ final class RegistrationParsingTests: XCTestCase {
             name: "service"
         )
 
-        assertRegistrationString(
+        try assertRegistrationString(
             """
             container.autoregister(A.self, name: "service2", initializer: A.init)
             """,
@@ -87,7 +88,7 @@ final class RegistrationParsingTests: XCTestCase {
     }
 
     func testGetterConfigRegistrations() throws {
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             // @knit public getter-named
             container.register(A.self) { }
@@ -97,7 +98,7 @@ final class RegistrationParsingTests: XCTestCase {
             ]
         )
 
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             // @knit public getter-callAsFunction
             container.register(A.self) { }
@@ -107,7 +108,7 @@ final class RegistrationParsingTests: XCTestCase {
             ]
         )
 
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             // @knit public getter-named getter-callAsFunction
             container.register(A.self) { }
@@ -119,14 +120,14 @@ final class RegistrationParsingTests: XCTestCase {
     }
 
     func testAbstractRegistration() throws {
-        assertRegistrationString(
+        try assertRegistrationString(
             """
             container.registerAbstract(AType.self)
             """,
             serviceName: "AType"
         )
 
-        assertRegistrationString(
+        try assertRegistrationString(
             """
             container.registerAbstract(AType.self, name: "service")
             """,
@@ -136,7 +137,7 @@ final class RegistrationParsingTests: XCTestCase {
     }
 
     func testForwardedRegistration() throws {
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self) { }
             .implements(B.self)
@@ -147,7 +148,7 @@ final class RegistrationParsingTests: XCTestCase {
             ]
         )
 
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.autoregister(A.self, initializer: A.init)
             .implements(B.self)
@@ -163,7 +164,7 @@ final class RegistrationParsingTests: XCTestCase {
             ]
         )
 
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             // @knit hidden
             container.register(A.self) { }
@@ -180,9 +181,9 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testRegisterWithArguments() {
+    func testRegisterWithArguments() throws {
         // Single argument, trailing closure
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self) { (_, arg: String) in
                 A(string: arg)
@@ -194,7 +195,7 @@ final class RegistrationParsingTests: XCTestCase {
         )
 
         // Single argument, named parameter
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self, factory: { (_, arg: String) in
                 A(string: arg)
@@ -206,7 +207,7 @@ final class RegistrationParsingTests: XCTestCase {
         )
 
         // Multiple arguments, trailing closure
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self) { (resolver: Resolver, arg: String, arg2: Int) in
                 A()
@@ -225,7 +226,7 @@ final class RegistrationParsingTests: XCTestCase {
         )
 
         // Multiple arguments, named parameter
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self, factory: { (resolver: Resolver, arg: String, arg2: Int) in
                 A()
@@ -244,7 +245,7 @@ final class RegistrationParsingTests: XCTestCase {
         )
 
         // Unused arguments (for test/abstract usages)
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self, factory: { (_: Resolver, _: String) in
                 A()
@@ -262,9 +263,9 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testAutoregisterWithArguments() {
+    func testAutoregisterWithArguments() throws {
         // Single argument
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             "container.autoregister(A.self, argument: URL.self, initializer: A.init)",
             registrations: [
                 Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "URL")])
@@ -272,7 +273,7 @@ final class RegistrationParsingTests: XCTestCase {
         )
 
         // Multiple arguments
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.autoregister(
                 A.self,
@@ -296,7 +297,7 @@ final class RegistrationParsingTests: XCTestCase {
         )
 
         // Single argument with name
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.autoregister(A.self, name: "test", argument: URL.self, initializer: A.init)
             """,
@@ -306,7 +307,7 @@ final class RegistrationParsingTests: XCTestCase {
         )
 
         // Multiple arguments with name
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.autoregister(
                 A.self,
@@ -327,9 +328,9 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testRegisterNonClosureFactoryType() {
+    func testRegisterNonClosureFactoryType() throws {
         // This is acceptable syntax but we will not be able to parse any arguments
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
                 container.register(A.self, factory: A.staticFunc)
             """,
@@ -340,9 +341,9 @@ final class RegistrationParsingTests: XCTestCase {
     }
 
     // Arguments on the main registration apply to implements also
-    func testForwardedWithArgument() {
+    func testForwardedWithArgument() throws {
         // Single argument autoregister
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.autoregister(A.self, argument: URL.self, initializer: A.init)
             .implements(B.self)
@@ -354,7 +355,7 @@ final class RegistrationParsingTests: XCTestCase {
         )
 
         // Single argument register
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self) { (_, arg: String) in
                 A(string: arg)
@@ -368,8 +369,8 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testRegistrationWithComplexTypes() {
-        assertMultipleRegistrationsString(
+    func testRegistrationWithComplexTypes() throws {
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self) { (_, arg: A.Argument) in
                 A(string: arg.string)
@@ -380,7 +381,7 @@ final class RegistrationParsingTests: XCTestCase {
             ]
         )
 
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self) { (_, arg: Result<String?, Error>) in
                 A(string: arg.string)
@@ -392,8 +393,8 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testAutoRegistrationWithComplexTypes() {
-        assertMultipleRegistrationsString(
+    func testAutoRegistrationWithComplexTypes() throws {
+        try assertMultipleRegistrationsString(
             """
             container.autoregister(A.self, argument: String?.self, initializer: A.init)
             """,
@@ -402,7 +403,7 @@ final class RegistrationParsingTests: XCTestCase {
             ]
         )
 
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.autoregister(A.self, arguments: Result<Int, Error>.self, Optional<Int>.self, initializer: A.init)
             """,
@@ -417,7 +418,7 @@ final class RegistrationParsingTests: XCTestCase {
             ]
         )
 
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             // @knit getter-named
             container.autoregister((String, Int?).self, initializer: Factory.make)
@@ -428,15 +429,15 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testClosureArgument() {
-        assertMultipleRegistrationsString(
+    func testClosureArgument() throws {
+        try assertMultipleRegistrationsString(
             "container.autoregister(A.self, argument: (() -> Void).self, initializer: A.init)",
             registrations: [
                 Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "(() -> Void)")]),
             ]
         )
 
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.register(A.self) { (resolver, arg1: @escaping () -> Void) in
                 A(arg: arg1)
@@ -448,15 +449,15 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testArgumentMissingType() {
+    func testArgumentMissingType() throws {
         // Type of arg can be inferred at build time but cannot be parsed
-        let string = """
+        let expr: ExprSyntax = """
             container.register(A.self) { (_, myArg) in
                 A(string: myArg)
             }
         """
 
-        let functionCall = FunctionCallExpr(stringLiteral: string)
+        let functionCall = try XCTUnwrap(FunctionCallExprSyntax(expr))
 
         XCTAssertThrowsError(try functionCall.getRegistrations()) { error in
             if case let RegistrationParsingError.missingArgumentType(_, name) = error {
@@ -471,14 +472,14 @@ final class RegistrationParsingTests: XCTestCase {
         }
     }
 
-    func testUnsupportedClosureSynatx() {
-        let string = """
+    func testUnsupportedClosureSynatx() throws {
+        let expr: ExprSyntax = """
             container.register(A.self) { _, myArg in
                 A(string: myArg)
             }
         """
 
-        let functionCall = FunctionCallExpr(stringLiteral: string)
+        let functionCall = try XCTUnwrap(FunctionCallExprSyntax(expr))
 
         XCTAssertThrowsError(try functionCall.getRegistrations()) { error in
             if case RegistrationParsingError.unwrappedClosureParams = error {
@@ -493,14 +494,14 @@ final class RegistrationParsingTests: XCTestCase {
         }
     }
 
-    func testInvalidName() {
-        let string = """
+    func testInvalidName() throws {
+        let expr: ExprSyntax = """
             container.register(A.self, name: name) { _ in
                 A()
             }
         """
 
-        let functionCall = FunctionCallExpr(stringLiteral: string)
+        let functionCall = try XCTUnwrap(FunctionCallExprSyntax(expr))
 
         XCTAssertThrowsError(try functionCall.getRegistrations()) { error in
             XCTAssertEqual(
@@ -510,8 +511,8 @@ final class RegistrationParsingTests: XCTestCase {
         }
     }
 
-    func testRegistrationIntoCollection() {
-        assertMultipleRegistrationsString(
+    func testRegistrationIntoCollection() throws {
+        try assertMultipleRegistrationsString(
             """
             container.registerIntoCollection(AType.self) {}
                 .inObjectScope(.container)
@@ -520,7 +521,7 @@ final class RegistrationParsingTests: XCTestCase {
                 .init(service: "AType"),
             ]
         )
-        assertMultipleRegistrationsString(
+        try assertMultipleRegistrationsString(
             """
             container.autoregisterIntoCollection(AType.self, initializer: AType.init)
                 .inObjectScope(.container)
@@ -531,8 +532,8 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testMultiLineComments() {
-        assertMultipleRegistrationsString(
+    func testMultiLineComments() throws {
+        try assertMultipleRegistrationsString(
             """
             // General comment
             // @knit public
@@ -545,11 +546,11 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testIncorrectRegistrations() {
-        assertNoRegistrationsString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
-        assertNoRegistrationsString("container.register(A)", message: "First param is not a metatype")
-        assertNoRegistrationsString("doThing()", message:"Unrelated function call")
-        assertNoRegistrationsString("container.implements(AType.self)", message: "Missing primary registration")
+    func testIncorrectRegistrations() throws {
+        try assertNoRegistrationsString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
+        try assertNoRegistrationsString("container.register(A)", message: "First param is not a metatype")
+        try assertNoRegistrationsString("doThing()", message:"Unrelated function call")
+        try assertNoRegistrationsString("container.implements(AType.self)", message: "Missing primary registration")
     }
 
 }
@@ -562,10 +563,10 @@ private func assertRegistrationString(
     name: String? = nil,
     isForwarded: Bool = false,
     file: StaticString = #filePath, line: UInt = #line
-) {
-    let functionCall = FunctionCallExpr(stringLiteral: string)
+) throws {
+    let functionCall = try XCTUnwrap(FunctionCallExprSyntax("\(raw: string)" as ExprSyntax))
 
-    let (registrations, registrationsIntoCollecions) = try! functionCall.getRegistrations()
+    let (registrations, registrationsIntoCollecions) = try functionCall.getRegistrations()
     XCTAssertEqual(registrations.count, 1, file: file, line: line)
     XCTAssert(registrationsIntoCollecions.isEmpty, file: file, line: line)
 
@@ -583,10 +584,10 @@ private func assertMultipleRegistrationsString(
     registrations: [Registration] = [],
     registrationsIntoCollections: [RegistrationIntoCollection] = [],
     file: StaticString = #filePath, line: UInt = #line
-) {
-    let functionCall = FunctionCallExpr(stringLiteral: string)
+) throws {
+    let functionCall = try XCTUnwrap(FunctionCallExprSyntax("\(raw: string)" as ExprSyntax))
 
-    let (parsedRegistrations, parsedRegistrationsIntoCollections) = try! functionCall.getRegistrations()
+    let (parsedRegistrations, parsedRegistrationsIntoCollections) = try functionCall.getRegistrations()
     XCTAssertEqual(parsedRegistrations.count, registrations.count, file: file, line: line)
     XCTAssertEqual(parsedRegistrations, registrations, file: file, line: line)
 
@@ -599,9 +600,9 @@ private func assertNoRegistrationsString(
     _ string: String,
     message: String = "",
     file: StaticString = #filePath, line: UInt = #line
-) {
-    let functionCall = FunctionCallExpr(stringLiteral: string)
-    let (registrations, registrationsIntoCollections) = try! functionCall.getRegistrations()
+) throws {
+    let functionCall = try XCTUnwrap(FunctionCallExprSyntax("\(raw: string)" as ExprSyntax))
+    let (registrations, registrationsIntoCollections) = try functionCall.getRegistrations()
     XCTAssert(registrations.isEmpty, message, file: file, line: line)
     XCTAssert(registrationsIntoCollections.isEmpty, message, file: file, line: line)
 }

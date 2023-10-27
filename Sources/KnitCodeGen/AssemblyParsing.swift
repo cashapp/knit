@@ -1,6 +1,6 @@
 import Foundation
 import SwiftSyntax
-import SwiftSyntaxParser
+import SwiftParser
 
 public func parseAssemblies(at paths: [String]) throws -> ConfigurationSet {
     var configs = [Configuration]()
@@ -8,12 +8,13 @@ public func parseAssemblies(at paths: [String]) throws -> ConfigurationSet {
         let url = URL(fileURLWithPath: path, isDirectory: false)
         var errorsToPrint = [Error]()
 
-        let syntaxTree: SourceFileSyntax
+        let source: String
         do {
-            syntaxTree = try SwiftSyntaxParser.SyntaxParser.parse(url)
+            source = try String(contentsOf: url)
         } catch {
-            throw AssemblyParsingError.syntaxParsingError(error, path: path)
+            throw AssemblyParsingError.fileReadError(error, path: path)
         }
+        let syntaxTree = Parser.parse(source: source)
         let configuration = try parseSyntaxTree(syntaxTree, errorsToPrint: &errorsToPrint)
         configs.append(configuration)
         printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
@@ -79,11 +80,11 @@ private class AssemblyFileVisitor: SyntaxVisitor {
     }
 
     override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        imports.append(node.withoutTrivia())
+        imports.append(node.trimmed)
         return .skipChildren
     }
 
-    private func visitAssemblyType(_ node: IdentifiedDeclSyntax) -> SyntaxVisitorContinueKind {
+    private func visitAssemblyType(_ node: NamedDeclSyntax) -> SyntaxVisitorContinueKind {
         guard classDeclVisitor == nil else {
             // Only the first class declaration should be visited
             return .skipChildren
@@ -139,12 +140,12 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
 }
 
-extension IdentifiedDeclSyntax {
+extension NamedDeclSyntax {
 
     /// Returns the module name for the assembly class.
     /// If the class is not an assembly returns `nil`.
     var moduleNameForAssembly: String? {
-        let className = identifier.text
+        let className = name.text
         let assemblySuffx = "Assembly"
         guard className.hasSuffix(assemblySuffx) else {
             return nil
@@ -157,7 +158,7 @@ extension IdentifiedDeclSyntax {
 // MARK: - Errors
 
 enum AssemblyParsingError: Error {
-    case syntaxParsingError(Error, path: String)
+    case fileReadError(Error, path: String)
     case missingModuleName
 }
 
@@ -165,9 +166,9 @@ extension AssemblyParsingError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case let .syntaxParsingError(error, path: path):
+        case let .fileReadError(error, path: path):
             return """
-                   Error parsing assembly file: \(error)
+                   Error reading file: \(error.localizedDescription)
                    File path: \(path)
                    """
 
@@ -184,12 +185,12 @@ func printErrors(_ errors: [Error], filePath: String, syntaxTree: SyntaxProtocol
     guard !errors.isEmpty else {
         return
     }
-    let lineConverter = SourceLocationConverter(file: filePath, tree: syntaxTree)
+    let lineConverter = SourceLocationConverter(fileName: filePath, tree: syntaxTree)
 
     for error in errors {
         if let syntaxError = error as? SyntaxError {
             let position = syntaxError.syntax.startLocation(converter: lineConverter, afterLeadingTrivia: true)
-            let line = position.line ?? 1
+            let line = position.line
             print("\(filePath):\(line): error: \(error.localizedDescription)")
         } else {
             print("\(filePath): error: \(error.localizedDescription)")
