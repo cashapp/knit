@@ -267,7 +267,11 @@ private func assertParsesSyntaxTree(
 ) throws -> Configuration {
     var errorsToPrint = [Error]()
 
-    let configuration = try parseSyntaxTree(sourceFile, errorsToPrint: &errorsToPrint)
+    let configuration = try parseSyntaxTree(
+        sourceFile,
+        errorsToPrint: &errorsToPrint,
+        defaultTargetResolver: "Resolver"
+    )
 
     if let assertErrorsCallback {
         assertErrorsCallback(errorsToPrint)

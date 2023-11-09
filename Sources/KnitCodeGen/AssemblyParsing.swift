@@ -2,7 +2,7 @@ import Foundation
 import SwiftSyntax
 import SwiftParser
 
-public func parseAssemblies(at paths: [String]) throws -> ConfigurationSet {
+public func parseAssemblies(at paths: [String], defaultTargetResolver: String) throws -> ConfigurationSet {
     var configs = [Configuration]()
     for path in paths {
         let url = URL(fileURLWithPath: path, isDirectory: false)
@@ -15,7 +15,11 @@ public func parseAssemblies(at paths: [String]) throws -> ConfigurationSet {
             throw AssemblyParsingError.fileReadError(error, path: path)
         }
         let syntaxTree = Parser.parse(source: source)
-        let configuration = try parseSyntaxTree(syntaxTree, errorsToPrint: &errorsToPrint)
+        let configuration = try parseSyntaxTree(
+            syntaxTree,
+            errorsToPrint: &errorsToPrint,
+            defaultTargetResolver: defaultTargetResolver
+        )
         configs.append(configuration)
         printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
     }
@@ -24,7 +28,8 @@ public func parseAssemblies(at paths: [String]) throws -> ConfigurationSet {
 
 func parseSyntaxTree(
     _ syntaxTree: SyntaxProtocol,
-    errorsToPrint: inout [Error]
+    errorsToPrint: inout [Error],
+    defaultTargetResolver: String
 ) throws -> Configuration {
     let assemblyFileVisitor = AssemblyFileVisitor()
     assemblyFileVisitor.walk(syntaxTree)
@@ -41,7 +46,7 @@ func parseSyntaxTree(
         registrations: assemblyFileVisitor.registrations,
         registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
         imports: assemblyFileVisitor.imports,
-        targetResolver: assemblyFileVisitor.targetResolver
+        targetResolver: assemblyFileVisitor.targetResolver ?? defaultTargetResolver
     )
 }
 
@@ -68,8 +73,8 @@ private class AssemblyFileVisitor: SyntaxVisitor {
         return classDeclVisitor?.registrationErrors ?? []
     }
 
-    var targetResolver: String {
-        return classDeclVisitor?.targetResolver ?? "Resolver"
+    var targetResolver: String? {
+        return classDeclVisitor?.targetResolver
     }
 
     init() {
@@ -146,12 +151,11 @@ private class ClassDeclVisitor: SyntaxVisitor {
     }
 
     override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard node.name.text == "TargetResolver",
-              let identifier = node.initializer.value.as(IdentifierTypeSyntax.self)
-        else {
-            return .skipChildren
+        if node.name.text == "TargetResolver",
+           let identifier = node.initializer.value.as(IdentifierTypeSyntax.self) {
+            self.targetResolver = identifier.name.text
         }
-        self.targetResolver = identifier.name.text
+
         return .skipChildren
     }
 

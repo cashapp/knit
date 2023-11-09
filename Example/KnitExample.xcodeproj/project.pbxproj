@@ -239,7 +239,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/bin/xcrun --sdk macosx swift run knit gen \\\n--assembly-input-path KnitExample/KnitExampleAssembly.swift \\\n--assembly-input-path KnitExample/KnitExampleUserAssembly.swift \\\n--type-safety-extensions-output-path KnitExample/KnitDITypeSafety.swift \\\n--unit-test-output-path KnitExampleTests/KnitDIRegistrationTests.swift\n";
+			shellScript = "/usr/bin/xcrun --sdk macosx swift run knit-cli gen \\\n--assembly-input-path KnitExample/KnitExampleAssembly.swift \\\n--assembly-input-path KnitExample/KnitExampleUserAssembly.swift \\\n--type-safety-extensions-output-path KnitExample/KnitDITypeSafety.swift \\\n--unit-test-output-path KnitExampleTests/KnitDIRegistrationTests.swift\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

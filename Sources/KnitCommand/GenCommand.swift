@@ -40,12 +40,15 @@ struct GenCommand: ParsableCommand {
                   """)
     var jsonDataOutputPath: String?
 
+    @Option(help: "Default type to extend when generating Resolver type safety methods")
+    var defaultExtensionTarget = "Resolver"
+
     public init() {}
 
     public func run() throws {
         let parsedConfig: ConfigurationSet
         do {
-            parsedConfig = try parseAssemblies(at: assemblyInputPath)
+            parsedConfig = try parseAssemblies(at: assemblyInputPath, defaultTargetResolver: defaultExtensionTarget)
             if let jsonDataOutputPath {
                 let data = try JSONEncoder().encode(parsedConfig.assemblies)
                 try data.write(to: URL(fileURLWithPath: jsonDataOutputPath))
