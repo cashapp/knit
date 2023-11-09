@@ -10,17 +10,20 @@ public struct Configuration: Encodable {
     public var registrationsIntoCollections: [RegistrationIntoCollection]
 
     public var imports: [ImportDeclSyntax] = []
+    public var targetResolver: String
 
     public init(
         name: String,
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
-        imports: [ImportDeclSyntax] = []
+        imports: [ImportDeclSyntax] = [],
+        targetResolver: String = "Resolver"
     ) {
         self.name = name
         self.registrations = registrations
         self.registrationsIntoCollections = registrationsIntoCollections
         self.imports = imports
+        self.targetResolver = targetResolver
     }
 
     public enum CodingKeys: CodingKey {
@@ -35,7 +38,7 @@ public extension Configuration {
     func makeTypeSafetySourceFile() throws -> SourceFileSyntax {
         return try TypeSafetySourceFile.make(
             assemblyName: "\(name)Assembly",
-            extensionTarget: "Resolver",
+            extensionTarget: targetResolver,
             registrations: registrations
         )
     }

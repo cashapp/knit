@@ -40,7 +40,8 @@ func parseSyntaxTree(
         name: name,
         registrations: assemblyFileVisitor.registrations,
         registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
-        imports: assemblyFileVisitor.imports
+        imports: assemblyFileVisitor.imports,
+        targetResolver: assemblyFileVisitor.targetResolver
     )
 }
 
@@ -65,6 +66,10 @@ private class AssemblyFileVisitor: SyntaxVisitor {
 
     var registrationErrors: [Error] {
         return classDeclVisitor?.registrationErrors ?? []
+    }
+
+    var targetResolver: String {
+        return classDeclVisitor?.targetResolver ?? "Resolver"
     }
 
     init() {
@@ -116,6 +121,8 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     private(set) var registrationErrors = [Error]()
 
+    private(set) var targetResolver: String?
+
     init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives) {
         self.directives = directives
         super.init(viewMode: viewMode)
@@ -135,6 +142,16 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // There could be computed properties that contain other function calls we don't want to parse
+        return .skipChildren
+    }
+
+    override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard node.name.text == "TargetResolver",
+              let identifier = node.initializer.value.as(IdentifierTypeSyntax.self)
+        else {
+            return .skipChildren
+        }
+        self.targetResolver = identifier.name.text
         return .skipChildren
     }
 
