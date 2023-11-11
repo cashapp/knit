@@ -49,7 +49,7 @@ public enum TypeSafetySourceFile {
         registration: Registration,
         enumName: String? = nil,
         getterType: GetterConfig = .callAsFunction
-    ) throws -> FunctionDeclSyntax {
+    ) throws -> DeclSyntaxProtocol {
         let modifier = registration.accessLevel == .public ? "public " : ""
         let nameInput = enumName.map { "name: \($0)" }
         let nameUsage = enumName != nil ? "name: name.rawValue" : nil
@@ -64,9 +64,21 @@ public enum TypeSafetySourceFile {
             funcName = name ?? TypeNamer.computedIdentifierName(type: registration.service)
         }
 
-        return try FunctionDeclSyntax("\(raw: modifier)func \(raw: funcName)(\(raw: inputs)) -> \(raw: registration.service)") {
+        let function = try FunctionDeclSyntax("\(raw: modifier)func \(raw: funcName)(\(raw: inputs)) -> \(raw: registration.service)") {
             "self.resolve(\(raw: usages))!"
         }
+
+        // Wrap the output an in #if where needed
+        guard let ifConfigCondition = registration.ifConfigCondition else {
+            return function
+        }
+        let codeBlock = CodeBlockItemListSyntax([.init(item: .init(function))])
+        let clause = IfConfigClauseSyntax(
+            poundKeyword: .poundIfToken(),
+            condition: ifConfigCondition,
+            elements: .statements(codeBlock)
+        )
+        return IfConfigDeclSyntax(clauses: [clause])
     }
 
     private static func argumentString(registration: Registration) -> (input: String?, usage: String?) {
@@ -114,7 +126,6 @@ extension Registration {
         }
         return result
     }
-
 }
 
 extension Registration.Argument {
@@ -133,5 +144,4 @@ extension Registration.Argument {
     var functionType: String {
         return TypeNamer.isClosure(type: type) ? "@escaping \(type)" : type
     }
-
 }

@@ -1,7 +1,7 @@
 // Copyright © Square, Inc. All rights reserved.
 
 import Foundation
-import Knit
+import KnitLib
 
 // @knit internal getter-named
 /// An assembly expected to be registered at the user level rather than at the app level

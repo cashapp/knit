@@ -1,3 +1,5 @@
+import SwiftSyntax
+
 public struct Registration: Equatable, Codable {
 
     public var service: String
@@ -16,6 +18,8 @@ public struct Registration: Equatable, Codable {
     /// This registration's getter setting.
     public var getterConfig: Set<GetterConfig>
 
+    public var ifConfigCondition: ExprSyntax?
+
     public init(
         service: String,
         name: String? = nil,
@@ -30,6 +34,11 @@ public struct Registration: Equatable, Codable {
         self.arguments = arguments
         self.isForwarded = isForwarded
         self.getterConfig = getterConfig
+    }
+
+    private enum CodingKeys: CodingKey {
+        // ifConfigCondition is not encoded since ExprSyntax does not conform to codable
+        case service, name, accessLevel, arguments, isForwarded, getterConfig
     }
 
 }

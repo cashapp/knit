@@ -134,6 +134,24 @@ final class TypeSafetySourceFileTests: XCTestCase {
         )
     }
 
+    func testRegistrationWithIfConfig() {
+        var registration = Registration(service: "A", accessLevel: .public)
+        registration.ifConfigCondition = ExprSyntax("SOME_FLAG")
+        XCTAssertEqual(
+            try TypeSafetySourceFile.makeResolver(
+                registration: registration,
+                enumName: nil
+            ).formatted().description,
+            """
+            #if SOME_FLAG
+            public func callAsFunction() -> A {
+                self.resolve(A.self)!
+            }
+            #endif
+            """
+        )
+    }
+
     func testArgumentNames() {
         let registration1 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String?")])
         XCTAssertEqual(

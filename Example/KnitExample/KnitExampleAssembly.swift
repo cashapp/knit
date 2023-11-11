@@ -32,6 +32,10 @@ final class KnitExampleAssembly: Assembly {
         }
 
         container.autoregisterIntoCollection(ExampleService.self, initializer: ExampleService.init)
+
+        #if DEBUG
+        container.autoregister(DebugService.self, initializer: DebugService.init)
+        #endif
     }
 
 }
@@ -59,3 +63,5 @@ final class ClosureService {
 
     init(closure: @escaping (() -> Void)) { }
 }
+
+struct DebugService { }
