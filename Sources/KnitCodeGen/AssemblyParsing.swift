@@ -2,7 +2,11 @@ import Foundation
 import SwiftSyntax
 import SwiftParser
 
-public func parseAssemblies(at paths: [String], defaultTargetResolver: String) throws -> ConfigurationSet {
+public func parseAssemblies(
+    at paths: [String],
+    defaultTargetResolver: String,
+    useTargetResolver: Bool
+) throws -> ConfigurationSet {
     var configs = [Configuration]()
     for path in paths {
         let url = URL(fileURLWithPath: path, isDirectory: false)
@@ -18,7 +22,8 @@ public func parseAssemblies(at paths: [String], defaultTargetResolver: String) t
         let configuration = try parseSyntaxTree(
             syntaxTree,
             errorsToPrint: &errorsToPrint,
-            defaultTargetResolver: defaultTargetResolver
+            defaultTargetResolver: defaultTargetResolver,
+            useTargetResolver: useTargetResolver
         )
         configs.append(configuration)
         printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
@@ -29,7 +34,8 @@ public func parseAssemblies(at paths: [String], defaultTargetResolver: String) t
 func parseSyntaxTree(
     _ syntaxTree: SyntaxProtocol,
     errorsToPrint: inout [Error],
-    defaultTargetResolver: String
+    defaultTargetResolver: String,
+    useTargetResolver: Bool
 ) throws -> Configuration {
     let assemblyFileVisitor = AssemblyFileVisitor()
     assemblyFileVisitor.walk(syntaxTree)
@@ -41,12 +47,19 @@ func parseSyntaxTree(
     errorsToPrint.append(contentsOf: assemblyFileVisitor.assemblyErrors)
     errorsToPrint.append(contentsOf: assemblyFileVisitor.registrationErrors)
 
+    let targetResolver: String
+    if useTargetResolver {
+        targetResolver = assemblyFileVisitor.targetResolver ?? defaultTargetResolver
+    } else {
+        targetResolver = defaultTargetResolver
+    }
+
     return Configuration(
         name: name,
         registrations: assemblyFileVisitor.registrations,
         registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
         imports: assemblyFileVisitor.imports,
-        targetResolver: assemblyFileVisitor.targetResolver ?? defaultTargetResolver
+        targetResolver: targetResolver
     )
 }
 

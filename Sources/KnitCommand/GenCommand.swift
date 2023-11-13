@@ -40,6 +40,10 @@ struct GenCommand: ParsableCommand {
                   """)
     var jsonDataOutputPath: String?
 
+    // This flag was added to allow backwards compatibility. This may prove to be unnecessary.
+    @Flag(help: "When parsing assembly files, generate type safe methods against the target resolver")
+    var useTargetResolver: Bool = false
+
     @Option(help: "Default type to extend when generating Resolver type safety methods")
     var defaultExtensionTarget = "Resolver"
 
@@ -48,7 +52,11 @@ struct GenCommand: ParsableCommand {
     public func run() throws {
         let parsedConfig: ConfigurationSet
         do {
-            parsedConfig = try parseAssemblies(at: assemblyInputPath, defaultTargetResolver: defaultExtensionTarget)
+            parsedConfig = try parseAssemblies(
+                at: assemblyInputPath,
+                defaultTargetResolver: defaultExtensionTarget,
+                useTargetResolver: useTargetResolver
+            )
             if let jsonDataOutputPath {
                 let data = try JSONEncoder().encode(parsedConfig.assemblies)
                 try data.write(to: URL(fileURLWithPath: jsonDataOutputPath))

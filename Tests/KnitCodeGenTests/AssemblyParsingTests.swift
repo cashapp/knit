@@ -257,11 +257,24 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(config.targetResolver, "TestResolver")
     }
 
+    func testCustomResolverWhenDisabled() throws {
+        let sourceFile: SourceFileSyntax = """
+            class MyAssembly: Assembly {
+                typealias TargetResolver = TestResolver
+            }
+        """
+
+        let config = try assertParsesSyntaxTree(sourceFile, useTargetResolver: false)
+        XCTAssertEqual(config.name, "My")
+        XCTAssertEqual(config.targetResolver, "Resolver")
+    }
+
 }
 
 private func assertParsesSyntaxTree(
     _ sourceFile: SourceFileSyntax,
     assertErrorsToPrint assertErrorsCallback: (([Error]) -> Void)? = nil,
+    useTargetResolver: Bool = true,
     file: StaticString = #filePath,
     line: UInt = #line
 ) throws -> Configuration {
@@ -270,7 +283,8 @@ private func assertParsesSyntaxTree(
     let configuration = try parseSyntaxTree(
         sourceFile,
         errorsToPrint: &errorsToPrint,
-        defaultTargetResolver: "Resolver"
+        defaultTargetResolver: "Resolver",
+        useTargetResolver: useTargetResolver
     )
 
     if let assertErrorsCallback {
