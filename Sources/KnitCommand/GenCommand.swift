@@ -45,7 +45,7 @@ struct GenCommand: ParsableCommand {
     var useTargetResolver: Bool = false
 
     @Option(help: "Default type to extend when generating Resolver type safety methods")
-    var defaultExtensionTarget = "Resolver"
+    var defaultExtensionTargetResolver = "Resolver"
 
     public init() {}
 
@@ -54,7 +54,7 @@ struct GenCommand: ParsableCommand {
         do {
             parsedConfig = try parseAssemblies(
                 at: assemblyInputPath,
-                defaultTargetResolver: defaultExtensionTarget,
+                defaultTargetResolver: defaultExtensionTargetResolver,
                 useTargetResolver: useTargetResolver
             )
             if let jsonDataOutputPath {

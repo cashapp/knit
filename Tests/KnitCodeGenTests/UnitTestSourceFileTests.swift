@@ -213,7 +213,8 @@ private extension UnitTestSourceFile {
             name: name,
             registrations: registrations,
             registrationsIntoCollections: registrationsIntoCollections,
-            imports: importDecls
+            imports: importDecls,
+            targetResolver: "Resolver"
         )
         return try UnitTestSourceFile.make(configuration: configuration)
     }

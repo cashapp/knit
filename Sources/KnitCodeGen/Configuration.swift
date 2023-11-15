@@ -17,7 +17,7 @@ public struct Configuration: Encodable {
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
         imports: [ImportDeclSyntax] = [],
-        targetResolver: String = "Resolver"
+        targetResolver: String
     ) {
         self.name = name
         self.registrations = registrations
