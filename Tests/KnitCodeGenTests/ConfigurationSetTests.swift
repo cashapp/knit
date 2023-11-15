@@ -147,7 +147,8 @@ private enum Factory {
         ],
         imports: [
             .init(moduleName: "Dependency1")
-        ]
+        ],
+        targetResolver: "Resolver"
     )
 
     static let config2 = Configuration(
@@ -160,7 +161,8 @@ private enum Factory {
         registrationsIntoCollections: [],
         imports: [
             .init(moduleName: "Dependency2")
-        ]
+        ],
+        targetResolver: "Resolver"
     )
 
     static let config3 = Configuration(
@@ -171,6 +173,7 @@ private enum Factory {
         registrationsIntoCollections: [],
         imports: [
             .init(moduleName: "Dependency2")
-        ]
+        ],
+        targetResolver: "Resolver"
     )
 }

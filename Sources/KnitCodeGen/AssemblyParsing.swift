@@ -2,7 +2,11 @@ import Foundation
 import SwiftSyntax
 import SwiftParser
 
-public func parseAssemblies(at paths: [String]) throws -> ConfigurationSet {
+public func parseAssemblies(
+    at paths: [String],
+    defaultTargetResolver: String,
+    useTargetResolver: Bool
+) throws -> ConfigurationSet {
     var configs = [Configuration]()
     for path in paths {
         let url = URL(fileURLWithPath: path, isDirectory: false)
@@ -15,7 +19,12 @@ public func parseAssemblies(at paths: [String]) throws -> ConfigurationSet {
             throw AssemblyParsingError.fileReadError(error, path: path)
         }
         let syntaxTree = Parser.parse(source: source)
-        let configuration = try parseSyntaxTree(syntaxTree, errorsToPrint: &errorsToPrint)
+        let configuration = try parseSyntaxTree(
+            syntaxTree,
+            errorsToPrint: &errorsToPrint,
+            defaultTargetResolver: defaultTargetResolver,
+            useTargetResolver: useTargetResolver
+        )
         configs.append(configuration)
         printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
     }
@@ -24,7 +33,9 @@ public func parseAssemblies(at paths: [String]) throws -> ConfigurationSet {
 
 func parseSyntaxTree(
     _ syntaxTree: SyntaxProtocol,
-    errorsToPrint: inout [Error]
+    errorsToPrint: inout [Error],
+    defaultTargetResolver: String,
+    useTargetResolver: Bool
 ) throws -> Configuration {
     let assemblyFileVisitor = AssemblyFileVisitor()
     assemblyFileVisitor.walk(syntaxTree)
@@ -36,11 +47,19 @@ func parseSyntaxTree(
     errorsToPrint.append(contentsOf: assemblyFileVisitor.assemblyErrors)
     errorsToPrint.append(contentsOf: assemblyFileVisitor.registrationErrors)
 
+    let targetResolver: String
+    if useTargetResolver {
+        targetResolver = assemblyFileVisitor.targetResolver ?? defaultTargetResolver
+    } else {
+        targetResolver = defaultTargetResolver
+    }
+
     return Configuration(
         name: name,
         registrations: assemblyFileVisitor.registrations,
         registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
-        imports: assemblyFileVisitor.imports
+        imports: assemblyFileVisitor.imports,
+        targetResolver: targetResolver
     )
 }
 
@@ -65,6 +84,10 @@ private class AssemblyFileVisitor: SyntaxVisitor {
 
     var registrationErrors: [Error] {
         return classDeclVisitor?.registrationErrors ?? []
+    }
+
+    var targetResolver: String? {
+        return classDeclVisitor?.targetResolver
     }
 
     init() {
@@ -116,6 +139,8 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     private(set) var registrationErrors = [Error]()
 
+    private(set) var targetResolver: String?
+
     init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives) {
         self.directives = directives
         super.init(viewMode: viewMode)
@@ -135,6 +160,15 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // There could be computed properties that contain other function calls we don't want to parse
+        return .skipChildren
+    }
+
+    override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
+        if node.name.text == "TargetResolver",
+           let identifier = node.initializer.value.as(IdentifierTypeSyntax.self) {
+            self.targetResolver = identifier.name.text
+        }
+
         return .skipChildren
     }
 
