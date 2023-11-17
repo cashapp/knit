@@ -141,6 +141,9 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     private(set) var targetResolver: String?
 
+    /// For any registrations parsed, this should be #if condition should be applied when it is used
+    private var currentIfConfigCondition: ExprSyntax?
+
     init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives) {
         self.directives = directives
         super.init(viewMode: viewMode)
@@ -148,7 +151,12 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         do {
-            let (registrations, registrationsIntoCollections) = try node.getRegistrations(defaultDirectives: directives)
+            var (registrations, registrationsIntoCollections) = try node.getRegistrations(defaultDirectives: directives)
+            registrations = registrations.map { registration in
+                var mutable = registration
+                mutable.ifConfigCondition = currentIfConfigCondition
+                return mutable
+            }
             self.registrations.append(contentsOf: registrations)
             self.registrationsIntoCollections.append(contentsOf: registrationsIntoCollections)
         } catch {
@@ -169,6 +177,31 @@ private class ClassDeclVisitor: SyntaxVisitor {
             self.targetResolver = identifier.name.text
         }
 
+        return .skipChildren
+    }
+
+    override func visit(_ node: IfConfigClauseSyntax) -> SyntaxVisitorContinueKind {
+        // Allowing for #else creates a link between the registration inside the #if and those in the #else
+        // This greatly increases the complexity of handling #if so raise an error when #else is used
+        if node.poundKeyword.text.contains("#else") {
+            registrationErrors.append(
+                RegistrationParsingError.invalidIfConfig(syntax: node, text: node.poundKeyword.text)
+            )
+            return .skipChildren
+        }
+        // Raise an error for nested if statements
+        if self.currentIfConfigCondition != nil {
+            registrationErrors.append(
+                RegistrationParsingError.nestedIfConfig(syntax: node)
+            )
+            return .skipChildren
+        }
+        // Set the condition and walk the children to create the registrations
+        self.currentIfConfigCondition = node.condition
+        node.children(viewMode: .sourceAccurate).forEach { syntax in
+            walk(syntax)
+        }
+        self.currentIfConfigCondition = nil
         return .skipChildren
     }
 

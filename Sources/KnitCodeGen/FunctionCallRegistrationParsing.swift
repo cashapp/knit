@@ -282,6 +282,8 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
     case unwrappedClosureParams(syntax: SyntaxProtocol)
     case chainedRegistrations(syntax: SyntaxProtocol)
     case nonStaticString(syntax: SyntaxProtocol, name: String)
+    case invalidIfConfig(syntax: SyntaxProtocol, text: String)
+    case nestedIfConfig(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
@@ -293,6 +295,10 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             return "Chained registration calls are not supported"
         case let .nonStaticString(_, name):
             return "Service name must be a static string. Found: \(name)"
+        case let .invalidIfConfig(_, text):
+            return "Invalid IfConfig expression around container registration: \(text)"
+        case .nestedIfConfig:
+            return "Nested #if statements are not supported"
         }
     }
 
@@ -301,7 +307,9 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
         case let .missingArgumentType(syntax, _),
             let .chainedRegistrations(syntax),
             let .nonStaticString(syntax, _),
-            let .unwrappedClosureParams(syntax):
+            let .unwrappedClosureParams(syntax),
+            let .invalidIfConfig(syntax, _),
+            let .nestedIfConfig(syntax):
             return syntax
         }
     }

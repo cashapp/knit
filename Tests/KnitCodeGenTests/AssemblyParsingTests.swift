@@ -269,6 +269,107 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(config.targetResolver, "Resolver")
     }
 
+    func testIfDefElseFailure() throws {
+        let sourceFile: SourceFileSyntax = """
+            class ExampleAssembly: Assembly {
+                func assemble(container: Container) {
+                    #if SOME_FLAG
+                    container.autoregister(B.self, initializer: B.init)
+                    #else
+                    container.autoregister(C.self, initializer: C.init)
+                    #endif
+                }
+            }
+        """
+
+        // Make sure that individual registration errors are bubbled up to be printed
+        _ = try assertParsesSyntaxTree(
+            sourceFile,
+            assertErrorsToPrint: { errors in
+                XCTAssertEqual(errors.count, 1)
+                XCTAssertEqual(
+                    errors.first?.localizedDescription,
+                    "Invalid IfConfig expression around container registration: #else"
+                )
+            }
+        )
+    }
+
+    func testIfDefParsing() throws {
+        let sourceFile: SourceFileSyntax = """
+            class ExampleAssembly: Assembly {
+                func assemble(container: Container) {
+                    #if SOME_FLAG
+                    container.autoregister(A.self, initializer: A.init)
+                    #endif
+
+                    #if SOME_FLAG && !ANOTHER_FLAG
+                    container.autoregister(B.self, initializer: B.init)
+                    container.autoregister(C.self, initializer: C.init)
+                    #endif
+                }
+            }
+        """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.name, "Example")
+        XCTAssertEqual(config.registrations.count, 3)
+
+        XCTAssertEqual(config.registrations[0].service, "A")
+        XCTAssertEqual(config.registrations[0].ifConfigCondition?.description, "SOME_FLAG")
+
+        XCTAssertEqual(config.registrations[1].service, "B")
+        XCTAssertEqual(config.registrations[1].ifConfigCondition?.description, "SOME_FLAG && !ANOTHER_FLAG")
+
+        XCTAssertEqual(config.registrations[2].service, "C")
+        XCTAssertEqual(config.registrations[2].ifConfigCondition?.description, "SOME_FLAG && !ANOTHER_FLAG")
+    }
+
+    func testIfSimulatorParsing() throws {
+        let sourceFile: SourceFileSyntax = """
+            class ExampleAssembly: Assembly {
+                func assemble(container: Container) {
+                    #if targetEnvironment(simulator)
+                    container.autoregister(A.self, initializer: A.init)
+                    #endif
+                }
+            }
+        """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.registrations.count, 1)
+        XCTAssertEqual(
+            config.registrations.first?.ifConfigCondition?.description,
+            "targetEnvironment(simulator)"
+        )
+    }
+
+    func testNestedIfConfig() throws {
+        let sourceFile: SourceFileSyntax = """
+            class ExampleAssembly: Assembly {
+                func assemble(container: Container) {
+                    #if DEBUG
+                    #if FEATURE
+                    container.autoregister(A.self, initializer: A.init)
+                    #endif
+                    #endif
+                }
+            }
+        """
+
+        // Make sure that individual registration errors are bubbled up to be printed
+        _ = try assertParsesSyntaxTree(
+            sourceFile,
+            assertErrorsToPrint: { errors in
+                XCTAssertEqual(errors.count, 1)
+                XCTAssertEqual(
+                    errors.first?.localizedDescription,
+                    "Nested #if statements are not supported"
+                )
+            }
+        )
+    }
+
 }
 
 private func assertParsesSyntaxTree(

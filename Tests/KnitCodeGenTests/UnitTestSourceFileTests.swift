@@ -170,6 +170,21 @@ final class UnitTestSourceFileTests: XCTestCase {
         XCTAssertEqual(formattedResult, expected)
     }
 
+    func test_registrationAssertIfConfig() {
+        var registration = Registration(service: "A", accessLevel: .hidden)
+        registration.ifConfigCondition = ExprSyntax("SOME_FLAG && !DEBUG")
+        let result = UnitTestSourceFile.makeAssertCall(registration: registration)
+        let formattedResult = result.formatted().description
+        XCTAssertEqual(
+            formattedResult,
+            """
+            #if SOME_FLAG && !DEBUG
+            resolver.assertTypeResolves(A.self)
+            #endif
+            """
+        )
+    }
+
     func test_registrationAssertArgument() {
         let registration = Registration(
             service: "A",

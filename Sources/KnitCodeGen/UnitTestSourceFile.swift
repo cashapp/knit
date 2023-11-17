@@ -87,8 +87,25 @@ public enum UnitTestSourceFile {
         }
     }
 
+    static func makeAssertCall(registration: Registration) -> CodeBlockItemListSyntax {
+        let expression = makeAssertCallExpression(registration: registration)
+        let codeBlock = CodeBlockItemListSyntax([.init(item: .init(expression))])
+
+        // Wrap the output an in #if where needed
+        guard let ifConfigCondition = registration.ifConfigCondition else {
+            return codeBlock
+        }
+        let clause = IfConfigClauseSyntax(
+            poundKeyword: .poundIfToken(),
+            condition: ifConfigCondition,
+            elements: .statements(codeBlock)
+        )
+        let ifConfig = IfConfigDeclSyntax(clauses: [clause])
+        return CodeBlockItemListSyntax([.init(item: .init(ifConfig))])
+    }
+
     /// Generate a function call to test a single registration resolves
-    static func makeAssertCall(registration: Registration) -> ExprSyntax {
+    private static func makeAssertCallExpression(registration: Registration) -> ExprSyntax {
         if !registration.arguments.isEmpty {
             let argParams = argumentParams(registration: registration)
             let nameParam = registration.name.map { "name: \"\($0)\""}
