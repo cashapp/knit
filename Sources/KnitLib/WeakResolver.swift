@@ -15,31 +15,30 @@ public final class WeakResolver {
         self.container = container
     }
 
+    /// Returns `true` if the backing container is still available in memory, otherwise `false`.
     public var isAvailable: Bool { return container != nil }
-    public var optionalResolver: Resolver? { container }
 
-    // Force unwrap the weak Container
-    private var unwrapped: Resolver {
-        guard let container else {
-            fatalError("Attempting to resolve using a container which is out of scope")
-        }
-        return container
+    /// Only provide a resolver if it is still available in memory, otherwise return `nil`.
+    /// Syntax sugar to allow optional chaining on the instance.
+    public var optionalResolver: Resolver? {
+        // We are returning `self` rather than the container to maintain weak semantics
+        isAvailable ? self : nil
     }
-
-    private var resolver: Resolver? { container }
-}
-
-extension Resolver {
-    /// Check if a Resolver is still able to resolve services
-    public var isAvailable: Bool { true }
-
-    /// optionalResolver allows optionally resolving a service without a crash
-    public var optionalResolver: Resolver? { self }
 }
 
 // MARK: - Resolver conformance
 
 extension WeakResolver: Resolver {
+
+    // Force unwraps the weak Container
+    // Convenience accessor for private implementation
+    private var unwrapped: Resolver {
+        guard let container else {
+            fatalError("Attempting to resolve using a container which has been released")
+        }
+        return container
+    }
+
     public func resolve<Service>(_ serviceType: Service.Type) -> Service? {
         unwrapped.resolve(serviceType)
     }
