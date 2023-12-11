@@ -81,7 +81,12 @@ final class DependencyBuilder {
         result: inout [any ModuleAssembly.Type],
         source: (any ModuleAssembly.Type)?
     ) throws {
-        moduleSources[String(describing: from)] = source
+        // Add a source for the original type
+        let originalFromInput = inputModules.contains(where: { type(of: $0).matches(moduleType: from) })
+        if !originalFromInput {
+            moduleSources[String(describing: from)] = source
+        }
+
         let resolved = try resolvedType(from)
 
         // Assembly validation should be performed "up front"
@@ -98,8 +103,12 @@ final class DependencyBuilder {
         guard !result.contains(where: {$0 == resolved}) else {
             return
         }
-        // Add a source for both the original and the resolved types
-        moduleSources[String(describing: resolved)] = source
+        // Add a source for the resolved type
+        let resolvedFromInput = inputModules.contains(where: { type(of: $0).matches(moduleType: resolved) })
+        if !resolvedFromInput {
+            moduleSources[String(describing: resolved)] = source
+        }
+
         result.insert(resolved, at: insertionPoint)
         for dep in getDependencies(resolved) {
             try gatherDependencies(
@@ -139,15 +148,34 @@ final class DependencyBuilder {
         return type
     }
 
+    private func buildSourcePath(moduleType: any ModuleAssembly.Type, path: inout [String]) {
+        return buildSourcePath(moduleName: String(describing: moduleType), path: &path)
+    }
+
+    private func buildSourcePath(moduleName: String, path: inout [String]) {
+        path.insert(moduleName, at: 0)
+        guard let source = moduleSources[moduleName] else {
+            return
+        }
+
+        // Prevent an infinite loop
+        let sourceName = String(describing: source)
+        if path.contains(sourceName) {
+            return
+        }
+        return buildSourcePath(moduleType: source, path: &path)
+    }
+
     func sourcePath(moduleType: any ModuleAssembly.Type) -> [String] {
-        return sourcePath(moduleName: String(describing: moduleType))
+        var path: [String] = []
+        buildSourcePath(moduleType: moduleType, path: &path)
+        return path
     }
 
     func sourcePath(moduleName: String) -> [String] {
-        guard let source = moduleSources[moduleName] else {
-            return [moduleName]
-        }
-        return sourcePath(moduleType: source) + [moduleName]
+        var path: [String] = []
+        buildSourcePath(moduleName: moduleName, path: &path)
+        return path
     }
 
     func sourcePathString(moduleName: String) -> String {
