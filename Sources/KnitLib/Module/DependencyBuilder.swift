@@ -87,7 +87,7 @@ final class DependencyBuilder {
         // Assembly validation should be performed "up front"
         // For example if we are validating the assemblies' `TargetResolver`, we should not walk the tree
         // if the root assembly is targeting an incorrect resolver.
-        if let assemblyValidation {
+        if let assemblyValidation, !isRegisteredInParent(resolved) {
             do {
                 try assemblyValidation(resolved)
             } catch {
