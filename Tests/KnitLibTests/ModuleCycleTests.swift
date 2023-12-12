@@ -24,6 +24,20 @@ final class ModuleCycleTests: XCTestCase {
             ["\(Assembly1.self)", "\(Assembly3.self)"]
         )
     }
+
+    func test_sourceCycle() {
+        let assembler = ModuleAssembler([Assembly5()])
+        XCTAssertEqual(
+            assembler.builder.sourcePath(moduleType: Assembly5.self),
+            ["\(Assembly5.self)"]
+        )
+
+        XCTAssertEqual(
+            assembler.builder.sourcePath(moduleType: Assembly7.self),
+            ["\(Assembly5.self)", "\(Assembly6.self)", "\(Assembly7.self)"]
+        )
+    }
+
 }
 
 // Assembly1 depends on Assembly2
@@ -50,5 +64,22 @@ private struct Assembly3: AutoInitModuleAssembly {
 
 private struct Assembly4: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
+    func assemble(container: Container) {}
+}
+
+// Assembly 5-6-7 form a dependency circle
+
+private struct Assembly5: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] { [Assembly6.self] }
+    func assemble(container: Container) {}
+}
+
+private struct Assembly6: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] { [Assembly7.self] }
+    func assemble(container: Container) {}
+}
+
+private struct Assembly7: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] { [Assembly5.self] }
     func assemble(container: Container) {}
 }
