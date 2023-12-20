@@ -8,10 +8,18 @@ import Foundation
 public final class ScopedModuleAssembler<ScopedResolver> {
 
     public let internalAssembler: ModuleAssembler
-
+    
+    /// Cast and return the swinject resolver to the expected type
     public var resolver: ScopedResolver {
         // swiftlint:disable:next force_cast
         internalAssembler.resolver as! ScopedResolver
+    }
+
+    /// Return a weakly wrapped version of the scoped resolver.
+    /// This resolver will only function while the ModuleAssembler remains in memory
+    public var weakResolver: ScopedResolver {
+        // swiftlint:disable:next force_cast
+        return WeakResolver(container: internalAssembler.container) as! ScopedResolver
     }
 
     public convenience init(
