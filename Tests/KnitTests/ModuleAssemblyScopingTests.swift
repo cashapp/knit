@@ -2,7 +2,7 @@
 // Copyright © Block, Inc. All rights reserved.
 //
 
-@testable import KnitLib
+@testable import Knit
 import XCTest
 
 final class ModuleAssemblyScopingTests: XCTestCase {

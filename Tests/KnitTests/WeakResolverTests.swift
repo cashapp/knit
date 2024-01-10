@@ -2,7 +2,7 @@
 // Copyright © Square, Inc. All rights reserved.
 //
 
-import KnitLib
+import Knit
 import XCTest
 
 final class WeakResolverTests: XCTestCase {
