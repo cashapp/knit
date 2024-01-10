@@ -2,7 +2,7 @@
 // Copyright © Square, Inc. All rights reserved.
 //
 
-@testable import KnitLib
+@testable import Knit
 import XCTest
 
 final class ModuleAssemblerTests: XCTestCase {

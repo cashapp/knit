@@ -9,7 +9,7 @@ let package = Package(
         .macOS(.v12),
     ],
     products: [
-        .library(name: "Knit", targets: ["KnitLib"]),
+        .library(name: "Knit", targets: ["Knit"]),
         .executable(name: "knit-cli", targets: ["KnitCommand"])
     ],
     dependencies: [
@@ -20,7 +20,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "KnitLib",
+            name: "Knit",
             dependencies: [
                 .product(name: "Swinject", package: "Swinject"),
                 .product(name: "SwinjectAutoregistration", package: "SwinjectAutoregistration"),
@@ -43,9 +43,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "KnitLibTests",
+            name: "KnitTests",
             dependencies: [
-                "KnitLib",
+                "Knit",
             ]
         ),
         .testTarget(

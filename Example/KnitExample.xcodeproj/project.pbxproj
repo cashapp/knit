@@ -3,17 +3,17 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2C360AEA2B4E1A2C00C88B99 /* Knit in Frameworks */ = {isa = PBXBuildFile; productRef = 2C360AE92B4E1A2C00C88B99 /* Knit */; };
 		C40D0D1F2A838D140095AC59 /* KnitExampleUserAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = C40D0D1E2A838D140095AC59 /* KnitExampleUserAssembly.swift */; };
 		C43334F32A3FDD43003BA9E3 /* KnitExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43334F22A3FDD43003BA9E3 /* KnitExampleApp.swift */; };
 		C43334F52A3FDD43003BA9E3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43334F42A3FDD43003BA9E3 /* ContentView.swift */; };
 		C43334F72A3FDD44003BA9E3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C43334F62A3FDD44003BA9E3 /* Assets.xcassets */; };
 		C43334FA2A3FDD44003BA9E3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C43334F92A3FDD44003BA9E3 /* Preview Assets.xcassets */; };
 		C43335062A3FDDD3003BA9E3 /* KnitExampleAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43335052A3FDDD3003BA9E3 /* KnitExampleAssembly.swift */; };
-		C433350A2A3FDF68003BA9E3 /* Knit in Frameworks */ = {isa = PBXBuildFile; productRef = C43335092A3FDF68003BA9E3 /* Knit */; };
 		C44754F72A3FE7570072333A /* KnitDITypeSafety.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44754F62A3FE7570072333A /* KnitDITypeSafety.swift */; };
 		C44755172A3FEA5E0072333A /* KnitDIRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44755162A3FEA5E0072333A /* KnitDIRegistrationTests.swift */; };
 		C44755192A3FEA740072333A /* TestModuleAssembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44755182A3FEA740072333A /* TestModuleAssembler.swift */; };
@@ -36,7 +36,6 @@
 		C43334F42A3FDD43003BA9E3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C43334F62A3FDD44003BA9E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C43334F92A3FDD44003BA9E3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		C43335042A3FDD78003BA9E3 /* knit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = knit; path = ..; sourceTree = "<group>"; };
 		C43335052A3FDDD3003BA9E3 /* KnitExampleAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnitExampleAssembly.swift; sourceTree = "<group>"; };
 		C44754F62A3FE7570072333A /* KnitDITypeSafety.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KnitDITypeSafety.swift; sourceTree = "<group>"; };
 		C447550D2A3FEA120072333A /* KnitExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KnitExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -49,7 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C433350A2A3FDF68003BA9E3 /* Knit in Frameworks */,
+				2C360AEA2B4E1A2C00C88B99 /* Knit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,7 +65,6 @@
 		C43334E62A3FDD43003BA9E3 = {
 			isa = PBXGroup;
 			children = (
-				C43335042A3FDD78003BA9E3 /* knit */,
 				C43334F12A3FDD43003BA9E3 /* KnitExample */,
 				C447550E2A3FEA120072333A /* KnitExampleTests */,
 				C43334F02A3FDD43003BA9E3 /* Products */,
@@ -139,7 +137,7 @@
 			);
 			name = KnitExample;
 			packageProductDependencies = (
-				C43335092A3FDF68003BA9E3 /* Knit */,
+				2C360AE92B4E1A2C00C88B99 /* Knit */,
 			);
 			productName = KnitExample;
 			productReference = C43334EF2A3FDD43003BA9E3 /* KnitExample.app */;
@@ -159,6 +157,8 @@
 				C44755122A3FEA120072333A /* PBXTargetDependency */,
 			);
 			name = KnitExampleTests;
+			packageProductDependencies = (
+			);
 			productName = KnitExampleTests;
 			productReference = C447550D2A3FEA120072333A /* KnitExampleTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -171,7 +171,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1430;
-				LastUpgradeCheck = 1420;
+				LastUpgradeCheck = 1520;
 				TargetAttributes = {
 					C43334EE2A3FDD43003BA9E3 = {
 						CreatedOnToolsVersion = 14.2;
@@ -191,6 +191,9 @@
 				Base,
 			);
 			mainGroup = C43334E62A3FDD43003BA9E3;
+			packageReferences = (
+				2C360AE82B4E1A2B00C88B99 /* XCLocalSwiftPackageReference ".." */,
+			);
 			productRefGroup = C43334F02A3FDD43003BA9E3 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -230,6 +233,7 @@
 			);
 			inputPaths = (
 				"$(SRCROOT)/KnitExample/KnitExampleAssembly.swift",
+				"$(SRCROOT)/KnitExample/KnitExampleUserAssembly.swift",
 			);
 			outputFileListPaths = (
 			);
@@ -239,7 +243,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/bin/xcrun --sdk macosx swift run knit-cli gen \\\n--assembly-input-path KnitExample/KnitExampleAssembly.swift \\\n--assembly-input-path KnitExample/KnitExampleUserAssembly.swift \\\n--type-safety-extensions-output-path KnitExample/KnitDITypeSafety.swift \\\n--unit-test-output-path KnitExampleTests/KnitDIRegistrationTests.swift\n";
+			shellScript = "./knit-cli gen \\\n--assembly-input-path KnitExample/KnitExampleAssembly.swift \\\n--assembly-input-path KnitExample/KnitExampleUserAssembly.swift \\\n--type-safety-extensions-output-path KnitExample/KnitDITypeSafety.swift \\\n--unit-test-output-path KnitExampleTests/KnitDIRegistrationTests.swift\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -280,6 +284,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -312,6 +317,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -340,6 +346,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -372,6 +379,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -516,8 +524,15 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		2C360AE82B4E1A2B00C88B99 /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
-		C43335092A3FDF68003BA9E3 /* Knit */ = {
+		2C360AE92B4E1A2C00C88B99 /* Knit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Knit;
 		};
