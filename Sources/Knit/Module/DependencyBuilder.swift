@@ -11,17 +11,17 @@ final class DependencyBuilder {
     private var inputModules: [any ModuleAssembly] = []
     var assemblies: [any ModuleAssembly] = []
     let isRegisteredInParent: (any ModuleAssembly.Type) -> Bool
-    private let defaultOverrides: DefaultOverrideState
+    private let overrideBehavior: OverrideBehavior
     private var moduleSources: [String: any ModuleAssembly.Type] = [:]
 
     init(
         modules: [any ModuleAssembly],
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
-        defaultOverrides: DefaultOverrideState = .whenTesting,
+        overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         isRegisteredInParent: ((any ModuleAssembly.Type) -> Bool)? = nil
     ) throws {
         self.assemblyValidation = assemblyValidation
-        self.defaultOverrides = defaultOverrides
+        self.overrideBehavior = overrideBehavior
 
         inputModules = modules
         self.isRegisteredInParent = isRegisteredInParent ?? {_ in false }
@@ -134,7 +134,7 @@ final class DependencyBuilder {
         _ moduleType: any ModuleAssembly.Type,
         fromInput: Bool
     ) throws -> (any ModuleAssembly.Type)? {
-        guard defaultOverrides.allow,
+        guard overrideBehavior.allowDefaultOverrides,
               !fromInput,
               let defaultType = (moduleType as? any DefaultModuleAssemblyOverride.Type)
         else {
@@ -199,7 +199,7 @@ extension DependencyBuilder {
             switch self {
             case let .moduleNotProvided(moduleType, sourcePath):
                 var testAdvice = ""
-                if DefaultOverrideState.isRunningTests {
+                if OverrideBehavior.isRunningTests {
                     testAdvice += "Adding a dependency on the testing module for \(moduleType) should fix this issue"
                 }
                 return """
@@ -240,7 +240,7 @@ extension ModuleAssembly {
 
     /// All original dependencies are registered along with any additional dependencies that the override requires
     static var combinedDependencies: [any ModuleAssembly.Type] {
-        if DefaultOverrideState.isRunningTests {
+        if OverrideBehavior.isRunningTests {
             // For tests only take this modules dependencies
             return Self.dependencies
         } else {

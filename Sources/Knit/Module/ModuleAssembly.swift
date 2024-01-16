@@ -62,14 +62,26 @@ extension ModuleAssembly where Self: GeneratedModuleAssembly {
     public static var dependencies: [any ModuleAssembly.Type] { scoped(generatedDependencies) }
 }
 
-public enum DefaultOverrideState {
-    case on, off, whenTesting
+/// Control the behavior of Assembly Overrides.
+public enum OverrideBehavior {
 
-    var allow: Bool {
+    /// Use any default overrides that are available.
+    case useDefaultOverrides
+
+    /// Disable and ignore any default overrides.
+    /// Overrides that are _explicitly provided_ will still be used.
+    case disableDefaultOverrides
+
+    /// Use default overrides *based on the runtime context*.
+    /// If the ModuleAssembler is running in a unit test environment, the default overrides will be used.
+    /// Otherwise disable and ignore default overrides.
+    case defaultOverridesWhenTesting
+
+    var allowDefaultOverrides: Bool {
         switch self {
-        case .on: return true
-        case .off: return false
-        case .whenTesting: return Self.isRunningTests
+        case .useDefaultOverrides: return true
+        case .disableDefaultOverrides: return false
+        case .defaultOverridesWhenTesting: return Self.isRunningTests
         }
     }
 

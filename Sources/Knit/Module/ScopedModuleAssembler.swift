@@ -17,7 +17,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
     public convenience init(
         parent: ModuleAssembler? = nil,
         _ modules: [any Assembly],
-        defaultOverrides: DefaultOverrideState = .whenTesting,
+        overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         postAssemble: ((Container) -> Void)? = nil,
         file: StaticString = #file,
         line: UInt = #line
@@ -26,7 +26,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
             try self.init(
                 parent: parent,
                 _modules: modules,
-                defaultOverrides: defaultOverrides,
+                overrideBehavior: overrideBehavior,
                 postAssemble: postAssemble
             )
         } catch {
@@ -42,13 +42,13 @@ public final class ScopedModuleAssembler<ScopedResolver> {
     required init(
         parent: ModuleAssembler? = nil,
         _modules modules: [any Assembly],
-        defaultOverrides: DefaultOverrideState = .whenTesting,
+        overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         postAssemble: ((Container) -> Void)? = nil
     ) throws {
         self.internalAssembler = try ModuleAssembler(
             parent: parent,
             _modules: modules,
-            defaultOverrides: defaultOverrides,
+            overrideBehavior: overrideBehavior,
             assemblyValidation: { moduleAssemblyType in
                 guard moduleAssemblyType.resolverType == ScopedResolver.self else {
                     throw ScopedModuleAssemblerError.incorrectTargetResolver(

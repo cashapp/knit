@@ -25,14 +25,16 @@ public final class ModuleAssembler {
      - Parameters:
         - parent: A ModuleAssembler that has already been setup with some dependencies.
         - modules: Array of modules to register
-        - defaultOverrides: Array of override types to use when resolving modules
+        - overrideBehavior: Behavior of default override usage.
+        - assemblyValidation: An optional closure to perform custom validation on module assemblies for this assembler.
+            The Assembler will invoke this closure with each ModuleAssembly.Type as it performs its initialization.
+            If the closure throws an error for any of the assemblies then a fatal error will occur.
         - postAssemble: Hook after all assemblies are registered to make changes to the container.
-
      */
     public convenience init(
         parent: ModuleAssembler? = nil,
         _ modules: [any Assembly],
-        defaultOverrides: DefaultOverrideState = .whenTesting,
+        overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         postAssemble: ((Container) -> Void)? = nil,
         file: StaticString = #file,
@@ -44,7 +46,7 @@ public final class ModuleAssembler {
             try self.init(
                 parent: parent,
                 _modules: modules,
-                defaultOverrides: defaultOverrides,
+                overrideBehavior: overrideBehavior,
                 assemblyValidation: assemblyValidation,
                 postAssemble: postAssemble
             )
@@ -63,7 +65,7 @@ public final class ModuleAssembler {
     required init(
         parent: ModuleAssembler? = nil,
         _modules modules: [any Assembly],
-        defaultOverrides: DefaultOverrideState = .whenTesting,
+        overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         postAssemble: ((Container) -> Void)? = nil
     ) throws {
@@ -73,7 +75,7 @@ public final class ModuleAssembler {
         self.builder = try DependencyBuilder(
             modules: moduleAssemblies,
             assemblyValidation: assemblyValidation,
-            defaultOverrides: defaultOverrides,
+            overrideBehavior: overrideBehavior,
             isRegisteredInParent: { type in
                 return parent?.isRegistered(type) ?? false
             }
