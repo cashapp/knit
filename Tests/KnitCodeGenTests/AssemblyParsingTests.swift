@@ -27,6 +27,42 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(config.registrations.count, 0, "No registrations")
     }
 
+    func testDebugWrappedAssemblyImports() throws {
+        let sourceFile: SourceFileSyntax = """
+            #if DEBUG
+            import A
+            #endif
+            import B // Comment after import should be stripped
+            class FooTestAssembly: Assembly { }
+            """
+        
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.imports.count, 2)
+        XCTAssertEqual(config.imports[0].decl.description, "import A")
+        XCTAssertEqual(config.imports[0].ifConfigCondition?.description, "DEBUG")
+        XCTAssertEqual(config.imports[1].decl.description, "import B")
+        XCTAssertNil(config.imports[1].ifConfigCondition)
+
+        XCTAssertEqual(config.registrations.count, 0, "No registrations")
+    }
+
+    func testIfElseImportError() throws {
+        let sourceFile: SourceFileSyntax = """
+            #if DEBUG
+            import A
+            #else
+            import B
+            #endif
+            class FooTestAssembly: Assembly { }
+            """
+
+        _ = try assertParsesSyntaxTree(sourceFile, assertErrorsToPrint: { errors in
+            XCTAssertEqual(errors.count, 1)
+            XCTAssertEqual(errors[0].localizedDescription, "Invalid IfConfig expression: #else")
+        })
+    }
+
     func testTestableImport() throws {
         // Unclear if this is a use case we care about, but we will retain attributes before the import statement
         let sourceFile: SourceFileSyntax = """
@@ -289,7 +325,7 @@ final class AssemblyParsingTests: XCTestCase {
                 XCTAssertEqual(errors.count, 1)
                 XCTAssertEqual(
                     errors.first?.localizedDescription,
-                    "Invalid IfConfig expression around container registration: #else"
+                    "Invalid IfConfig expression: #else"
                 )
             }
         )

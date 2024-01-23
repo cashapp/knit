@@ -68,7 +68,7 @@ public enum TypeSafetySourceFile {
             "self.resolve(\(raw: usages))!"
         }
 
-        // Wrap the output an in #if where needed
+        // Wrap the output in an #if where needed
         guard let ifConfigCondition = registration.ifConfigCondition else {
             return function
         }

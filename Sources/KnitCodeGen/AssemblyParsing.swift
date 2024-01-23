@@ -63,16 +63,19 @@ func parseSyntaxTree(
     )
 }
 
-private class AssemblyFileVisitor: SyntaxVisitor {
+private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
 
     /// The imports that were found in the tree.
-    private(set) var imports = [ImportDeclSyntax]()
+    private(set) var imports = [ModuleImport]()
 
     private(set) var moduleName: String?
 
     private var classDeclVisitor: ClassDeclVisitor?
 
     private(set) var assemblyErrors: [Error] = []
+    
+    /// For any imports parsed, this #if condition should be applied when it is used
+    var currentIfConfigCondition: ExprSyntax?
 
     var registrations: [Registration] {
         return classDeclVisitor?.registrations ?? []
@@ -103,8 +106,22 @@ private class AssemblyFileVisitor: SyntaxVisitor {
     }
 
     override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        imports.append(node.trimmed)
+        imports.append(
+            ModuleImport(
+                decl: node.trimmed,
+                ifConfigCondition: currentIfConfigCondition
+            )
+        )
         return .skipChildren
+    }
+
+    override func visit(_ node: IfConfigClauseSyntax) -> SyntaxVisitorContinueKind {
+        do {
+            return try self.visitIfNode(node)
+        } catch {
+            assemblyErrors.append(error)
+            return .skipChildren
+        }
     }
 
     private func visitAssemblyType(_ node: NamedDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -127,7 +144,7 @@ private class AssemblyFileVisitor: SyntaxVisitor {
 
 }
 
-private class ClassDeclVisitor: SyntaxVisitor {
+private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
 
     private let directives: KnitDirectives
 
@@ -141,8 +158,8 @@ private class ClassDeclVisitor: SyntaxVisitor {
 
     private(set) var targetResolver: String?
 
-    /// For any registrations parsed, this should be #if condition should be applied when it is used
-    private var currentIfConfigCondition: ExprSyntax?
+    /// For any registrations parsed, this #if condition should be applied when it is used
+    var currentIfConfigCondition: ExprSyntax?
 
     init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives) {
         self.directives = directives
@@ -181,28 +198,12 @@ private class ClassDeclVisitor: SyntaxVisitor {
     }
 
     override func visit(_ node: IfConfigClauseSyntax) -> SyntaxVisitorContinueKind {
-        // Allowing for #else creates a link between the registration inside the #if and those in the #else
-        // This greatly increases the complexity of handling #if so raise an error when #else is used
-        if node.poundKeyword.text.contains("#else") {
-            registrationErrors.append(
-                RegistrationParsingError.invalidIfConfig(syntax: node, text: node.poundKeyword.text)
-            )
+        do {
+            return try self.visitIfNode(node)
+        } catch {
+            registrationErrors.append(error)
             return .skipChildren
         }
-        // Raise an error for nested if statements
-        if self.currentIfConfigCondition != nil {
-            registrationErrors.append(
-                RegistrationParsingError.nestedIfConfig(syntax: node)
-            )
-            return .skipChildren
-        }
-        // Set the condition and walk the children to create the registrations
-        self.currentIfConfigCondition = node.condition
-        node.children(viewMode: .sourceAccurate).forEach { syntax in
-            walk(syntax)
-        }
-        self.currentIfConfigCondition = nil
-        return .skipChildren
     }
 
 }
@@ -262,5 +263,35 @@ func printErrors(_ errors: [Error], filePath: String, syntaxTree: SyntaxProtocol
         } else {
             print("\(filePath): error: \(error.localizedDescription)")
         }
+    }
+}
+
+// MARK: - IfConfigClauseSyntax
+
+/// Visitor that is able to wrap children inside an #if block
+protocol IfConfigVisitor: AnyObject {
+    /// For any children parsed, this should be #if condition should be applied when it is used
+    var currentIfConfigCondition: ExprSyntax? { get set }
+    func walk(_ node: some SyntaxProtocol)
+}
+
+extension IfConfigVisitor {
+    func visitIfNode(_ node: IfConfigClauseSyntax) throws -> SyntaxVisitorContinueKind {
+        // Allowing for #else creates a link between the registration inside the #if and those in the #else
+        // This greatly increases the complexity of handling #if so raise an error when #else is used
+        if node.poundKeyword.text.contains("#else") {
+            throw RegistrationParsingError.invalidIfConfig(syntax: node, text: node.poundKeyword.text)
+        }
+        // Raise an error for nested if statements
+        if self.currentIfConfigCondition != nil {
+            throw RegistrationParsingError.nestedIfConfig(syntax: node)
+        }
+        // Set the condition and walk the children
+        self.currentIfConfigCondition = node.condition
+        node.children(viewMode: .sourceAccurate).forEach { syntax in
+            walk(syntax)
+        }
+        self.currentIfConfigCondition = nil
+        return .skipChildren
     }
 }

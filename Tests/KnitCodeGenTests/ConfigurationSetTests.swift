@@ -14,9 +14,9 @@ final class ConfigurationSetTests: XCTestCase {
             // Generated using Knit
             // Do not edit directly!
 
-            import Swinject
             import Dependency1
             import Dependency2
+            import Swinject
 
             // The correct resolution of each of these types is enforced by a matching automated unit test
             // If a type registration is missing or broken then the automated tests will fail for that PR
@@ -54,10 +54,10 @@ final class ConfigurationSetTests: XCTestCase {
             // Generated using Knit
             // Do not edit directly!
 
-            @testable import Module1
-            import XCTest
             import Dependency1
             import Dependency2
+            @testable import Module1
+            import XCTest
             final class Module1RegistrationTests: XCTestCase {
                 func testRegistrations() {
                     // In the test target for your module, please provide a static method that creates a
@@ -146,7 +146,7 @@ private enum Factory {
             .init(service: "CollectionService")
         ],
         imports: [
-            .init(moduleName: "Dependency1")
+            .named("Dependency1")
         ],
         targetResolver: "Resolver"
     )
@@ -160,7 +160,7 @@ private enum Factory {
         ],
         registrationsIntoCollections: [],
         imports: [
-            .init(moduleName: "Dependency2")
+            .named("Dependency2")
         ],
         targetResolver: "Resolver"
     )
@@ -172,7 +172,7 @@ private enum Factory {
         ],
         registrationsIntoCollections: [],
         imports: [
-            .init(moduleName: "Dependency2")
+            .named("Dependency2")
         ],
         targetResolver: "Resolver"
     )

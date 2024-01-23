@@ -31,7 +31,7 @@ public struct ConfigurationSet {
         }
     }
 
-    var allImports: [ImportDeclSyntax] {
+    var allImports: [ModuleImport] {
         assemblies
             .flatMap { $0.imports }
             .uniqued(by: \.description)
@@ -42,8 +42,8 @@ public extension ConfigurationSet {
 
     func makeTypeSafetySourceFile() throws -> String {
         var allImports = allImports
-        allImports.append(try ImportDeclSyntax("import Swinject"))
-        let header = HeaderSourceFile.make(importDecls: sortImports(allImports), comment: Self.typeSafetyIntro)
+        allImports.append(.named("Swinject"))
+        let header = HeaderSourceFile.make(imports: sortImports(allImports), comment: Self.typeSafetyIntro)
         let body = try assemblies.map { try $0.makeTypeSafetySourceFile() }
         let sourceFiles = [header] + body
         return Self.join(sourceFiles: sourceFiles)
@@ -51,9 +51,9 @@ public extension ConfigurationSet {
 
     func makeUnitTestSourceFile() throws -> String {
         var allImports = allImports
-        allImports.append(try ImportDeclSyntax("@testable import \(raw: primaryAssembly.name)"))
-        allImports.append(try ImportDeclSyntax("import XCTest"))
-        let header = HeaderSourceFile.make(importDecls: sortImports(allImports), comment: nil)
+        allImports.append(.testable(name: primaryAssembly.name))
+        allImports.append(.named("XCTest"))
+        let header = HeaderSourceFile.make(imports: sortImports(allImports), comment: nil)
         let body = try assemblies.map { try $0.makeUnitTestSourceFile() }
         let allRegistrations = assemblies.flatMap { $0.registrations }
         let allRegistrationsIntoCollections = assemblies.flatMap { $0.registrationsIntoCollections }
@@ -70,7 +70,7 @@ public extension ConfigurationSet {
         return result
     }
 
-    private func sortImports(_ imports: [ImportDeclSyntax]) -> [ImportDeclSyntax] {
+    private func sortImports(_ imports: [ModuleImport]) -> [ModuleImport] {
         return imports.sorted { import1, import2 in
             let i1Name = import1.description.replacingOccurrences(of: "@testable ", with: "")
             let i2Name = import2.description.replacingOccurrences(of: "@testable ", with: "")

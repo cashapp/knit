@@ -91,7 +91,7 @@ public enum UnitTestSourceFile {
         let expression = makeAssertCallExpression(registration: registration)
         let codeBlock = CodeBlockItemListSyntax([.init(item: .init(expression))])
 
-        // Wrap the output an in #if where needed
+        // Wrap the output in an #if where needed
         guard let ifConfigCondition = registration.ifConfigCondition else {
             return codeBlock
         }

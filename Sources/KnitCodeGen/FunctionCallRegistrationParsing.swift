@@ -296,7 +296,7 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
         case let .nonStaticString(_, name):
             return "Service name must be a static string. Found: \(name)"
         case let .invalidIfConfig(_, text):
-            return "Invalid IfConfig expression around container registration: \(text)"
+            return "Invalid IfConfig expression: \(text)"
         case .nestedIfConfig:
             return "Nested #if statements are not supported"
         }

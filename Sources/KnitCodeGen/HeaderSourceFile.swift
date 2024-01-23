@@ -7,7 +7,7 @@ import SwiftSyntax
 public enum HeaderSourceFile {
 
     public static func make(
-        importDecls: [ImportDeclSyntax],
+        imports: [ModuleImport],
         comment: String?
     ) -> SourceFileSyntax {
         let trivia = comment.map {
@@ -20,11 +20,25 @@ public enum HeaderSourceFile {
         return SourceFileSyntax(
             leadingTrivia: TriviaProvider.headerTrivia,
             statementsBuilder:  {
-                for importDecl in importDecls {
-                    importDecl
+                for moduleImport in imports {
+                    importDecl(moduleImport: moduleImport)
                 }
             },
             trailingTrivia: trivia
         )
+    }
+
+    private static func importDecl(moduleImport: ModuleImport) -> DeclSyntaxProtocol {
+        // Wrap the output in an #if where needed
+        guard let ifConfigCondition = moduleImport.ifConfigCondition else {
+            return moduleImport.decl
+        }
+        let codeBlock = CodeBlockItemListSyntax([.init(item: .init(moduleImport.decl))])
+        let clause = IfConfigClauseSyntax(
+            poundKeyword: .poundIfToken(),
+            condition: ifConfigCondition,
+            elements: .statements(codeBlock)
+        )
+        return IfConfigDeclSyntax(clauses: [clause])
     }
 }
