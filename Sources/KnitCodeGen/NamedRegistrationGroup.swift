@@ -1,4 +1,6 @@
-// Copyright © Square, Inc. All rights reserved.
+//
+// Copyright © Block, Inc. All rights reserved.
+//
 
 import Foundation
 

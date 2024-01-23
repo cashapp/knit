@@ -1,8 +1,5 @@
 //
-//  ModuleAssemblyExtensionSourceFile.swift
-//  
-//
-//  Created by Brad Fol on 8/4/23.
+// Copyright © Block, Inc. All rights reserved.
 //
 
 import SwiftSyntax

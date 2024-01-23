@@ -1,5 +1,5 @@
 //
-// Copyright © Square, Inc. All rights reserved.
+// Copyright © Block, Inc. All rights reserved.
 //
 
 @testable import Knit

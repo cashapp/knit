@@ -1,5 +1,5 @@
 //
-// Copyright © Square, Inc. All rights reserved.
+// Copyright © Block, Inc. All rights reserved.
 //
 
 /// ModuleAssembler wraps the Swinject Assembler to resolves the full tree of module dependencies.

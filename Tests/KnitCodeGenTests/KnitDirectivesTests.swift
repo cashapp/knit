@@ -1,4 +1,6 @@
-//  Created by Alexander skorulis on 28/7/2023.
+//
+// Copyright © Block, Inc. All rights reserved.
+//
 
 @testable import KnitCodeGen
 import SwiftSyntax
