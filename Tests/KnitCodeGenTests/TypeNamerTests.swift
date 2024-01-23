@@ -1,4 +1,3 @@
-// Created by Alexander skorulis on 6/7/2023.
 // Copyright © Square, Inc. All rights reserved. 
 
 import Foundation

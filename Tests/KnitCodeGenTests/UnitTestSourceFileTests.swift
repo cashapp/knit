@@ -10,7 +10,7 @@ final class UnitTestSourceFileTests: XCTestCase {
     func test_generation() throws {
         let result = try UnitTestSourceFile.make(
             name: "MyModule",
-            importDecls: [try ImportDeclSyntax("import Swinject")],
+            importDecls: [.named("Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
                 .init(service: "ServiceB", name: "name", accessLevel: .internal, isForwarded: false),
@@ -56,7 +56,7 @@ final class UnitTestSourceFileTests: XCTestCase {
     func test_generation_emptyRegistrations() throws {
         let result = try UnitTestSourceFile.make(
             name: "MyModule",
-            importDecls: [try ImportDeclSyntax("import Swinject")],
+            importDecls: [.named("Swinject")],
             registrations: [],
             registrationsIntoCollections: []
         )
@@ -81,7 +81,7 @@ final class UnitTestSourceFileTests: XCTestCase {
     func test_generation_onlySingleRegistrations() throws {
         let result = try UnitTestSourceFile.make(
             name: "MyModule",
-            importDecls: [try ImportDeclSyntax("import Swinject")],
+            importDecls: [.named("Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
             ],
@@ -109,7 +109,7 @@ final class UnitTestSourceFileTests: XCTestCase {
     func test_generation_onlyRegistrationsIntoCollections() throws {
         let result = try UnitTestSourceFile.make(
             name: "MyModule",
-            importDecls: [try ImportDeclSyntax("import Swinject")],
+            importDecls: [.named("Swinject")],
             registrations: [],
             registrationsIntoCollections: [
                 .init(service: "ServiceA"),
@@ -220,7 +220,7 @@ private extension UnitTestSourceFile {
 
     static func make(
         name: String,
-        importDecls: [ImportDeclSyntax],
+        importDecls: [ModuleImport],
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection]
     ) throws -> SourceFileSyntax {

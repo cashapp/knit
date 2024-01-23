@@ -9,14 +9,14 @@ public struct Configuration: Encodable {
     public var registrations: [Registration]
     public var registrationsIntoCollections: [RegistrationIntoCollection]
 
-    public var imports: [ImportDeclSyntax] = []
+    public var imports: [ModuleImport] = []
     public var targetResolver: String
 
     public init(
         name: String,
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
-        imports: [ImportDeclSyntax] = [],
+        imports: [ModuleImport] = [],
         targetResolver: String
     ) {
         self.name = name
@@ -45,8 +45,8 @@ public extension Configuration {
 
     func makeUnitTestSourceFile() throws -> SourceFileSyntax {
         var allImports = imports
-        allImports.append(try ImportDeclSyntax("@testable import \(raw: self.name)"))
-        allImports.append(try ImportDeclSyntax("import XCTest"))
+        allImports.append(try .testable(name: name))
+        allImports.append(try .named("XCTest"))
 
         return try UnitTestSourceFile.make(
             configuration: self
