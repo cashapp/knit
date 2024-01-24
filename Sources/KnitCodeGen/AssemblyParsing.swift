@@ -1,3 +1,7 @@
+//
+// Copyright © Block, Inc. All rights reserved.
+//
+
 import Foundation
 import SwiftSyntax
 import SwiftParser

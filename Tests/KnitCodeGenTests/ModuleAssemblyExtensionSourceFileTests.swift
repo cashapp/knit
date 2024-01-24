@@ -1,8 +1,5 @@
 //
-//  ModuleAssemblyExtensionSourceFileTests.swift
-//  
-//
-//  Created by Brad Fol on 8/7/23.
+// Copyright © Block, Inc. All rights reserved.
 //
 
 @testable import KnitCodeGen
