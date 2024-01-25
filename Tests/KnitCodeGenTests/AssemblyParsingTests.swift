@@ -63,6 +63,24 @@ final class AssemblyParsingTests: XCTestCase {
         })
     }
 
+    func testElseInOtherStatements() throws {
+        let sourceFile: SourceFileSyntax = """
+            class FooTestAssembly: Assembly { }
+
+            func randomFunction() -> Bool {
+                #if DEBUG
+                return true
+                #else
+                return false
+                #endif
+            }
+            """
+        
+        // Check that no errors occur
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.registrations.count, 0, "No registrations")
+    }
+
     func testTestableImport() throws {
         // Unclear if this is a use case we care about, but we will retain attributes before the import statement
         let sourceFile: SourceFileSyntax = """

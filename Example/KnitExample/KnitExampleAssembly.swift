@@ -40,6 +40,15 @@ final class KnitExampleAssembly: Assembly {
         #endif
     }
 
+    // Used to test #else statements being used outside of registrations
+    static func exampleGatedFunction() -> Bool {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }
+
 }
 
 // MARK: - Example services
