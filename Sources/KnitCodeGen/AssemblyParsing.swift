@@ -31,6 +31,9 @@ public func parseAssemblies(
         )
         configs.append(configuration)
         printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
+        if errorsToPrint.count > 0 {
+            throw AssemblyParsingError.parsingError
+        }
     }
     return ConfigurationSet(assemblies: configs)
 }
@@ -230,6 +233,7 @@ extension NamedDeclSyntax {
 enum AssemblyParsingError: Error {
     case fileReadError(Error, path: String)
     case missingModuleName
+    case parsingError
 }
 
 extension AssemblyParsingError: LocalizedError {
@@ -245,6 +249,8 @@ extension AssemblyParsingError: LocalizedError {
         case .missingModuleName:
             return "Cannot generate unit test source file without a module name. " +
                 "Is your Assembly file setup correctly?"
+        case .parsingError:
+            return "There were one or more errors parsing the assembly file"
         }
     }
 
