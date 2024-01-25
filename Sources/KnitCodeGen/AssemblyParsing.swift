@@ -79,7 +79,7 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
     private(set) var assemblyErrors: [Error] = []
     
     /// For any imports parsed, this #if condition should be applied when it is used
-    var currentIfConfigCondition: ExprSyntax?
+    var currentIfConfigCondition: IfConfigVisitorCondition?
 
     var registrations: [Registration] {
         return classDeclVisitor?.registrations ?? []
@@ -110,22 +110,21 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
     }
 
     override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
+        if let error = currentIfConfigCondition?.error {
+            assemblyErrors.append(error)
+            return .skipChildren
+        }
         imports.append(
             ModuleImport(
                 decl: node.trimmed,
-                ifConfigCondition: currentIfConfigCondition
+                ifConfigCondition: currentIfConfigCondition?.condition
             )
         )
         return .skipChildren
     }
 
     override func visit(_ node: IfConfigClauseSyntax) -> SyntaxVisitorContinueKind {
-        do {
-            return try self.visitIfNode(node)
-        } catch {
-            assemblyErrors.append(error)
-            return .skipChildren
-        }
+        return self.visitIfNode(node)
     }
 
     private func visitAssemblyType(_ node: NamedDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -163,7 +162,7 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     private(set) var targetResolver: String?
 
     /// For any registrations parsed, this #if condition should be applied when it is used
-    var currentIfConfigCondition: ExprSyntax?
+    var currentIfConfigCondition: IfConfigVisitorCondition?
 
     init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives) {
         self.directives = directives
@@ -171,11 +170,15 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if let error = currentIfConfigCondition?.error {
+            registrationErrors.append(error)
+            return .skipChildren
+        }
         do {
             var (registrations, registrationsIntoCollections) = try node.getRegistrations(defaultDirectives: directives)
             registrations = registrations.map { registration in
                 var mutable = registration
-                mutable.ifConfigCondition = currentIfConfigCondition
+                mutable.ifConfigCondition = currentIfConfigCondition?.condition
                 return mutable
             }
             self.registrations.append(contentsOf: registrations)
@@ -202,12 +205,7 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     }
 
     override func visit(_ node: IfConfigClauseSyntax) -> SyntaxVisitorContinueKind {
-        do {
-            return try self.visitIfNode(node)
-        } catch {
-            registrationErrors.append(error)
-            return .skipChildren
-        }
+        return self.visitIfNode(node)
     }
 
 }
@@ -275,23 +273,50 @@ func printErrors(_ errors: [Error], filePath: String, syntaxTree: SyntaxProtocol
 /// Visitor that is able to wrap children inside an #if block
 protocol IfConfigVisitor: AnyObject {
     /// For any children parsed, this should be #if condition should be applied when it is used
-    var currentIfConfigCondition: ExprSyntax? { get set }
+    var currentIfConfigCondition: IfConfigVisitorCondition? { get set }
     func walk(_ node: some SyntaxProtocol)
 }
 
+/// #if statements will either be accepted or stored as an error in case they are used later
+enum IfConfigVisitorCondition {
+    case syntax(ExprSyntax)
+    case invalid(RegistrationParsingError)
+
+    var condition: ExprSyntax? {
+        switch self {
+        case .syntax(let exprSyntax): return exprSyntax
+        case .invalid:
+            return nil
+        }
+    }
+
+    var error: RegistrationParsingError? {
+        switch self {
+        case .syntax:
+            return nil
+        case .invalid(let registrationParsingError):
+            return registrationParsingError
+        }
+    }
+}
+
 extension IfConfigVisitor {
-    func visitIfNode(_ node: IfConfigClauseSyntax) throws -> SyntaxVisitorContinueKind {
+    func visitIfNode(_ node: IfConfigClauseSyntax) -> SyntaxVisitorContinueKind {
         // Allowing for #else creates a link between the registration inside the #if and those in the #else
         // This greatly increases the complexity of handling #if so raise an error when #else is used
         if node.poundKeyword.text.contains("#else") {
-            throw RegistrationParsingError.invalidIfConfig(syntax: node, text: node.poundKeyword.text)
+            let error = RegistrationParsingError.invalidIfConfig(syntax: node, text: node.poundKeyword.text)
+            self.currentIfConfigCondition = .invalid(error)
+        } else if self.currentIfConfigCondition != nil {
+            // Raise an error for nested #if statements
+            let error = RegistrationParsingError.nestedIfConfig(syntax: node)
+            self.currentIfConfigCondition = .invalid(error)
+        } else if let condition = node.condition {
+            // Set the if condition
+            self.currentIfConfigCondition = .syntax(condition)
         }
-        // Raise an error for nested if statements
-        if self.currentIfConfigCondition != nil {
-            throw RegistrationParsingError.nestedIfConfig(syntax: node)
-        }
-        // Set the condition and walk the children
-        self.currentIfConfigCondition = node.condition
+
+        // Walk even if errors are found, they may not be relevant
         node.children(viewMode: .sourceAccurate).forEach { syntax in
             walk(syntax)
         }
