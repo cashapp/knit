@@ -29,25 +29,25 @@ final class TypeSafetySourceFileTests: XCTestCase {
         // Generated from ModuleAssembly
         extension Resolve {
             func serviceA() -> ServiceA {
-                self.resolve(ServiceA.self)!
+                knitUnwrap(resolve(ServiceA.self))
             }
             public func callAsFunction() -> ServiceD {
-                self.resolve(ServiceD.self)!
+                knitUnwrap(resolve(ServiceD.self))
             }
             public func serviceD() -> ServiceD {
-                self.resolve(ServiceD.self)!
+                knitUnwrap(resolve(ServiceD.self))
             }
             public func serviceE(closure: @escaping () -> Void) -> ServiceE {
-                self.resolve(ServiceE.self, argument: closure)!
+                knitUnwrap(resolve(ServiceE.self, argument: closure))
             }
             public func serviceF() -> ServiceF {
-                self.resolve(ServiceF.self)!
+                knitUnwrap(resolve(ServiceF.self))
             }
             public func stringInt() -> (String, Int?) {
-                self.resolve((String, Int?).self)!
+                knitUnwrap(resolve((String, Int?).self))
             }
             func serviceB(name: ModuleAssembly.ServiceB_ResolutionKey) -> ServiceB {
-                self.resolve(ServiceB.self, name: name.rawValue)!
+                knitUnwrap(resolve(ServiceB.self, name: name.rawValue))
             }
         }
         extension ModuleAssembly {
@@ -70,7 +70,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ).formatted().description,
             """
             public func callAsFunction(string: String, url: URL) -> A {
-                self.resolve(A.self, arguments: string, url)!
+                knitUnwrap(resolve(A.self, arguments: string, url))
             }
             """
         )
@@ -85,7 +85,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ).formatted().description,
             """
             public func callAsFunction(string: String) -> A {
-                self.resolve(A.self, argument: string)!
+                knitUnwrap(resolve(A.self, argument: string))
             }
             """
         )
@@ -100,7 +100,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ).formatted().description,
             """
             public func callAsFunction(string1: String, string2: String) -> A {
-                self.resolve(A.self, arguments: string1, string2)!
+                knitUnwrap(resolve(A.self, arguments: string1, string2))
             }
             """
         )
@@ -115,7 +115,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ).formatted().description,
             """
             public func callAsFunction(name: MyAssembly.A_ResolutionKey, string: String) -> A {
-                self.resolve(A.self, name: name.rawValue, argument: string)!
+                knitUnwrap(resolve(A.self, name: name.rawValue, argument: string))
             }
             """
         )
@@ -130,7 +130,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ).formatted().description,
             """
             public func callAsFunction(arg: String) -> A {
-                self.resolve(A.self, argument: arg)!
+                knitUnwrap(resolve(A.self, argument: arg))
             }
             """
         )
@@ -147,7 +147,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             """
             #if SOME_FLAG
             public func callAsFunction() -> A {
-                self.resolve(A.self)!
+                knitUnwrap(resolve(A.self))
             }
             #endif
             """

@@ -2,15 +2,20 @@
 // Copyright © Block, Inc. All rights reserved.
 //
 
+import Knit
+import Swinject
 import SwiftUI
 
 struct ContentView: View {
+
+    let resolver: Resolver
+
     var body: some View {
         VStack {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundColor(.accentColor)
-            Text("Hello, world!")
+            Text(resolver.exampleService().title)
         }
         .padding()
     }
@@ -18,6 +23,7 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        let resolver = ModuleAssembler([KnitExampleAssembly()]).resolver
+        return ContentView(resolver: resolver)
     }
 }

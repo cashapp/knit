@@ -14,4 +14,7 @@ final class KnitExampleUserAssembly: Assembly {
     }
 }
 
-final class UserService {}
+final class UserService {
+
+    var username: String = "John"
+}

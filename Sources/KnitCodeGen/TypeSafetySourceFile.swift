@@ -69,7 +69,7 @@ public enum TypeSafetySourceFile {
         }
 
         let function = try FunctionDeclSyntax("\(raw: modifier)func \(raw: funcName)(\(raw: inputs)) -> \(raw: registration.service)") {
-            "self.resolve(\(raw: usages))!"
+            "knitUnwrap(resolve(\(raw: usages)))"
         }
 
         // Wrap the output in an #if where needed
