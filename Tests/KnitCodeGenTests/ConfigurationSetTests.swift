@@ -25,22 +25,22 @@ final class ConfigurationSetTests: XCTestCase {
             // Generated from Module1Assembly
             extension Resolver {
                 public func service1() -> Service1 {
-                    self.resolve(Service1.self)!
+                    knitUnwrap(resolve(Service1.self))
                 }
             }
             // Generated from Module2Assembly
             extension Resolver {
                 func callAsFunction() -> Service2 {
-                    self.resolve(Service2.self)!
+                    knitUnwrap(resolve(Service2.self))
                 }
                 func argumentService(string: String) -> ArgumentService {
-                    self.resolve(ArgumentService.self, argument: string)!
+                    knitUnwrap(resolve(ArgumentService.self, argument: string))
                 }
             }
             // Generated from Module3Assembly
             extension Resolver {
                 public func service3() -> Service3 {
-                    self.resolve(Service3.self)!
+                    knitUnwrap(resolve(Service3.self))
                 }
             }
             """

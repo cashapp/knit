@@ -57,6 +57,8 @@ final class NamedService {}
 
 final class ExampleService {
     init() { }
+
+    var title: String { "Example String" }
 }
 
 final class ExampleArgumentService {
