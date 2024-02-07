@@ -13,7 +13,7 @@ final class AssemblyParsingTests: XCTestCase {
         let sourceFile: SourceFileSyntax = """
             import A
             import B // Comment after import should be stripped
-            class FooTestAssembly: Assembly { }
+            class FooTestAssembly: ModuleAssembly { }
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
@@ -25,6 +25,7 @@ final class AssemblyParsingTests: XCTestCase {
             ]
         )
         XCTAssertEqual(config.registrations.count, 0, "No registrations")
+        XCTAssertEqual(config.assemblyType, "ModuleAssembly")
     }
 
     func testDebugWrappedAssemblyImports() throws {
@@ -108,6 +109,7 @@ final class AssemblyParsingTests: XCTestCase {
 
         let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.name, "FooTest")
+        XCTAssertEqual(config.assemblyType, "Assembly")
     }
 
     func testAssemblyStructModuleName() throws {

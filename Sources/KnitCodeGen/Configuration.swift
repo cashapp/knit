@@ -9,6 +9,7 @@ public struct Configuration: Encodable {
 
     /// Name of the module for this configuration.
     public var name: String
+    public var assemblyType: String
 
     public var registrations: [Registration]
     public var registrationsIntoCollections: [RegistrationIntoCollection]
@@ -18,12 +19,14 @@ public struct Configuration: Encodable {
 
     public init(
         name: String,
+        assemblyType: String = "Assembly",
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
         imports: [ModuleImport] = [],
         targetResolver: String
     ) {
         self.name = name
+        self.assemblyType = assemblyType
         self.registrations = registrations
         self.registrationsIntoCollections = registrationsIntoCollections
         self.imports = imports
@@ -32,6 +35,7 @@ public struct Configuration: Encodable {
 
     public enum CodingKeys: CodingKey {
         case name
+        case assemblyType
         case registrations
     }
 
@@ -48,10 +52,6 @@ public extension Configuration {
     }
 
     func makeUnitTestSourceFile() throws -> SourceFileSyntax {
-        var allImports = imports
-        allImports.append(try .testable(name: name))
-        allImports.append(try .named("XCTest"))
-
         return try UnitTestSourceFile.make(
             configuration: self
         )
