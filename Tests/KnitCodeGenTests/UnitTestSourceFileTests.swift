@@ -234,6 +234,10 @@ private extension UnitTestSourceFile {
             imports: importDecls,
             targetResolver: "Resolver"
         )
-        return try UnitTestSourceFile.make(configuration: configuration)
+        return try UnitTestSourceFile.make(
+            configuration: configuration,
+            testAssemblerClass: configuration.assemblyName,
+            isAdditionalTest: false
+        )
     }
 }

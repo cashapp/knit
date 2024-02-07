@@ -26,6 +26,7 @@ final class AssemblyParsingTests: XCTestCase {
         )
         XCTAssertEqual(config.registrations.count, 0, "No registrations")
         XCTAssertEqual(config.assemblyType, "ModuleAssembly")
+        XCTAssertEqual(config.assemblyShortName, "FooTest")
     }
 
     func testDebugWrappedAssemblyImports() throws {

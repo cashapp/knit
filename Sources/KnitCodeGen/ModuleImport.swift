@@ -67,7 +67,11 @@ public struct ModuleImportSet {
             imports.append(imp)
         }
     }
-    
+
+    mutating func insert(contentsOf newElements: [ModuleImport]) {
+        newElements.forEach { insert($0) }
+    }
+
     /// Imports sorted by name
     var sorted: [ModuleImport] {
         return imports.sorted { import1, import2 in

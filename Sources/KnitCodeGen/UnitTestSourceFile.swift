@@ -8,22 +8,33 @@ import SwiftSyntaxBuilder
 public enum UnitTestSourceFile {
 
     public static func make(
-        configuration: Configuration
+        configuration: Configuration,
+        testAssemblerClass: String,
+        isAdditionalTest: Bool
     ) throws -> SourceFileSyntax {
         let withArguments = configuration.registrations.filter { !$0.arguments.isEmpty }
         let hasArguments = !withArguments.isEmpty
+
+        let registrationToGenerate: [Registration]
+        if isAdditionalTest {
+            // Filter out registrations not supported for full testing
+            registrationToGenerate = configuration.registrationsCompatibleWithCompleteTests
+        } else {
+            registrationToGenerate = configuration.registrations
+        }
+
         return try SourceFileSyntax() {
-            try ClassDeclSyntax("final class \(raw: configuration.moduleName)RegistrationTests: XCTestCase") {
+            try ClassDeclSyntax("final class \(raw: configuration.assemblyShortName)RegistrationTests: XCTestCase") {
 
                 try FunctionDeclSyntax("func testRegistrations()") {
 
                     DeclSyntax("""
                         // In the test target for your module, please provide a static method that creates a
                         // ModuleAssembler instance for testing.
-                        let assembler = \(raw: configuration.assemblyName).makeAssemblerForTests()
+                        let assembler = \(raw: testAssemblerClass).makeAssemblerForTests()
                         """)
 
-                    if hasArguments {
+                    if hasArguments && !isAdditionalTest {
                         DeclSyntax("""
                             // In the test target for your module, please provide a static method that provides
                             // an instance of \(raw: configuration.moduleName)RegistrationTestArguments
@@ -37,7 +48,7 @@ public enum UnitTestSourceFile {
                         DeclSyntax("let resolver = assembler.resolver")
                     }
 
-                    for registration in configuration.registrations {
+                    for registration in registrationToGenerate {
                         makeAssertCall(registration: registration)
                     }
 

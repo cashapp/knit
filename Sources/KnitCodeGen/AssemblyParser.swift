@@ -23,33 +23,48 @@ public struct AssemblyParser {
     }
 
     public func parseAssemblies(
-        at paths: [String]
+        at paths: [String],
+        additionalPaths: [String]
     ) throws -> ConfigurationSet {
-        var configs = [Configuration]()
-        for path in paths {
-            let url = URL(fileURLWithPath: path, isDirectory: false)
-            var errorsToPrint = [Error]()
-
-            let source: String
-            do {
-                source = try String(contentsOf: url)
-            } catch {
-                throw AssemblyParsingError.fileReadError(error, path: path)
-            }
-            let syntaxTree = Parser.parse(source: source)
-            let configuration = try parseSyntaxTree(
-                syntaxTree,
+        let configs = try paths.compactMap { path in
+            return try parse(
                 path: path,
-                errorsToPrint: &errorsToPrint
+                defaultTargetResolver: defaultTargetResolver,
+                useTargetResolver: useTargetResolver
             )
-            guard let configuration else { continue }
-            configs.append(configuration)
-            printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
-            if errorsToPrint.count > 0 {
-                throw AssemblyParsingError.parsingError
-            }
         }
-        return ConfigurationSet(assemblies: configs)
+        let additionalConfigs = try additionalPaths.compactMap { path in
+            return try parse(
+                path: path,
+                defaultTargetResolver: defaultTargetResolver,
+                useTargetResolver: useTargetResolver
+            )
+        }
+
+        return ConfigurationSet(assemblies: configs, additionalAssemblies: additionalConfigs)
+    }
+
+    private func parse(path: String, defaultTargetResolver: String, useTargetResolver: Bool) throws -> Configuration? {
+        let url = URL(fileURLWithPath: path, isDirectory: false)
+        var errorsToPrint = [Error]()
+
+        let source: String
+        do {
+            source = try String(contentsOf: url)
+        } catch {
+            throw AssemblyParsingError.fileReadError(error, path: path)
+        }
+        let syntaxTree = Parser.parse(source: source)
+        let configuration = try parseSyntaxTree(
+            syntaxTree,
+            path: path,
+            errorsToPrint: &errorsToPrint
+        )
+        printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
+        if errorsToPrint.count > 0 {
+            throw AssemblyParsingError.parsingError
+        }
+        return configuration
     }
 
     func parseSyntaxTree(
