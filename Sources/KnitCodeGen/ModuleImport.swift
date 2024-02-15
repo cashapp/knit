@@ -9,23 +9,36 @@ public struct ModuleImport {
     let decl: ImportDeclSyntax
     let ifConfigCondition: ExprSyntax?
     let name: String
+
+    // To protect performance this should not be computed as it will be read potentially many times
     let isTestable: Bool
 
     init(decl: ImportDeclSyntax, ifConfigCondition: ExprSyntax? = nil) {
         self.decl = decl
         self.ifConfigCondition = ifConfigCondition
-        let desc = decl.description
-        self.name = String(desc.split(separator: " ").last!)
-        self.isTestable = desc.hasPrefix("@testable")
+        self.name = decl.path.description
+        self.isTestable = decl.attributes.contains { element in
+            switch element {
+            case .attribute(let attribute):
+                return attribute.attributeName.trimmed.description == "testable"
 
+            case .ifConfigDecl:
+                return false
+            }
+        }
     }
 
     var description: String {
         return decl.description
     }
 
+    // MARK: - Static Make Conveniences
+
     static func named(_ name: String) -> ModuleImport {
-        let decl = try! ImportDeclSyntax("import \(raw: name)")
+        let decl = ImportDeclSyntax(
+            importKeyword: .keyword(.import, trailingTrivia: .space),
+            path: [ImportPathComponentSyntax(name: .identifier(name))]
+        )
         return ModuleImport(decl: decl)
     }
 
@@ -35,8 +48,8 @@ public struct ModuleImport {
     }
 }
 
-/// Container that allows inserting import statements to prevent duplicates
-/// Adding a @testable import will replace the existing non testable import
+/// Set that allows inserting import statements to prevent duplicates.
+/// Inserting a @testable import will replace the existing non testable import.
 public struct ModuleImportSet {
     private var imports: [ModuleImport] = []
 
@@ -44,6 +57,7 @@ public struct ModuleImportSet {
         imports.forEach { insert($0) }
     }
     
+    /// Inserting a @testable import will replace the existing non testable import.
     mutating func insert(_ imp: ModuleImport) {
         if let existingIndex = imports.firstIndex(where: { $0.name == imp.name}) {
             if imp.isTestable {

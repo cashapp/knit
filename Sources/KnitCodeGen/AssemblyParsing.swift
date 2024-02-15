@@ -336,7 +336,7 @@ extension IfConfigVisitor {
     func visitIfNode(_ node: IfConfigClauseSyntax) -> SyntaxVisitorContinueKind {
         // Allowing for #else creates a link between the registration inside the #if and those in the #else
         // This greatly increases the complexity of handling #if so raise an error when #else is used
-        if node.poundKeyword.text.contains("#else") {
+        if node.poundKeyword.tokenKind == .poundElse {
             let error = RegistrationParsingError.invalidIfConfig(syntax: node, text: node.poundKeyword.text)
             self.currentIfConfigCondition = .invalid(error)
         } else if self.currentIfConfigCondition != nil {

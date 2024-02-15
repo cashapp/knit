@@ -147,7 +147,7 @@ private func makeRegistrationFor(
 ) throws -> Registration? {
     guard let firstParam = arguments.first?.as(LabeledExprSyntax.self)?
         .expression.as(MemberAccessExprSyntax.self) else { return nil }
-    guard firstParam.declName.baseName.text == "self" else { return nil }
+    guard firstParam.declName.baseName.tokenKind == .keyword(.`self`) else { return nil }
 
     let registrationText = firstParam.base!.trimmed.description
     let name = try getName(arguments: arguments)
@@ -175,7 +175,7 @@ private func makeRegistrationIntoCollection(
 ) -> RegistrationIntoCollection? {
     guard let firstParam = arguments.first?.as(LabeledExprSyntax.self)?
         .expression.as(MemberAccessExprSyntax.self) else { return nil }
-    guard firstParam.declName.baseName.text == "self" else { return nil }
+    guard firstParam.declName.baseName.tokenKind == .keyword(.`self`) else { return nil }
 
     let registrationText = firstParam.base!.trimmed.description
     return RegistrationIntoCollection(service: registrationText)
@@ -249,14 +249,14 @@ private func getArguments(
         let params = closureParameters.parameters
         // The first param is the resolver, everything after that is an argument
         return try params[params.index(after: params.startIndex)..<params.endIndex].compactMap { element in
-            let identifier = element.firstName.text
+            let firstName = element.firstName
             guard let type = getArgumentType(arg: element) else {
                 throw RegistrationParsingError.missingArgumentType(syntax: element, name: element.firstName.text)
             }
-            if identifier == "_" {
+            if firstName.tokenKind == .wildcard {
                 return .init(identifier: nil, type: type)
             } else {
-                return .init(identifier: identifier, type: type)
+                return .init(identifier: firstName.text, type: type)
             }
         }
     }
@@ -266,14 +266,16 @@ private func getArguments(
 
 private func getArgumentType(arg: LabeledExprSyntax) -> String? {
     return arg.expression.as(MemberAccessExprSyntax.self)?.base?.description
-        .replacingOccurrences(of: "@escaping", with: " ")
         .trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 private func getArgumentType(arg: ClosureParameterSyntax) -> String? {
-    return arg.type?.description
-        .replacingOccurrences(of: "@escaping", with: " ")
-        .trimmingCharacters(in: .whitespacesAndNewlines)
+    if arg.type?.is(AttributedTypeSyntax.self) == true {
+        return arg.type!.as(AttributedTypeSyntax.self)!
+            .with(\.attributes, []) // Clear any attributes
+            .description.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    return arg.type?.description.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 enum RegistrationParsingError: LocalizedError, SyntaxError {
