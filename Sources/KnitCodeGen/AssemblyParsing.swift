@@ -51,6 +51,10 @@ func parseSyntaxTree(
         throw AssemblyParsingError.missingModuleName
     }
 
+    guard let assemblyType = assemblyFileVisitor.assemblyType else {
+        throw AssemblyParsingError.missingAssemblyType
+    }
+
     errorsToPrint.append(contentsOf: assemblyFileVisitor.assemblyErrors)
     errorsToPrint.append(contentsOf: assemblyFileVisitor.registrationErrors)
 
@@ -63,6 +67,7 @@ func parseSyntaxTree(
 
     return Configuration(
         name: name,
+        assemblyType: assemblyType,
         registrations: assemblyFileVisitor.registrations,
         registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
         imports: assemblyFileVisitor.imports,
@@ -76,6 +81,8 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
     private(set) var imports = [ModuleImport]()
 
     private(set) var moduleName: String?
+
+    private(set) var assemblyType: String?
 
     private var classDeclVisitor: ClassDeclVisitor?
 
@@ -105,11 +112,11 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
     }
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        return visitAssemblyType(node)
+        return visitAssemblyType(node, node.inheritanceClause)
     }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        return visitAssemblyType(node)
+        return visitAssemblyType(node, node.inheritanceClause)
     }
 
     override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -130,7 +137,7 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
         return self.visitIfNode(node)
     }
 
-    private func visitAssemblyType(_ node: NamedDeclSyntax) -> SyntaxVisitorContinueKind {
+    private func visitAssemblyType(_ node: NamedDeclSyntax, _ inheritance: InheritanceClauseSyntax?) -> SyntaxVisitorContinueKind {
         guard classDeclVisitor == nil else {
             // Only the first class declaration should be visited
             return .skipChildren
@@ -143,6 +150,10 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
         }
 
         moduleName = node.moduleNameForAssembly
+        let inheritedTypes = inheritance?.inheritedTypes.map {
+            $0.type.description.trimmingCharacters(in: .whitespaces)
+        }
+        self.assemblyType = inheritedTypes?.first(where: { $0.hasSuffix("Assembly")})
         classDeclVisitor = ClassDeclVisitor(viewMode: .fixedUp, directives: directives)
         classDeclVisitor?.walk(node)
         return .skipChildren
@@ -233,6 +244,7 @@ extension NamedDeclSyntax {
 enum AssemblyParsingError: Error {
     case fileReadError(Error, path: String)
     case missingModuleName
+    case missingAssemblyType
     case parsingError
 }
 
@@ -251,6 +263,8 @@ extension AssemblyParsingError: LocalizedError {
                 "Is your Assembly file setup correctly?"
         case .parsingError:
             return "There were one or more errors parsing the assembly file"
+        case .missingAssemblyType:
+            return "Assembly files must inherit from an *Assembly type"
         }
     }
 
