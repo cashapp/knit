@@ -23,6 +23,11 @@ final class KnitDirectivesTests: XCTestCase {
             try parse("@knit hidden"),
             .init(accessLevel: .hidden, getterConfig: [])
         )
+
+        XCTAssertEqual(
+            try parse("@knit ignore"),
+            .init(accessLevel: .ignore, getterConfig: [])
+        )
     }
 
     func testKnitPrefix() {

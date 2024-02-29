@@ -22,6 +22,7 @@ The following commands are available:
 * `public`: Make the type safe function(s) public (default is internal).
 * `internal`: Make the type safe function(s) internal. This is a useful override when the assembly is set to `public`.
 * `hidden`: Do not generate any type safe function.
+* `ignore`: Completely ignore this assembly or registration
 
 #### Examples:
 

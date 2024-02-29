@@ -29,6 +29,7 @@ public func parseAssemblies(
             defaultTargetResolver: defaultTargetResolver,
             useTargetResolver: useTargetResolver
         )
+        guard let configuration else { continue }
         configs.append(configuration)
         printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
         if errorsToPrint.count > 0 {
@@ -43,9 +44,11 @@ func parseSyntaxTree(
     errorsToPrint: inout [Error],
     defaultTargetResolver: String,
     useTargetResolver: Bool
-) throws -> Configuration {
+) throws -> Configuration? {
     let assemblyFileVisitor = AssemblyFileVisitor()
     assemblyFileVisitor.walk(syntaxTree)
+    
+    if assemblyFileVisitor.ignoreAssembly { return nil }
 
     guard let name = assemblyFileVisitor.moduleName else {
         throw AssemblyParsingError.missingModuleName
@@ -83,6 +86,8 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
     private(set) var moduleName: String?
 
     private(set) var assemblyType: String?
+
+    private(set) var ignoreAssembly: Bool = false
 
     private var classDeclVisitor: ClassDeclVisitor?
 
@@ -144,7 +149,14 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
         }
         var directives: KnitDirectives = .empty
         do {
-             directives = try KnitDirectives.parse(leadingTrivia: node.leadingTrivia)
+            directives = try KnitDirectives.parse(leadingTrivia: node.leadingTrivia)
+
+            if directives.accessLevel == .ignore {
+                // Entire assembly is marked as ignore, stop parsing
+                ignoreAssembly = true
+                return .skipChildren
+            }
+
         } catch {
             assemblyErrors.append(error)
         }
@@ -195,7 +207,8 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
                 mutable.ifConfigCondition = currentIfConfigCondition?.condition
                 return mutable
             }
-            self.registrations.append(contentsOf: registrations)
+            let nonIgnoredRegistrations = registrations.filter { $0.accessLevel != .ignore }
+            self.registrations.append(contentsOf: nonIgnoredRegistrations)
             self.registrationsIntoCollections.append(contentsOf: registrationsIntoCollections)
         } catch {
             registrationErrors.append(error)

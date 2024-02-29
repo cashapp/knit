@@ -15,7 +15,7 @@ public enum TypeSafetySourceFile {
     ) throws -> SourceFileSyntax {
         let visibleRegistrations = allRegistrations.filter {
             // Exclude hidden registrations always
-            $0.accessLevel != .hidden
+            $0.accessLevel != .hidden && $0.accessLevel != .ignore
         }
         let unnamedRegistrations = visibleRegistrations.filter { $0.name == nil }
         let namedGroups = NamedRegistrationGroup.make(from: visibleRegistrations)
