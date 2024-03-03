@@ -111,6 +111,7 @@ public enum AccessLevel: String, CaseIterable, Codable {
     case `public`
     case `internal`
     case hidden
+    case ignore
 
     /// Centralized control of the default behavior.
     public static var `default`: AccessLevel = .internal

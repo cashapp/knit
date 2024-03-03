@@ -426,6 +426,40 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
+    func testIgnoredConfiguration() throws {
+        let sourceFile: SourceFileSyntax = """
+            // @knit ignore
+            class MyAssembly: Assembly {
+                typealias TargetResolver = TestResolver
+            }
+        """
+        var errorsToPrint = [Error]()
+
+        let configuration = try parseSyntaxTree(
+            sourceFile,
+            errorsToPrint: &errorsToPrint,
+            defaultTargetResolver: "Resolver",
+            useTargetResolver: true
+        )
+
+        XCTAssertEqual(errorsToPrint.count, 0)
+        XCTAssertNil(configuration)
+    }
+
+    func testIgnoredRegistration() throws {
+        let sourceFile: SourceFileSyntax = """
+            class MyAssembly: Assembly {
+                func assemble(container: Container) {
+                    // @knit ignore
+                    container.register(A.self) { }
+                }
+            }
+        """
+        
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.registrations.count, 0)
+    }
+
 }
 
 private func assertParsesSyntaxTree(
@@ -450,5 +484,5 @@ private func assertParsesSyntaxTree(
         XCTAssertEqual(errorsToPrint.count, 0, file: file, line: line)
     }
 
-    return configuration
+    return try XCTUnwrap(configuration)
 }
