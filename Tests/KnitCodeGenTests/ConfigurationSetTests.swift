@@ -155,6 +155,7 @@ private enum Factory {
 
     static let config2 = Configuration(
         name: "Module2",
+        role: .secondary,
         registrations: [
             .init(service: "Service2", accessLevel: .internal, getterConfig: [.callAsFunction]),
             .init(service: "ArgumentService", accessLevel: .internal, arguments: [.init(type: "String")])

@@ -12,8 +12,12 @@ public struct ConfigurationSet {
     public let assemblies: [Configuration]
 
     public var primaryAssembly: Configuration {
-        // There must be at least 1 assembly and the first is treated as primary
-        return assemblies[0]
+        let primaries = assemblies.filter({ $0.role == .primary })
+        if primaries.count != 1 {
+            fatalError("Found \(primaries.count) primary assemblies. Only 1 primary assembly is supported")
+        }
+        // There must be exactly 1 primary assembly
+        return primaries[0]
     }
 
     public func writeGeneratedFiles(

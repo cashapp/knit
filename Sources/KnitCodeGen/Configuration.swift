@@ -10,6 +10,7 @@ public struct Configuration: Encodable {
     /// Name of the module for this configuration.
     public var name: String
     public var assemblyType: String
+    public var role: AssemblyRole
 
     public var registrations: [Registration]
     public var registrationsIntoCollections: [RegistrationIntoCollection]
@@ -20,12 +21,14 @@ public struct Configuration: Encodable {
     public init(
         name: String,
         assemblyType: String = "Assembly",
+        role: AssemblyRole = .primary,
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
         imports: [ModuleImport] = [],
         targetResolver: String
     ) {
         self.name = name
+        self.role = role
         self.assemblyType = assemblyType
         self.registrations = registrations
         self.registrationsIntoCollections = registrationsIntoCollections
@@ -35,6 +38,7 @@ public struct Configuration: Encodable {
 
     public enum CodingKeys: CodingKey {
         case name
+        case role
         case assemblyType
         case registrations
     }

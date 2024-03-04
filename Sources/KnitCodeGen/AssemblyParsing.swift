@@ -71,6 +71,7 @@ func parseSyntaxTree(
     return Configuration(
         name: name,
         assemblyType: assemblyType,
+        role: assemblyFileVisitor.directives.role ?? .primary,
         registrations: assemblyFileVisitor.registrations,
         registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
         imports: assemblyFileVisitor.imports,
@@ -92,7 +93,9 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
     private var classDeclVisitor: ClassDeclVisitor?
 
     private(set) var assemblyErrors: [Error] = []
-    
+
+    private(set) var directives: KnitDirectives = .empty
+
     /// For any imports parsed, this #if condition should be applied when it is used
     var currentIfConfigCondition: IfConfigVisitorCondition?
 
@@ -147,7 +150,6 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
             // Only the first class declaration should be visited
             return .skipChildren
         }
-        var directives: KnitDirectives = .empty
         do {
             directives = try KnitDirectives.parse(leadingTrivia: node.leadingTrivia)
 

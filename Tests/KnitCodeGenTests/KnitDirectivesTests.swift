@@ -91,6 +91,23 @@ final class KnitDirectivesTests: XCTestCase {
         )
     }
 
+    func testAssemblyRole() {
+        XCTAssertEqual(
+            try parse("// @knit secondary"),
+            .init(role: .secondary)
+        )
+
+        XCTAssertEqual(
+            try parse("// @knit primary"),
+            .init(role: .primary)
+        )
+
+        XCTAssertEqual(
+            try parse("// @knit getter-named secondary"),
+            .init(getterConfig: [.identifiedGetter(nil)], role: .secondary)
+        )
+    }
+
     private func parse(_ comment: String) throws -> KnitDirectives {
         let trivia = Trivia(pieces: [.lineComment(comment)])
         return try KnitDirectives.parse(leadingTrivia: trivia)
