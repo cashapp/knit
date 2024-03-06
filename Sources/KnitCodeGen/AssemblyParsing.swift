@@ -48,7 +48,7 @@ func parseSyntaxTree(
     let assemblyFileVisitor = AssemblyFileVisitor()
     assemblyFileVisitor.walk(syntaxTree)
     
-    if assemblyFileVisitor.ignoreAssembly { return nil }
+    if assemblyFileVisitor.directives.accessLevel == .ignore { return nil }
 
     guard let name = assemblyFileVisitor.moduleName else {
         throw AssemblyParsingError.missingModuleName
@@ -70,6 +70,7 @@ func parseSyntaxTree(
 
     return Configuration(
         name: name,
+        directives: assemblyFileVisitor.directives,
         assemblyType: assemblyType,
         registrations: assemblyFileVisitor.registrations,
         registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
@@ -87,7 +88,7 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
 
     private(set) var assemblyType: String?
 
-    private(set) var ignoreAssembly: Bool = false
+    private(set) var directives: KnitDirectives = .empty
 
     private var classDeclVisitor: ClassDeclVisitor?
 
@@ -147,13 +148,11 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
             // Only the first class declaration should be visited
             return .skipChildren
         }
-        var directives: KnitDirectives = .empty
         do {
             directives = try KnitDirectives.parse(leadingTrivia: node.leadingTrivia)
 
             if directives.accessLevel == .ignore {
                 // Entire assembly is marked as ignore, stop parsing
-                ignoreAssembly = true
                 return .skipChildren
             }
 

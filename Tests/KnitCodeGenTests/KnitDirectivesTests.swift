@@ -91,6 +91,26 @@ final class KnitDirectivesTests: XCTestCase {
         )
     }
 
+    func testModuleName() {
+        XCTAssertEqual(
+            try parse("// @knit module-name(\"Test\")"),
+            .init(moduleName: "Test")
+        )
+
+        XCTAssertEqual(
+            try parse("// @knit module-name(\"MyModuleName\")"),
+            .init(moduleName: "MyModuleName")
+        )
+
+        XCTAssertEqual(
+            try parse("// @knit getter-callAsFunction module-name(\"A\")"),
+            .init(getterConfig: [.callAsFunction], moduleName: "A")
+        )
+
+        XCTAssertThrowsError(try parse("// @knit module-name"))
+        XCTAssertThrowsError(try parse("// @knit module-name()"))
+    }
+
     private func parse(_ comment: String) throws -> KnitDirectives {
         let trivia = Trivia(pieces: [.lineComment(comment)])
         return try KnitDirectives.parse(leadingTrivia: trivia)

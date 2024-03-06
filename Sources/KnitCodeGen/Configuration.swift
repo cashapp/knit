@@ -9,6 +9,7 @@ public struct Configuration: Encodable {
 
     /// Name of the module for this configuration.
     public var name: String
+    public var directives: KnitDirectives
     public var assemblyType: String
 
     public var registrations: [Registration]
@@ -19,6 +20,7 @@ public struct Configuration: Encodable {
 
     public init(
         name: String,
+        directives: KnitDirectives = .init(),
         assemblyType: String = "Assembly",
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
@@ -26,6 +28,7 @@ public struct Configuration: Encodable {
         targetResolver: String
     ) {
         self.name = name
+        self.directives = directives
         self.assemblyType = assemblyType
         self.registrations = registrations
         self.registrationsIntoCollections = registrationsIntoCollections
@@ -35,8 +38,13 @@ public struct Configuration: Encodable {
 
     public enum CodingKeys: CodingKey {
         case name
+        case directives
         case assemblyType
         case registrations
+    }
+
+    public var moduleName: String {
+        return directives.moduleName ?? name
     }
 
 }
