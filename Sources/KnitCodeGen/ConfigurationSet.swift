@@ -55,7 +55,7 @@ public extension ConfigurationSet {
 
     func makeUnitTestSourceFile() throws -> String {
         var allImports = allImports
-        allImports.append(.testable(name: primaryAssembly.name))
+        allImports.append(.testable(name: primaryAssembly.moduleName))
         allImports.append(.named("XCTest"))
         let header = HeaderSourceFile.make(imports: sortImports(allImports), comment: nil)
         let body = try assemblies.map { try $0.makeUnitTestSourceFile() }

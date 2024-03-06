@@ -5,9 +5,20 @@
 import Foundation
 import SwiftSyntax
 
-struct KnitDirectives: Codable, Equatable {
-    let accessLevel: AccessLevel?
-    let getterConfig: Set<GetterConfig>
+public struct KnitDirectives: Codable, Equatable {
+    var accessLevel: AccessLevel?
+    var getterConfig: Set<GetterConfig>
+    var moduleName: String?
+
+    public init(
+        accessLevel: AccessLevel? = nil,
+        getterConfig: Set<GetterConfig> = [],
+        moduleName: String? = nil
+    ) {
+        self.accessLevel = accessLevel
+        self.getterConfig = getterConfig
+        self.moduleName = moduleName
+    }
 
     private static let directiveMarker = "@knit"
 
@@ -31,40 +42,50 @@ struct KnitDirectives: Codable, Equatable {
             return .empty
         }
         tokens = Array(tokens.dropFirst())
-
-        var accessLevel: AccessLevel?
-        var getterConfigs: Set<GetterConfig> = []
+        
+        var result = KnitDirectives()
 
         for token in tokens {
             let parsed = try parse(token: token)
             if let level = parsed.accessLevel {
-                accessLevel = level
+                result.accessLevel = level
             }
-            if let getter = parsed.getterConfig {
-                getterConfigs.insert(getter)
+            if let name = parsed.moduleName {
+                result.moduleName = name
+            }
+            for getter in parsed.getterConfig {
+                result.getterConfig.insert(getter)
             }
         }
 
-        return KnitDirectives(accessLevel: accessLevel, getterConfig: getterConfigs)
+        return result
     }
 
-    static func parse(token: String) throws -> (accessLevel: AccessLevel?, getterConfig: GetterConfig?) {
+    static func parse(token: String) throws -> KnitDirectives {
         if let accessLevel = AccessLevel(rawValue: token) {
-            return (accessLevel, nil)
+            return KnitDirectives(accessLevel: accessLevel)
         }
         if token == "getter-callAsFunction" {
-            return (nil, .callAsFunction)
+            return KnitDirectives(getterConfig: [.callAsFunction])
         }
         if let nameMatch = getterNamedRegex.firstMatch(in: token, range: NSMakeRange(0, token.count)) {
             if nameMatch.numberOfRanges >= 2, nameMatch.range(at: 1).location != NSNotFound {
                 var range = nameMatch.range(at: 1)
                 range = NSRange(location: range.location + 2, length: range.length - 4)
                 let name = (token as NSString).substring(with: range)
-                return (nil, .identifiedGetter(name))
+                return KnitDirectives(getterConfig: [.identifiedGetter(name)])
             }
-            return (nil, .identifiedGetter(nil))
+            return KnitDirectives(getterConfig: [.identifiedGetter(nil)])
         }
-        
+        if let nameMatch = moduleNameRegex.firstMatch(in: token, range: NSMakeRange(0, token.count)) {
+            if nameMatch.numberOfRanges >= 2, nameMatch.range(at: 1).location != NSNotFound {
+                var range = nameMatch.range(at: 1)
+                range = NSRange(location: range.location + 2, length: range.length - 4)
+                let name = (token as NSString).substring(with: range)
+                return KnitDirectives(moduleName: name)
+            }
+        }
+
         throw Error.unexpectedToken(token: token)
     }
 
@@ -73,6 +94,7 @@ struct KnitDirectives: Codable, Equatable {
     }
 
     private static let getterNamedRegex = try! NSRegularExpression(pattern: "getter-named(\\(\"\\w*\"\\))?")
+    private static let moduleNameRegex = try! NSRegularExpression(pattern: "module-name(\\(\"\\w*\"\\))")
 }
 
 extension KnitDirectives {

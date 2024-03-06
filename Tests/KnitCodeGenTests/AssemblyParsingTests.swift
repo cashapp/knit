@@ -460,6 +460,19 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(config.registrations.count, 0)
     }
 
+    func testCustomModuleName() throws {
+        let sourceFile: SourceFileSyntax = """
+            // @knit module-name("Custom")
+            class MyAssembly: Assembly {
+            }
+        """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.directives.moduleName, "Custom")
+        XCTAssertEqual(config.moduleName, "Custom")
+        XCTAssertEqual(config.name, "My")
+    }
+
 }
 
 private func assertParsesSyntaxTree(
