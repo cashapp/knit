@@ -35,10 +35,8 @@ public struct ConfigurationSet {
         }
     }
 
-    var allImports: [ModuleImport] {
-        assemblies
-            .flatMap { $0.imports }
-            .uniqued(by: \.description)
+    var allImports: ModuleImportSet {
+        return ModuleImportSet(imports: assemblies.flatMap { $0.imports })
     }
 }
 
@@ -46,8 +44,8 @@ public extension ConfigurationSet {
 
     func makeTypeSafetySourceFile() throws -> String {
         var allImports = allImports
-        allImports.append(.named("Swinject"))
-        let header = HeaderSourceFile.make(imports: sortImports(allImports), comment: Self.typeSafetyIntro)
+        allImports.insert(.named("Swinject"))
+        let header = HeaderSourceFile.make(imports: allImports.sorted, comment: Self.typeSafetyIntro)
         let body = try assemblies.map { try $0.makeTypeSafetySourceFile() }
         let sourceFiles = [header] + body
         return Self.join(sourceFiles: sourceFiles)
@@ -55,9 +53,9 @@ public extension ConfigurationSet {
 
     func makeUnitTestSourceFile() throws -> String {
         var allImports = allImports
-        allImports.append(.testable(name: primaryAssembly.moduleName))
-        allImports.append(.named("XCTest"))
-        let header = HeaderSourceFile.make(imports: sortImports(allImports), comment: nil)
+        allImports.insert(.testable(name: primaryAssembly.moduleName))
+        allImports.insert(.named("XCTest"))
+        let header = HeaderSourceFile.make(imports: allImports.sorted, comment: nil)
         let body = try assemblies.map { try $0.makeUnitTestSourceFile() }
         let allRegistrations = assemblies.flatMap { $0.registrations }
         let allRegistrationsIntoCollections = assemblies.flatMap { $0.registrationsIntoCollections }
@@ -72,14 +70,6 @@ public extension ConfigurationSet {
     private static func join(sourceFiles: [SourceFileSyntax]) -> String {
         let result = sourceFiles.map { $0.formatted().description }.joined(separator: "\n")
         return result
-    }
-
-    private func sortImports(_ imports: [ModuleImport]) -> [ModuleImport] {
-        return imports.sorted { import1, import2 in
-            let i1Name = import1.description.replacingOccurrences(of: "@testable ", with: "")
-            let i2Name = import2.description.replacingOccurrences(of: "@testable ", with: "")
-            return i1Name < i2Name
-        }
     }
 
     private static let typeSafetyIntro = """
