@@ -91,6 +91,11 @@ final class ModuleAssemblyExtensionSourceFileTests: XCTestCase {
                     DependencyAOtherAssembly.self]
             }
         }
+        extension DependencyAOtherAssembly: GeneratedModuleAssembly {
+            public static var generatedDependencies: [any ModuleAssembly.Type] {
+                CurrentModuleAssembly.generatedDependencies
+            }
+        }
         """#
 
         XCTAssertEqual(
