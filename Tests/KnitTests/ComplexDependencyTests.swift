@@ -14,6 +14,21 @@ final class ComplexDependencyTests: XCTestCase {
         XCTAssertTrue(builder.assemblies[0] is Assembly2Fake)
         XCTAssertTrue(builder.assemblies[1] is Assembly3)
         XCTAssertTrue(builder.assemblies[2] is Assembly1)
+
+        XCTAssertEqual(
+            builder.dependencyTree.sourcePath(moduleType: Assembly2Fake.self),
+            ["Assembly1", "Assembly3", "Assembly2Fake"]
+        )
+
+        XCTAssertEqual(
+            builder.dependencyTree.debugDescription,
+            """
+            Assembly1
+              - Assembly2 (Assembly2Fake)
+              - Assembly3
+                - Assembly2Fake
+            """
+        )
     }
 
     func testCyclicDependency() throws {
@@ -21,6 +36,14 @@ final class ComplexDependencyTests: XCTestCase {
         XCTAssertEqual(builder.assemblies.count, 2)
         XCTAssertTrue(builder.assemblies[0] is Assembly5)
         XCTAssertTrue(builder.assemblies[1] is Assembly4)
+
+        XCTAssertEqual(
+            builder.dependencyTree.debugDescription,
+            """
+            Assembly4
+              - Assembly5
+            """
+        )
     }
 
 }

@@ -23,6 +23,16 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         XCTAssertTrue(builder.assemblies[0] is Assembly1)
         XCTAssertTrue(builder.assemblies[1] is FakeAssembly3)
         XCTAssertTrue(builder.assemblies[2] is Assembly2Fake)
+
+        XCTAssertEqual(
+            builder.dependencyTree.debugDescription,
+            """
+            Assembly2 (Assembly2Fake)
+              - Assembly1
+            Assembly2Fake
+              - FakeAssembly3
+            """
+        )
     }
 
     func test_serviceRegisteredWithoutFakes() {
@@ -106,6 +116,13 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         let child = ModuleAssembler(parent: parent, [Assembly1()], overrideBehavior: .disableDefaultOverrides)
         XCTAssertTrue(child.isRegistered(Assembly1.self))
         XCTAssertTrue(child.registeredModules.isEmpty)
+
+        XCTAssertEqual(
+            child.resolver._dependencyTree().debugDescription,
+            """
+            Assembly1
+            """
+        )
     }
 
     func test_multipleOverrides() {
@@ -118,6 +135,17 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         XCTAssertTrue(assembler.isRegistered(Assembly5.self))
         XCTAssertTrue(assembler.isRegistered(MultipleDependencyAssembly.self))
         XCTAssertTrue(assembler.isRegistered(MultipleOverrideAssembly.self))
+
+        XCTAssertEqual(
+            assembler.resolver._dependencyTree().debugDescription,
+            """
+            MultipleDependencyAssembly
+              - Assembly1 (MultipleOverrideAssembly)
+              - Assembly5 (MultipleOverrideAssembly)
+                - Assembly4 (MultipleOverrideAssembly)
+            MultipleOverrideAssembly
+            """
+        )
     }
 
 }
