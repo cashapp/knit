@@ -27,7 +27,11 @@ public final class ServiceCollector: Behavior {
     /// Note: We use `ObjectIdentifier` to represent the service type since `Any.Type` isn't Hashable.
     private var factoriesByService: [ObjectIdentifier: [(Resolver) -> Any]] = [:]
 
-    public init() {}
+    private let parent: ServiceCollector?
+
+    public init(parent: ServiceCollector? = nil) {
+        self.parent = parent
+    }
 
     public func container<Type, Service>(
         _ container: Container,
@@ -44,7 +48,11 @@ public final class ServiceCollector: Behavior {
             // This is the first factory for this service to be registered into a collection.
             // Register a `ServiceCollection` for it:
             container.register(ServiceCollection<Service>.self) { resolver in
-                let factories = self.factoriesByService[ObjectIdentifier(type)]!
+                var factories: [(any Resolver) -> Any] = []
+                if let parent = self.parent {
+                    factories.append(contentsOf: parent.factoriesByService[ObjectIdentifier(type)]!)
+                }
+                factories.append(contentsOf: self.factoriesByService[ObjectIdentifier(type)]!)
                 return .init(entries: factories.map { $0(resolver) as! Service })
             }.inObjectScope(.transient)
         }

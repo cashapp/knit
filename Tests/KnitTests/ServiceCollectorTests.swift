@@ -11,6 +11,22 @@ struct ServiceA: ServiceProtocol {}
 
 struct ServiceB: ServiceProtocol {}
 
+struct AssemblyA: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] = []
+
+    func assemble(container: Container) {
+        container.registerIntoCollection(ServiceProtocol.self, factory: { _ in ServiceA() })
+    }
+}
+
+struct AssemblyB: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] = []
+
+    func assemble(container: Container) {
+        container.registerIntoCollection(ServiceProtocol.self, factory: { _ in ServiceB() })
+    }
+}
+
 final class CustomService: ServiceProtocol {
     var name: String
 
@@ -240,6 +256,23 @@ final class ServiceCollectorTests: XCTestCase {
         instance2 = nil
         _ = container.resolveCollection(CustomService.self)
         XCTAssertEqual(factoryCallCount, 2)
+    }
+
+    func test_parentChildContainersWithAssemblers() {
+        let parent = ModuleAssembler([AssemblyA()])
+        let child = ModuleAssembler(parent: parent, [AssemblyB()])
+        
+        // When resolving from the parent resolver we only get services from AssemblyA
+        XCTAssertEqual(
+            parent.resolver.resolveCollection(ServiceProtocol.self).entries.count,
+            1
+        )
+
+        // When resolving from the child resolver we get both
+        XCTAssertEqual(
+            child.resolver.resolveCollection(ServiceProtocol.self).entries.count,
+            2
+        )
     }
 
 }
