@@ -8,6 +8,7 @@ public final class ModuleAssembler {
 
     let container: Container
     let parent: ModuleAssembler?
+    let serviceCollector: ServiceCollector
 
     /// The resolver for this ModuleAssemblers container
     public let resolver: Resolver
@@ -83,7 +84,8 @@ public final class ModuleAssembler {
 
         self.parent = parent
         self.container = Container(parent: parent?.container)
-        self.container.addBehavior(ServiceCollector())
+        self.serviceCollector = .init(parent: parent?.serviceCollector)
+        self.container.addBehavior(serviceCollector)
         let abstractRegistrations = self.container.registerAbstractContainer()
 
         let assembler = Assembler(container: self.container)
