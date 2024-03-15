@@ -44,16 +44,23 @@ struct GenCommand: ParsableCommand {
     @Option(help: "Default type to extend when generating Resolver type safety methods")
     var defaultExtensionTargetResolver = "Resolver"
 
+    @Option(help: """
+                  Regex used to determine the module name of an assembly based on the filepath.
+                  The regex must contain a single capture group which is the name of the module.
+                  Assemblies can also use module-name("ABC") if file paths are not consistent
+                  """)
+    var moduleNameRegex: String?
+
     public init() {}
 
     public func run() throws {
         let parsedConfig: ConfigurationSet
         do {
-            parsedConfig = try parseAssemblies(
-                at: assemblyInputPath,
+            let assemblyParser = try AssemblyParser(
                 defaultTargetResolver: defaultExtensionTargetResolver,
-                useTargetResolver: useTargetResolver
-            )
+                useTargetResolver: useTargetResolver,
+                moduleNameRegex: moduleNameRegex)
+            parsedConfig = try assemblyParser.parseAssemblies(at: assemblyInputPath)
             if let jsonDataOutputPath {
                 let data = try JSONEncoder().encode(parsedConfig.assemblies)
                 try data.write(to: URL(fileURLWithPath: jsonDataOutputPath))

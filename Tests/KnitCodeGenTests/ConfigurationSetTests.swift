@@ -148,7 +148,8 @@ final class ConfigurationSetTests: XCTestCase {
 private enum Factory {
 
     static let config1 = Configuration(
-        name: "Module1",
+        assemblyName: "Module1Assembly",
+        moduleName: "Module1",
         registrations: [
             .init(service: "Service1", accessLevel: .public)
         ],
@@ -162,7 +163,8 @@ private enum Factory {
     )
 
     static let config2 = Configuration(
-        name: "Module2",
+        assemblyName: "Module2Assembly",
+        moduleName: "Module2",
         registrations: [
             .init(service: "Service2", accessLevel: .internal, getterConfig: [.callAsFunction]),
             .init(service: "ArgumentService", accessLevel: .internal, arguments: [.init(type: "String")])
@@ -176,7 +178,8 @@ private enum Factory {
     )
 
     static let config3 = Configuration(
-        name: "Module3",
+        assemblyName: "Module3Assembly",
+        moduleName: "Module3",
         registrations: [
             .init(service: "Service3", accessLevel: .public),
         ],

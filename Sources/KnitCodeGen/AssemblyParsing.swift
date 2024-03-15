@@ -5,84 +5,13 @@
 import Foundation
 import SwiftSyntax
 import SwiftParser
-
-public func parseAssemblies(
-    at paths: [String],
-    defaultTargetResolver: String,
-    useTargetResolver: Bool
-) throws -> ConfigurationSet {
-    var configs = [Configuration]()
-    for path in paths {
-        let url = URL(fileURLWithPath: path, isDirectory: false)
-        var errorsToPrint = [Error]()
-
-        let source: String
-        do {
-            source = try String(contentsOf: url)
-        } catch {
-            throw AssemblyParsingError.fileReadError(error, path: path)
-        }
-        let syntaxTree = Parser.parse(source: source)
-        let configuration = try parseSyntaxTree(
-            syntaxTree,
-            errorsToPrint: &errorsToPrint,
-            defaultTargetResolver: defaultTargetResolver,
-            useTargetResolver: useTargetResolver
-        )
-        guard let configuration else { continue }
-        configs.append(configuration)
-        printErrors(errorsToPrint, filePath: path, syntaxTree: syntaxTree)
-        if errorsToPrint.count > 0 {
-            throw AssemblyParsingError.parsingError
-        }
-    }
-    return ConfigurationSet(assemblies: configs)
-}
-
-func parseSyntaxTree(
-    _ syntaxTree: SyntaxProtocol,
-    errorsToPrint: inout [Error],
-    defaultTargetResolver: String,
-    useTargetResolver: Bool
-) throws -> Configuration? {
-    let assemblyFileVisitor = AssemblyFileVisitor()
-    assemblyFileVisitor.walk(syntaxTree)
-    
-    if assemblyFileVisitor.directives.accessLevel == .ignore { return nil }
-
-    guard let name = assemblyFileVisitor.moduleName else {
-        throw AssemblyParsingError.missingModuleName
-    }
-
-    guard let assemblyType = assemblyFileVisitor.assemblyType else {
-        throw AssemblyParsingError.missingAssemblyType
-    }
-
-    errorsToPrint.append(contentsOf: assemblyFileVisitor.assemblyErrors)
-    errorsToPrint.append(contentsOf: assemblyFileVisitor.registrationErrors)
-
-    let targetResolver: String
-    if useTargetResolver {
-        targetResolver = assemblyFileVisitor.targetResolver ?? defaultTargetResolver
-    } else {
-        targetResolver = defaultTargetResolver
-    }
-
-    return Configuration(
-        name: name,
-        directives: assemblyFileVisitor.directives,
-        assemblyType: assemblyType,
-        registrations: assemblyFileVisitor.registrations,
-        registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
-        imports: assemblyFileVisitor.imports,
-        targetResolver: targetResolver
-    )
-}
-
-private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
+ 
+class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
 
     /// The imports that were found in the tree.
     private(set) var imports = [ModuleImport]()
+
+    private(set) var assemblyName: String?
 
     private(set) var moduleName: String?
 
@@ -160,7 +89,10 @@ private class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
             assemblyErrors.append(error)
         }
 
-        moduleName = node.moduleNameForAssembly
+        let names = node.namesForAssembly
+        assemblyName = names?.0
+        moduleName = node.namesForAssembly?.1
+
         let inheritedTypes = inheritance?.inheritedTypes.map {
             $0.type.description.trimmingCharacters(in: .whitespaces)
         }
@@ -238,15 +170,16 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
 
 extension NamedDeclSyntax {
 
-    /// Returns the module name for the assembly class.
+    /// Returns the module name and assembly name for the assembly class.
     /// If the class is not an assembly returns `nil`.
-    var moduleNameForAssembly: String? {
+    var namesForAssembly: (String, String)? {
         let className = name.text
         let assemblySuffx = "Assembly"
         guard className.hasSuffix(assemblySuffx) else {
             return nil
         }
-        return String(className.dropLast(assemblySuffx.count))
+        let moduleName = String(className.dropLast(assemblySuffx.count))
+        return (className, moduleName)
     }
 
 }
@@ -255,6 +188,7 @@ extension NamedDeclSyntax {
 
 enum AssemblyParsingError: Error {
     case fileReadError(Error, path: String)
+    case missingAssemblyName
     case missingModuleName
     case missingAssemblyType
     case parsingError
@@ -270,6 +204,9 @@ extension AssemblyParsingError: LocalizedError {
                    File path: \(path)
                    """
 
+        case .missingAssemblyName:
+            return "Cannot generate unit test source file without an assembly name. " +
+                "Is your Assembly file setup correctly?"
         case .missingModuleName:
             return "Cannot generate unit test source file without a module name. " +
                 "Is your Assembly file setup correctly?"
