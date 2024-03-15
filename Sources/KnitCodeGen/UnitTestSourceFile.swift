@@ -148,7 +148,7 @@ public enum UnitTestSourceFile {
 
     /// Generate a function to assert that a type can be resolved
     private static func makeTypeAssert() throws -> FunctionDeclSyntax {
-        let string: SyntaxNodeString = """
+        let string: SyntaxNodeString = #"""
         func assertTypeResolves<T>(
             _ type: T.Type,
             name: String? = nil,
@@ -157,18 +157,22 @@ public enum UnitTestSourceFile {
         ) {
             XCTAssertNotNil(
                 resolve(type, name: name),
-                "The container did not resolve the type: \\(type). Check that this type is registered correctly.",
+                """
+                The container did not resolve the type: \(type). Check that this type is registered correctly.
+                Dependency Graph:
+                \(_dependencyTree())
+                """,
                 file: file,
                 line: line
             )
         }
-        """
+        """#
         return try FunctionDeclSyntax(string)
     }
 
     /// Generate a function to assert that a value resolved correctly
     private static func makeResultAssert() throws -> FunctionDeclSyntax {
-        let string: SyntaxNodeString = """
+        let string: SyntaxNodeString = #"""
         func assertTypeResolved<T>(
             _ result: T?,
             file: StaticString = #filePath,
@@ -176,12 +180,16 @@ public enum UnitTestSourceFile {
         ) {
             XCTAssertNotNil(
                 result,
-                "The container did not resolve the type: \\(T.self). Check that this type is registered correctly.",
+                """
+                The container did not resolve the type: \(T.self). Check that this type is registered correctly.
+                Dependency Graph:
+                \(_dependencyTree())
+                """,
                 file: file,
                 line: line
             )
         }
-        """
+        """#
         return try FunctionDeclSyntax(string)
     }
 

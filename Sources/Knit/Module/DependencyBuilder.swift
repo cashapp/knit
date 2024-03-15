@@ -12,7 +12,7 @@ final class DependencyBuilder {
     var assemblies: [any ModuleAssembly] = []
     let isRegisteredInParent: (any ModuleAssembly.Type) -> Bool
     private let overrideBehavior: OverrideBehavior
-    private var moduleSources: [String: any ModuleAssembly.Type] = [:]
+    private(set) var dependencyTree: DependencyTree
 
     init(
         modules: [any ModuleAssembly],
@@ -22,6 +22,7 @@ final class DependencyBuilder {
     ) throws {
         self.assemblyValidation = assemblyValidation
         self.overrideBehavior = overrideBehavior
+        self.dependencyTree = .init(inputModules: modules)
 
         inputModules = modules
         self.isRegisteredInParent = isRegisteredInParent ?? {_ in false }
@@ -81,11 +82,12 @@ final class DependencyBuilder {
         result: inout [any ModuleAssembly.Type],
         source: (any ModuleAssembly.Type)?
     ) throws {
-        // Add a source for the original type
-        let originalFromInput = inputModules.contains(where: { type(of: $0).matches(moduleType: from) })
-        if !originalFromInput {
-            moduleSources[String(describing: from)] = source
+        if isRegisteredInParent(from) {
+            return
         }
+
+        // Add a source for the original type
+        dependencyTree.add(assemblyType: from, source: source)
 
         let resolved = try resolvedType(from)
 
@@ -104,10 +106,7 @@ final class DependencyBuilder {
             return
         }
         // Add a source for the resolved type
-        let resolvedFromInput = inputModules.contains(where: { type(of: $0).matches(moduleType: resolved) })
-        if !resolvedFromInput {
-            moduleSources[String(describing: resolved)] = source
-        }
+        dependencyTree.add(assemblyType: resolved, source: source)
 
         result.insert(resolved, at: insertionPoint)
         for dep in getDependencies(resolved) {
@@ -148,34 +147,13 @@ final class DependencyBuilder {
         return type
     }
 
-    private func buildSourcePath(moduleType: any ModuleAssembly.Type, path: inout [String]) {
-        return buildSourcePath(moduleName: String(describing: moduleType), path: &path)
-    }
-
-    private func buildSourcePath(moduleName: String, path: inout [String]) {
-        path.insert(moduleName, at: 0)
-        guard let source = moduleSources[moduleName] else {
-            return
-        }
-
-        // Prevent an infinite loop
-        let sourceName = String(describing: source)
-        if path.contains(sourceName) {
-            return
-        }
-        return buildSourcePath(moduleType: source, path: &path)
-    }
 
     func sourcePath(moduleType: any ModuleAssembly.Type) -> [String] {
-        var path: [String] = []
-        buildSourcePath(moduleType: moduleType, path: &path)
-        return path
+        return dependencyTree.sourcePath(moduleType: moduleType)
     }
 
     func sourcePath(moduleName: String) -> [String] {
-        var path: [String] = []
-        buildSourcePath(moduleName: moduleName, path: &path)
-        return path
+        return dependencyTree.sourcePath(moduleName: moduleName)
     }
 
     func sourcePathString(moduleName: String) -> String {

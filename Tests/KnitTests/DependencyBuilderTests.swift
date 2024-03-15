@@ -14,6 +14,16 @@ final class DependencyBuilderTests: XCTestCase {
         XCTAssertTrue(builder.assemblies[0] is Assembly2)
         XCTAssertTrue(builder.assemblies[1] is Assembly1)
         XCTAssertTrue(builder.assemblies[2] is Assembly3)
+
+        XCTAssertEqual(
+            builder.dependencyTree.debugDescription,
+            """
+            Assembly3
+            Assembly1
+              - Assembly2
+            """
+        )
+
     }
 
     func test_assembly3OrderChange() throws {
@@ -23,6 +33,15 @@ final class DependencyBuilderTests: XCTestCase {
         XCTAssertTrue(builder.assemblies[0] is Assembly2)
         XCTAssertTrue(builder.assemblies[1] is Assembly1)
         XCTAssertTrue(builder.assemblies[2] is Assembly3)
+
+        XCTAssertEqual(
+            builder.dependencyTree.debugDescription,
+            """
+            Assembly1
+              - Assembly2
+            Assembly3
+            """
+        )
     }
 
     func test_assembly1() throws {
@@ -31,6 +50,14 @@ final class DependencyBuilderTests: XCTestCase {
 
         XCTAssertTrue(builder.assemblies[0] is Assembly2)
         XCTAssertTrue(builder.assemblies[1] is Assembly1)
+
+        XCTAssertEqual(
+            builder.dependencyTree.debugDescription,
+            """
+            Assembly1
+              - Assembly2
+            """
+        )
     }
 
     func test_diamondShape() throws {
@@ -40,6 +67,15 @@ final class DependencyBuilderTests: XCTestCase {
         XCTAssertTrue(builder.assemblies[0] is Assembly1)
         XCTAssertTrue(builder.assemblies[1] is Assembly2)
         XCTAssertTrue(builder.assemblies[2] is Assembly4)
+
+        XCTAssertEqual(
+            builder.dependencyTree.debugDescription,
+            """
+            Assembly4
+              - Assembly2
+            Assembly1
+            """
+        )
     }
 
     func test_parentRegistered() throws {
@@ -52,6 +88,29 @@ final class DependencyBuilderTests: XCTestCase {
         // Assembly2 is not registered because the builder was told that it had been done by the parent
         XCTAssertEqual(builder.assemblies.count, 1)
         XCTAssertTrue(builder.assemblies[0] is Assembly1)
+
+        XCTAssertEqual(
+            builder.dependencyTree.debugDescription,
+            """
+            Assembly1
+            """
+        )
+    }
+
+    func test_overrideTree() throws {
+        let builder = try DependencyBuilder(
+            modules: [Assembly9()],
+            overrideBehavior: .useDefaultOverrides
+        )
+
+        XCTAssertEqual(
+            builder.dependencyTree.debugDescription,
+            """
+            Assembly9
+              - Assembly2
+              - Assembly8 (Assembly2)
+            """
+        )
     }
 
     func test_missingAssembly() {
@@ -137,12 +196,14 @@ private struct Assembly1: ModuleAssembly {
     func assemble(container: Container) {}
 }
 
-// Assembly2 has no dependencies
+// Assembly2 has no dependencies but implements Assembly8
 private struct Assembly2: AutoInitModuleAssembly {
 
     static var dependencies: [any ModuleAssembly.Type] {
         return []
     }
+
+    static var implements: [any ModuleAssembly.Type] { [Assembly8.self] }
 
     func assemble(container: Container) {}
 }
@@ -182,6 +243,18 @@ private struct Assembly7: ModuleAssembly {
     func assemble(container: Container) {}
     static var dependencies: [any ModuleAssembly.Type] { [Assembly5.self] }
 }
+
+private struct Assembly8: AutoInitModuleAssembly, DefaultModuleAssemblyOverride {
+    func assemble(container: Container) {}
+    static var dependencies: [any ModuleAssembly.Type] { [] }
+    typealias OverrideType = Assembly2
+}
+
+private struct Assembly9: AutoInitModuleAssembly {
+    func assemble(container: Container) {}
+    static var dependencies: [any ModuleAssembly.Type] { [Assembly8.self] }
+}
+
 
 private enum DependencyBuilderTestError: LocalizedError {
     case failedValidation

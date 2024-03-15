@@ -88,6 +88,10 @@ public final class ModuleAssembler {
         self.container.addBehavior(serviceCollector)
         let abstractRegistrations = self.container.registerAbstractContainer()
 
+        // Expose the dependency tree for debugging
+        let dependencyTree = builder.dependencyTree
+        self.container.register(DependencyTree.self) { _ in dependencyTree }
+
         let assembler = Assembler(container: self.container)
         assembler.apply(assemblies: nonModuleAssemblies)
         assembler.apply(assemblies: builder.assemblies)
@@ -122,4 +126,11 @@ public final class ModuleAssembler {
         return registeredModules.contains(where: {$0.matches(moduleType: type)})
     }
 
+}
+
+// Publicly expose the dependency tree so it can be used for debugging
+public extension Resolver {
+    func _dependencyTree() -> DependencyTree {
+        return knitUnwrap(resolve(DependencyTree.self))
+    }
 }

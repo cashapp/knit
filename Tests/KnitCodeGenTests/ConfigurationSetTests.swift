@@ -95,7 +95,11 @@ final class ConfigurationSetTests: XCTestCase {
                 ) {
                     XCTAssertNotNil(
                         resolve(type, name: name),
-                        "The container did not resolve the type: \(type). Check that this type is registered correctly.",
+                        """
+                        The container did not resolve the type: \(type). Check that this type is registered correctly.
+                        Dependency Graph:
+                        \(_dependencyTree())
+                        """,
                         file: file,
                         line: line
                     )
@@ -107,7 +111,11 @@ final class ConfigurationSetTests: XCTestCase {
                 ) {
                     XCTAssertNotNil(
                         result,
-                        "The container did not resolve the type: \(T.self). Check that this type is registered correctly.",
+                        """
+                        The container did not resolve the type: \(T.self). Check that this type is registered correctly.
+                        Dependency Graph:
+                        \(_dependencyTree())
+                        """,
                         file: file,
                         line: line
                     )
