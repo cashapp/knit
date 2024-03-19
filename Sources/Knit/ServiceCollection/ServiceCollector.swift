@@ -49,8 +49,8 @@ public final class ServiceCollector: Behavior {
             // Register a `ServiceCollection` for it:
             container.register(ServiceCollection<Service>.self) { resolver in
                 var factories: [(any Resolver) -> Any] = []
-                if let parent = self.parent {
-                    factories.append(contentsOf: parent.factoriesByService[ObjectIdentifier(type)]!)
+                if let parentFactories = self.parent?.factoriesByService[ObjectIdentifier(type)] {
+                    factories.append(contentsOf: parentFactories)
                 }
                 factories.append(contentsOf: self.factoriesByService[ObjectIdentifier(type)]!)
                 return .init(entries: factories.map { $0(resolver) as! Service })
@@ -58,7 +58,10 @@ public final class ServiceCollector: Behavior {
         }
         var factories = factoriesByService[ObjectIdentifier(Service.self)] ?? []
         factories.append {
-            $0.resolve(Service.self, name: name)!
+            guard let service = $0.resolve(Service.self, name: name) else {
+                fatalError("Could not resolve \(Service.self) inside ServiceCollector")
+            }
+            return service
         }
         factoriesByService[ObjectIdentifier(Service.self)] = factories
     }

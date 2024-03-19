@@ -27,6 +27,12 @@ struct AssemblyB: AutoInitModuleAssembly {
     }
 }
 
+struct AssemblyC: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] = []
+
+    func assemble(container: Container) { }
+}
+
 final class CustomService: ServiceProtocol {
     var name: String
 
@@ -272,6 +278,22 @@ final class ServiceCollectorTests: XCTestCase {
         XCTAssertEqual(
             child.resolver.resolveCollection(ServiceProtocol.self).entries.count,
             2
+        )
+    }
+
+    func test_childWithEmptyParent() {
+        let parent = ModuleAssembler([AssemblyC()])
+        let child = ModuleAssembler(parent: parent, [AssemblyB()])
+
+        // Parent has no services registered
+        XCTAssertEqual(
+            parent.resolver.resolveCollection(ServiceProtocol.self).entries.count,
+            0
+        )
+
+        XCTAssertEqual(
+            child.resolver.resolveCollection(ServiceProtocol.self).entries.count,
+            1
         )
     }
 
