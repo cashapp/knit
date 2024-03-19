@@ -48,12 +48,7 @@ public final class ServiceCollector: Behavior {
             // This is the first factory for this service to be registered into a collection.
             // Register a `ServiceCollection` for it:
             container.register(ServiceCollection<Service>.self) { resolver in
-                var factories: [(any Resolver) -> Any] = []
-                if let parentFactories = self.parent?.factoriesByService[ObjectIdentifier(type)] {
-                    factories.append(contentsOf: parentFactories)
-                }
-                factories.append(contentsOf: self.factoriesByService[ObjectIdentifier(type)]!)
-                return .init(entries: factories.map { $0(resolver) as! Service })
+                return self.resolveServices(resolver: resolver)
             }.inObjectScope(.transient)
         }
         var factories = factoriesByService[ObjectIdentifier(Service.self)] ?? []
@@ -64,6 +59,13 @@ public final class ServiceCollector: Behavior {
             return service
         }
         factoriesByService[ObjectIdentifier(Service.self)] = factories
+    }
+    
+    private func resolveServices<Service>(resolver: Resolver) -> ServiceCollection<Service> {
+        let parentCollection: ServiceCollection<Service>? = parent?.resolveServices(resolver: resolver)
+        let factories = self.factoriesByService[ObjectIdentifier(Service.self)] ?? []
+        let entries = factories.map { $0(resolver) as! Service }
+        return .init(parent: parentCollection, entries: entries)
     }
 }
 
