@@ -108,7 +108,7 @@ final class AssemblyParsingTests: XCTestCase {
         """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.name, "FooTest")
+        XCTAssertEqual(config.assemblyName, "FooTestAssembly")
         XCTAssertEqual(config.assemblyType, "Assembly")
     }
 
@@ -122,7 +122,7 @@ final class AssemblyParsingTests: XCTestCase {
         """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.name, "FooTest")
+        XCTAssertEqual(config.assemblyName, "FooTestAssembly")
     }
 
     func testAssemblyRegistrations() throws {
@@ -135,7 +135,7 @@ final class AssemblyParsingTests: XCTestCase {
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.name, "Test")
+        XCTAssertEqual(config.assemblyName, "TestAssembly")
         XCTAssertEqual(config.imports.count, 0, "No imports")
         XCTAssertEqual(
             config.registrations.map { $0.service },
@@ -181,7 +181,7 @@ final class AssemblyParsingTests: XCTestCase {
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.name, "KeyValueStore", "The first assembly's module name")
+        XCTAssertEqual(config.assemblyName, "KeyValueStoreAssembly", "The first assembly's module name")
         XCTAssertEqual(config.imports.count, 0, "No imports")
         XCTAssertEqual(
             config.registrations.map { $0.service },
@@ -208,7 +208,7 @@ final class AssemblyParsingTests: XCTestCase {
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.name, "Example")
+        XCTAssertEqual(config.assemblyName, "ExampleAssembly")
         XCTAssertEqual(
             config.registrations,
             [
@@ -232,7 +232,7 @@ final class AssemblyParsingTests: XCTestCase {
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.name, "Example")
+        XCTAssertEqual(config.assemblyName, "ExampleAssembly")
         XCTAssertEqual(config.targetResolver, "Resolver")
         XCTAssertEqual(
             config.registrations,
@@ -253,13 +253,15 @@ final class AssemblyParsingTests: XCTestCase {
         }
 
         classDecl = try makeClassDecl(from: "class BarAssembly {}")
-        XCTAssertEqual(classDecl.moduleNameForAssembly, "Bar")
+        XCTAssertEqual(classDecl.namesForAssembly?.0, "BarAssembly")
+        XCTAssertEqual(classDecl.namesForAssembly?.1, "Bar")
 
         classDecl = try makeClassDecl(from: "public final class FooAssembly {}")
-        XCTAssertEqual(classDecl.moduleNameForAssembly, "Foo")
+        XCTAssertEqual(classDecl.namesForAssembly?.0, "FooAssembly")
+        XCTAssertEqual(classDecl.namesForAssembly?.1, "Foo")
 
         classDecl = try makeClassDecl(from: "class AssemblyMissing {}")
-        XCTAssertNil(classDecl.moduleNameForAssembly)
+        XCTAssertNil(classDecl.namesForAssembly)
     }
 
     // MARK: - Error Throwing
@@ -271,7 +273,7 @@ final class AssemblyParsingTests: XCTestCase {
             """
 
         XCTAssertThrowsError(try assertParsesSyntaxTree(sourceFile)) { error in
-            guard case AssemblyParsingError.missingModuleName = error else {
+            guard case AssemblyParsingError.missingAssemblyName = error else {
                 XCTFail("Incorrect error case")
                 return
             }
@@ -309,7 +311,7 @@ final class AssemblyParsingTests: XCTestCase {
         """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.name, "My")
+        XCTAssertEqual(config.assemblyName, "MyAssembly")
         XCTAssertEqual(config.targetResolver, "TestResolver")
     }
 
@@ -321,7 +323,7 @@ final class AssemblyParsingTests: XCTestCase {
         """
 
         let config = try assertParsesSyntaxTree(sourceFile, useTargetResolver: false)
-        XCTAssertEqual(config.name, "My")
+        XCTAssertEqual(config.assemblyName, "MyAssembly")
         XCTAssertEqual(config.targetResolver, "Resolver")
     }
 
@@ -368,7 +370,7 @@ final class AssemblyParsingTests: XCTestCase {
         """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.name, "Example")
+        XCTAssertEqual(config.assemblyName, "ExampleAssembly")
         XCTAssertEqual(config.registrations.count, 3)
 
         XCTAssertEqual(config.registrations[0].service, "A")
@@ -435,11 +437,11 @@ final class AssemblyParsingTests: XCTestCase {
         """
         var errorsToPrint = [Error]()
 
-        let configuration = try parseSyntaxTree(
+        let parser = try AssemblyParser(defaultTargetResolver: "Resolver", useTargetResolver: true)
+
+        let configuration = try parser.parseSyntaxTree(
             sourceFile,
-            errorsToPrint: &errorsToPrint,
-            defaultTargetResolver: "Resolver",
-            useTargetResolver: true
+            errorsToPrint: &errorsToPrint
         )
 
         XCTAssertEqual(errorsToPrint.count, 0)
@@ -470,7 +472,35 @@ final class AssemblyParsingTests: XCTestCase {
         let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.directives.moduleName, "Custom")
         XCTAssertEqual(config.moduleName, "Custom")
-        XCTAssertEqual(config.name, "My")
+        XCTAssertEqual(config.assemblyName, "MyAssembly")
+    }
+
+    func testModuleNameRegex() throws {
+        let sourceFile: SourceFileSyntax = """
+            class MyAssembly: Assembly {
+            }
+        """
+
+        var errorsToPrint = [Error]()
+
+        let parser = try AssemblyParser(moduleNameRegex: "(\\w+)\\/Sources\\/DI\\/.*Assembly\\.swift")
+        let config = try parser.parseSyntaxTree(
+            sourceFile,
+            path: "/App/OtherModule/Sources/DI/SomeAssembly.swift",
+            errorsToPrint: &errorsToPrint
+        )
+
+        XCTAssertEqual(config?.assemblyName, "MyAssembly")
+        XCTAssertEqual(config?.moduleName, "OtherModule")
+        
+        let config2 = try parser.parseSyntaxTree(
+            sourceFile,
+            path: "/Non/Matching/Path/SomeAssembly.swift",
+            errorsToPrint: &errorsToPrint
+        )
+
+        XCTAssertEqual(config2?.assemblyName, "MyAssembly")
+        XCTAssertEqual(config2?.moduleName, "My")
     }
 
 }
@@ -484,11 +514,11 @@ private func assertParsesSyntaxTree(
 ) throws -> Configuration {
     var errorsToPrint = [Error]()
 
-    let configuration = try parseSyntaxTree(
+    let parser = try AssemblyParser(defaultTargetResolver: "Resolver", useTargetResolver: useTargetResolver)
+
+    let configuration = try parser.parseSyntaxTree(
         sourceFile,
-        errorsToPrint: &errorsToPrint,
-        defaultTargetResolver: "Resolver",
-        useTargetResolver: useTargetResolver
+        errorsToPrint: &errorsToPrint
     )
 
     if let assertErrorsCallback {

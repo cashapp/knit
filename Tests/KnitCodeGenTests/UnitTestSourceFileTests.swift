@@ -11,7 +11,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation() throws {
         let result = try UnitTestSourceFile.make(
-            name: "MyModule",
+            moduleName: "MyModule",
             importDecls: [.named("Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
@@ -57,7 +57,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation_emptyRegistrations() throws {
         let result = try UnitTestSourceFile.make(
-            name: "MyModule",
+            moduleName: "MyModule",
             importDecls: [.named("Swinject")],
             registrations: [],
             registrationsIntoCollections: []
@@ -82,7 +82,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation_onlySingleRegistrations() throws {
         let result = try UnitTestSourceFile.make(
-            name: "MyModule",
+            moduleName: "MyModule",
             importDecls: [.named("Swinject")],
             registrations: [
                 .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
@@ -110,7 +110,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
     func test_generation_onlyRegistrationsIntoCollections() throws {
         let result = try UnitTestSourceFile.make(
-            name: "MyModule",
+            moduleName: "MyModule",
             importDecls: [.named("Swinject")],
             registrations: [],
             registrationsIntoCollections: [
@@ -221,13 +221,14 @@ final class UnitTestSourceFileTests: XCTestCase {
 private extension UnitTestSourceFile {
 
     static func make(
-        name: String,
+        moduleName: String,
         importDecls: [ModuleImport],
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection]
     ) throws -> SourceFileSyntax {
         let configuration = Configuration(
-            name: name,
+            assemblyName: moduleName + "Assembly",
+            moduleName: moduleName,
             registrations: registrations,
             registrationsIntoCollections: registrationsIntoCollections,
             imports: importDecls,

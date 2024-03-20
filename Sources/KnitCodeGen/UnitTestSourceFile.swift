@@ -13,7 +13,7 @@ public enum UnitTestSourceFile {
         let withArguments = configuration.registrations.filter { !$0.arguments.isEmpty }
         let hasArguments = !withArguments.isEmpty
         return try SourceFileSyntax() {
-            try ClassDeclSyntax("final class \(raw: configuration.name)RegistrationTests: XCTestCase") {
+            try ClassDeclSyntax("final class \(raw: configuration.moduleName)RegistrationTests: XCTestCase") {
 
                 try FunctionDeclSyntax("func testRegistrations()") {
 
@@ -26,8 +26,8 @@ public enum UnitTestSourceFile {
                     if hasArguments {
                         DeclSyntax("""
                             // In the test target for your module, please provide a static method that provides
-                            // an instance of \(raw: configuration.name)RegistrationTestArguments
-                            let args: \(raw: configuration.name)RegistrationTestArguments = \(raw: configuration.assemblyName).makeArgumentsForTests()
+                            // an instance of \(raw: configuration.moduleName)RegistrationTestArguments
+                            let args: \(raw: configuration.moduleName)RegistrationTestArguments = \(raw: configuration.assemblyName).makeArgumentsForTests()
                             """)
                     }
 
@@ -50,7 +50,7 @@ public enum UnitTestSourceFile {
             }
 
             if hasArguments {
-                try makeArgumentStruct(registrations: configuration.registrations, moduleName: configuration.name)
+                try makeArgumentStruct(registrations: configuration.registrations, moduleName: configuration.moduleName)
             }
         }
     }

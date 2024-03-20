@@ -8,7 +8,8 @@ import SwiftSyntax
 public struct Configuration: Encodable {
 
     /// Name of the module for this configuration.
-    public var name: String
+    public var assemblyName: String
+    public let moduleName: String
     public var directives: KnitDirectives
     public var assemblyType: String
 
@@ -19,7 +20,8 @@ public struct Configuration: Encodable {
     public var targetResolver: String
 
     public init(
-        name: String,
+        assemblyName: String,
+        moduleName: String,
         directives: KnitDirectives = .init(),
         assemblyType: String = "Assembly",
         registrations: [Registration],
@@ -27,33 +29,29 @@ public struct Configuration: Encodable {
         imports: [ModuleImport] = [],
         targetResolver: String
     ) {
-        self.name = name
+        self.assemblyName = assemblyName
         self.directives = directives
         self.assemblyType = assemblyType
         self.registrations = registrations
         self.registrationsIntoCollections = registrationsIntoCollections
         self.imports = imports
         self.targetResolver = targetResolver
+        self.moduleName = moduleName
     }
 
     public enum CodingKeys: CodingKey {
-        case name
+        case assemblyName
         case directives
         case assemblyType
         case registrations
     }
-
-    public var moduleName: String {
-        return directives.moduleName ?? name
-    }
-
 }
 
 public extension Configuration {
 
     func makeTypeSafetySourceFile() throws -> SourceFileSyntax {
         return try TypeSafetySourceFile.make(
-            assemblyName: "\(name)Assembly",
+            assemblyName: assemblyName,
             extensionTarget: targetResolver,
             registrations: registrations
         )
@@ -64,11 +62,6 @@ public extension Configuration {
             configuration: self
         )
     }
-
-    var assemblyName: String {
-        "\(name)Assembly"
-    }
-
 }
 
 func write(text: String, to path: String) {
