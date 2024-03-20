@@ -22,7 +22,7 @@ extension Resolver {
     /// - Returns: A ``ServiceCollection`` containing all registered services,
     ///            or an empty collection if no services were registered.
     public func resolveCollection<Service>(_ serviceType: Service.Type) -> ServiceCollection<Service> {
-        resolve(ServiceCollection<Service>.self) ?? .init(entries: [])
+        resolve(ServiceCollection<Service>.self) ?? .init(parent: nil, entries: [])
     }
 
 }

@@ -276,9 +276,16 @@ final class ServiceCollectorTests: XCTestCase {
 
         // When resolving from the child resolver we get both
         XCTAssertEqual(
-            child.resolver.resolveCollection(ServiceProtocol.self).entries.count,
+            child.resolver.resolveCollection(ServiceProtocol.self).allEntries.count,
             2
         )
+        
+        // It's possible to distinguish the items that were registered in the parent
+        XCTAssertEqual(
+            child.resolver.resolveCollection(ServiceProtocol.self).entries.count,
+            1
+        )
+        
     }
 
     func test_childWithEmptyParent() {
@@ -296,5 +303,45 @@ final class ServiceCollectorTests: XCTestCase {
             1
         )
     }
+    
+    func test_emptyChildWithParent() {
+        let parent = ModuleAssembler([AssemblyB()])
+        let child = ModuleAssembler(parent: parent, [AssemblyC()])
+        
+        // The parent itself has no services so they come from the child
+        XCTAssertEqual(
+            child.resolver.resolveCollection(ServiceProtocol.self).entries.count,
+            1
+        )
+        
+        // The child can access the parent services
+        XCTAssertEqual(
+            child.resolver.resolveCollection(ServiceProtocol.self).allEntries.count,
+            1
+        )
+    }
 
+    func test_grandparentRelationship() {
+        let grandParent = ModuleAssembler([AssemblyA()])
+        let parent = ModuleAssembler(parent: grandParent, [AssemblyC()])
+        let child = ModuleAssembler(parent: parent, [AssemblyB()])
+
+        // The child has access to all services
+        XCTAssertEqual(
+            child.resolver.resolveCollection(ServiceProtocol.self).allEntries.count,
+            2
+        )
+
+        // The parent has access to grandparent services
+        XCTAssertEqual(
+            parent.resolver.resolveCollection(ServiceProtocol.self).allEntries.count,
+            1
+        )
+
+        // 1 service is registered directly into the child
+        XCTAssertEqual(
+            child.resolver.resolveCollection(ServiceProtocol.self).entries.count,
+            1
+        )
+    }
 }
