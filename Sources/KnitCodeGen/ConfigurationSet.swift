@@ -12,7 +12,7 @@ public struct ConfigurationSet {
     public let assemblies: [Configuration]
 
     /// Assemblies which were also parsed but will not have full generation
-    public let additionalAssemblies: [Configuration]
+    public let externalTestingAssemblies: [Configuration]
 
     public var primaryAssembly: Configuration {
         // There must be at least 1 assembly and the first is treated as primary
@@ -43,7 +43,7 @@ public struct ConfigurationSet {
     }
 
     public var allAssemblies: [Configuration] {
-        return assemblies + additionalAssemblies
+        return assemblies + externalTestingAssemblies
     }
 }
 
@@ -75,7 +75,7 @@ public extension ConfigurationSet {
     // Additional assemblies will be tested using the module assembler from one of the main assemblies
     // Certain registrations will be excluded for simplicity
     func makeAdditionalTestsSources() throws -> [SourceFileSyntax] {
-        return try additionalAssemblies.compactMap { assembly in
+        return try externalTestingAssemblies.compactMap { assembly in
 
             if assembly.registrationsCompatibleWithCompleteTests.count == 0 {
                 // If we don't have any registrations that will be tested, skip this assembly
@@ -101,7 +101,7 @@ public extension ConfigurationSet {
         imports.insert(ModuleImport.testable(name: primaryAssembly.moduleName))
         imports.insert(.named("XCTest"))
 
-        let additionalImports = additionalAssemblies
+        let additionalImports = externalTestingAssemblies
             .filter { $0.registrationsCompatibleWithCompleteTests.count > 0 }
             .map { ModuleImport.named($0.moduleName) }
 

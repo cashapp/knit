@@ -22,8 +22,9 @@ struct GenCommand: ParsableCommand {
 
     @Option(help: """
                   Paths to assemblies external to the current module which should also be parsed.
+                  Tests will be generated for these assemblies
                   """)
-    var additionalAssemblyPaths: [String] = []
+    var externalTestingAssemblies: [String] = []
 
     @Option(help: """
                   Path to the file location in the current module where the unit test source should be written.
@@ -67,7 +68,7 @@ struct GenCommand: ParsableCommand {
                 moduleNameRegex: moduleNameRegex)
             parsedConfig = try assemblyParser.parseAssemblies(
                 at: assemblyInputPath,
-                additionalPaths: additionalAssemblyPaths
+                externalTestingAssemblies: externalTestingAssemblies
             )
             if let jsonDataOutputPath {
                 let data = try JSONEncoder().encode(parsedConfig.allAssemblies)

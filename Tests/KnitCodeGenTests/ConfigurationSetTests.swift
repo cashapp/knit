@@ -10,7 +10,7 @@ final class ConfigurationSetTests: XCTestCase {
     func testTypeSafetyOutput() {
         let configSet = ConfigurationSet(
             assemblies: [Factory.config1, Factory.config2, Factory.config3],
-            additionalAssemblies: []
+            externalTestingAssemblies: []
         )
 
         XCTAssertEqual(
@@ -53,7 +53,7 @@ final class ConfigurationSetTests: XCTestCase {
     func testUnitTestOutput() {
         let configSet = ConfigurationSet(
             assemblies: [Factory.config1, Factory.config2],
-            additionalAssemblies: []
+            externalTestingAssemblies: []
         )
 
         XCTAssertEqual(
@@ -162,7 +162,7 @@ final class ConfigurationSetTests: XCTestCase {
     func testAdditionalTests() throws {
         let configSet = ConfigurationSet(
             assemblies: [Factory.config1],
-            additionalAssemblies: [Factory.config2]
+            externalTestingAssemblies: [Factory.config2]
         )
         
         XCTAssertEqual(
