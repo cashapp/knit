@@ -45,6 +45,24 @@ public struct Configuration: Encodable {
         case assemblyType
         case registrations
     }
+
+    // Testing all registrations introduces complications, limit what is tested for simplicity
+    var registrationsCompatibleWithCompleteTests: [Registration] {
+        return registrations
+            // Filter out tests with arguments as it becomes too difficult to maintain all arguments
+            .filter { $0.arguments.isEmpty }
+            // Filter out non public tests to prevent needing @testable imports
+            .filter { $0.accessLevel == .public }
+    }
+
+    /// The name of the assembly dropping the "Assembly" suffix
+    var assemblyShortName: String {
+        guard assemblyName.hasSuffix("Assembly") else {
+            return assemblyName
+        }
+        return String(assemblyName.dropLast(8))
+    }
+
 }
 
 public extension Configuration {
@@ -59,7 +77,9 @@ public extension Configuration {
 
     func makeUnitTestSourceFile() throws -> SourceFileSyntax {
         return try UnitTestSourceFile.make(
-            configuration: self
+            configuration: self,
+            testAssemblerClass: assemblyName,
+            isAdditionalTest: false
         )
     }
 }

@@ -21,6 +21,12 @@ struct GenCommand: ParsableCommand {
     var assemblyInputPath: [String]
 
     @Option(help: """
+                  Paths to assemblies external to the current module which should also be parsed.
+                  Tests will be generated for these assemblies
+                  """)
+    var externalTestingAssemblies: [String] = []
+
+    @Option(help: """
                   Path to the file location in the current module where the unit test source should be written.
                   For example: `${PODS_TARGET_SRCROOT}/Sources/Generated/KnitDITypeSafety.swift`
                   """)
@@ -60,9 +66,12 @@ struct GenCommand: ParsableCommand {
                 defaultTargetResolver: defaultExtensionTargetResolver,
                 useTargetResolver: useTargetResolver,
                 moduleNameRegex: moduleNameRegex)
-            parsedConfig = try assemblyParser.parseAssemblies(at: assemblyInputPath)
+            parsedConfig = try assemblyParser.parseAssemblies(
+                at: assemblyInputPath,
+                externalTestingAssemblies: externalTestingAssemblies
+            )
             if let jsonDataOutputPath {
-                let data = try JSONEncoder().encode(parsedConfig.assemblies)
+                let data = try JSONEncoder().encode(parsedConfig.allAssemblies)
                 try data.write(to: URL(fileURLWithPath: jsonDataOutputPath))
             }
         } catch {

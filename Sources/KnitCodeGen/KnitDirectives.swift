@@ -90,7 +90,7 @@ public struct KnitDirectives: Codable, Equatable {
     }
 
     static var empty: KnitDirectives {
-        return .init(accessLevel: nil, getterConfig: [])
+        return .init()
     }
 
     private static let getterNamedRegex = try! NSRegularExpression(pattern: "getter-named(\\(\"\\w*\"\\))?")

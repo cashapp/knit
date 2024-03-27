@@ -22,7 +22,7 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
     private var classDeclVisitor: ClassDeclVisitor?
 
     private(set) var assemblyErrors: [Error] = []
-    
+
     /// For any imports parsed, this #if condition should be applied when it is used
     var currentIfConfigCondition: IfConfigVisitorCondition?
 

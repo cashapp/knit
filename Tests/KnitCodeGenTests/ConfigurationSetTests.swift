@@ -8,7 +8,10 @@ import XCTest
 final class ConfigurationSetTests: XCTestCase {
 
     func testTypeSafetyOutput() {
-        let configSet = ConfigurationSet(assemblies: [Factory.config1, Factory.config2, Factory.config3])
+        let configSet = ConfigurationSet(
+            assemblies: [Factory.config1, Factory.config2, Factory.config3],
+            externalTestingAssemblies: []
+        )
 
         XCTAssertEqual(
             try configSet.makeTypeSafetySourceFile(),
@@ -30,7 +33,7 @@ final class ConfigurationSetTests: XCTestCase {
             }
             // Generated from Module2Assembly
             extension Resolver {
-                func callAsFunction() -> Service2 {
+                public func callAsFunction() -> Service2 {
                     knitUnwrap(resolve(Service2.self))
                 }
                 func argumentService(string: String) -> ArgumentService {
@@ -48,7 +51,20 @@ final class ConfigurationSetTests: XCTestCase {
     }
 
     func testUnitTestOutput() {
-        let configSet = ConfigurationSet(assemblies: [Factory.config1, Factory.config2])
+        let configSet = ConfigurationSet(
+            assemblies: [Factory.config1, Factory.config2],
+            externalTestingAssemblies: []
+        )
+
+        XCTAssertEqual(
+            configSet.unitTestImports().sorted.map { $0.description },
+            [
+                "import Dependency1",
+                "import Dependency2",
+                "@testable import Module1",
+                "import XCTest",
+            ]
+        )
 
         XCTAssertEqual(
             try configSet.makeUnitTestSourceFile(),
@@ -143,6 +159,45 @@ final class ConfigurationSetTests: XCTestCase {
         )
     }
 
+    func testAdditionalTests() throws {
+        let configSet = ConfigurationSet(
+            assemblies: [Factory.config1],
+            externalTestingAssemblies: [Factory.config2]
+        )
+        
+        XCTAssertEqual(
+            configSet.unitTestImports().sorted.map { $0.description },
+            [
+                "import Dependency1",
+                "import Dependency2",
+                "@testable import Module1",
+                "import Module2",
+                "import XCTest",
+            ]
+        )
+
+        let additionalTests = try configSet.makeAdditionalTestsSources()
+        XCTAssertEqual(additionalTests.count, 1)
+        XCTAssertEqual(
+            additionalTests[0].formatted().description,
+            """
+            final class Module2RegistrationTests: XCTestCase {
+                func testRegistrations() {
+                    // In the test target for your module, please provide a static method that creates a
+                    // ModuleAssembler instance for testing.
+                    let assembler = Module1Assembly.makeAssemblerForTests()
+                    let resolver = assembler.resolver
+                    resolver.assertTypeResolves(Service2.self)
+                }
+            }
+            struct Module2RegistrationTestArguments {
+                let argumentServiceString: String
+            }
+            """
+        )
+
+    }
+
 }
 
 private enum Factory {
@@ -166,7 +221,7 @@ private enum Factory {
         assemblyName: "Module2Assembly",
         moduleName: "Module2",
         registrations: [
-            .init(service: "Service2", accessLevel: .internal, getterConfig: [.callAsFunction]),
+            .init(service: "Service2", accessLevel: .public, getterConfig: [.callAsFunction]),
             .init(service: "ArgumentService", accessLevel: .internal, arguments: [.init(type: "String")])
 
         ],
