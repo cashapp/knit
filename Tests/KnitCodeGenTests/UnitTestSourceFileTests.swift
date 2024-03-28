@@ -55,6 +55,75 @@ final class UnitTestSourceFileTests: XCTestCase {
         XCTAssertEqual(formattedResult, expected)
     }
 
+    func test_configuration_set_unit_tests() throws {
+        let mainConfiguration = Configuration(
+            assemblyName: "MyAssembly",
+            moduleName: "My",
+            registrations: [
+                .init(service: "ServiceA", accessLevel: .internal, arguments: [.init(type: "String")]),
+            ],
+            registrationsIntoCollections: [],
+            targetResolver: "SignedInResolver"
+        )
+
+        let appConfiguration = Configuration(
+            assemblyName: "MyAppAssembly",
+            moduleName: "My",
+            registrations: [
+                .init(service: "ServiceB", name: nil, accessLevel: .internal),
+                .init(service: "ServiceC", accessLevel: .internal, arguments: [.init(type: "String")]),
+            ],
+            registrationsIntoCollections: [],
+            targetResolver: "AppResolver"
+        )
+
+        let set = ConfigurationSet(
+            assemblies: [mainConfiguration, appConfiguration],
+            externalTestingAssemblies: []
+        )
+
+        let expected = #"""
+        // Generated using Knit
+        // Do not edit directly!
+
+        @testable import My
+        import XCTest
+        final class MyRegistrationTests: XCTestCase {
+            func testRegistrations() {
+                // In the test target for your module, please provide a static method that creates a
+                // ModuleAssembler instance for testing.
+                let assembler = MyAssembly.makeAssemblerForTests()
+                // In the test target for your module, please provide a static method that provides
+                // an instance of MyRegistrationTestArguments
+                let args: MyRegistrationTestArguments = MyAssembly.makeArgumentsForTests()
+                let resolver = assembler.resolver
+                resolver.assertTypeResolved(resolver.resolve(ServiceA.self, argument: args.serviceAString))
+            }
+        }
+        struct MyRegistrationTestArguments {
+            let serviceAString: String
+        }
+        final class MyAppRegistrationTests: XCTestCase {
+            func testRegistrations() {
+                // In the test target for your module, please provide a static method that creates a
+                // ModuleAssembler instance for testing.
+                let assembler = MyAppAssembly.makeAssemblerForTests()
+                // In the test target for your module, please provide a static method that provides
+                // an instance of MyAppRegistrationTestArguments
+                let args: MyAppRegistrationTestArguments = MyAppAssembly.makeArgumentsForTests()
+                let resolver = assembler.resolver
+                resolver.assertTypeResolves(ServiceB.self)
+                resolver.assertTypeResolved(resolver.resolve(ServiceC.self, argument: args.serviceCString))
+            }
+        }
+        struct MyAppRegistrationTestArguments {
+            let serviceCString: String
+        }
+        """#
+
+        XCTAssertEqual(try set.makeUnitTestSourceFile(includeExtensions: false), expected)
+    }
+
     func test_generation_emptyRegistrations() throws {
         let result = try UnitTestSourceFile.make(
             moduleName: "MyModule",
@@ -142,7 +211,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             Registration(service: "B", accessLevel: .public, arguments: [.init(identifier: "field", type: "String"), .init(type: "String")]),
             Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Int"), .init(type: "String")]),
         ]
-        let result = try UnitTestSourceFile.makeArgumentStruct(registrations: registrations, moduleName: "MyModule")
+        let result = try UnitTestSourceFile.makeArgumentStruct(registrations: registrations, assemblyName: "MyModule")
 
         let formattedResult = result.formatted().description
 

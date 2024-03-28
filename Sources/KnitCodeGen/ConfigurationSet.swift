@@ -58,17 +58,21 @@ public extension ConfigurationSet {
         return Self.join(sourceFiles: sourceFiles)
     }
 
-    func makeUnitTestSourceFile() throws -> String {
+    func makeUnitTestSourceFile(includeExtensions: Bool = true) throws -> String {
         let header = HeaderSourceFile.make(imports: unitTestImports().sorted, comment: nil)
         var body = try assemblies.map { try $0.makeUnitTestSourceFile() }
         body.append(contentsOf: try makeAdditionalTestsSources())
         let allRegistrations = allAssemblies.flatMap { $0.registrations }
         let allRegistrationsIntoCollections = allAssemblies.flatMap { $0.registrationsIntoCollections }
-        let resolverExtensions = try UnitTestSourceFile.resolverExtensions(
-            registrations: allRegistrations,
-            registrationsIntoCollections: allRegistrationsIntoCollections
-        )
-        let sourceFiles = [header] + body + [resolverExtensions]
+        var sourceFiles = [header] + body
+        if includeExtensions {
+            let resolverExtensions = try UnitTestSourceFile.resolverExtensions(
+                registrations: allRegistrations,
+                registrationsIntoCollections: allRegistrationsIntoCollections
+            )
+            sourceFiles.append(resolverExtensions)
+        }
+
         return Self.join(sourceFiles: sourceFiles)
     }
 
