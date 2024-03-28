@@ -37,8 +37,8 @@ public enum UnitTestSourceFile {
                     if hasArguments && !isAdditionalTest {
                         DeclSyntax("""
                             // In the test target for your module, please provide a static method that provides
-                            // an instance of \(raw: configuration.moduleName)RegistrationTestArguments
-                            let args: \(raw: configuration.moduleName)RegistrationTestArguments = \(raw: configuration.assemblyName).makeArgumentsForTests()
+                            // an instance of \(raw: configuration.assemblyShortName)RegistrationTestArguments
+                            let args: \(raw: configuration.assemblyShortName)RegistrationTestArguments = \(raw: configuration.assemblyName).makeArgumentsForTests()
                             """)
                     }
 
@@ -61,7 +61,7 @@ public enum UnitTestSourceFile {
             }
 
             if hasArguments {
-                try makeArgumentStruct(registrations: configuration.registrations, moduleName: configuration.moduleName)
+                try makeArgumentStruct(registrations: configuration.registrations, assemblyName: configuration.assemblyShortName)
             }
         }
     }
@@ -205,7 +205,7 @@ public enum UnitTestSourceFile {
     }
 
     /// Generate code for a struct that contains all of the parameters used to resolve services
-    static func makeArgumentStruct(registrations: [Registration], moduleName: String) throws -> StructDeclSyntax {
+    static func makeArgumentStruct(registrations: [Registration], assemblyName: String) throws -> StructDeclSyntax {
         let fields = registrations.flatMap { $0.serviceNamedArguments() }
         var seen: Set<String> = []
         // Make sure duplicate parameters don't get created
@@ -218,7 +218,7 @@ public enum UnitTestSourceFile {
             return true
         }
 
-        return try StructDeclSyntax("struct \(raw: moduleName)RegistrationTestArguments") {
+        return try StructDeclSyntax("struct \(raw: assemblyName)RegistrationTestArguments") {
             for field in uniqueFields {
                 DeclSyntax("let \(raw: field.resolvedIdentifier()): \(raw: field.type)")
             }
