@@ -60,7 +60,9 @@ public extension ConfigurationSet {
 
     func makeUnitTestSourceFile(includeExtensions: Bool = true) throws -> String {
         let header = HeaderSourceFile.make(imports: unitTestImports().sorted, comment: nil)
-        var body = try assemblies.map { try $0.makeUnitTestSourceFile() }
+        var body = try assemblies
+            .filter { !$0.isAbstract }
+            .map { try $0.makeUnitTestSourceFile() }
         body.append(contentsOf: try makeAdditionalTestsSources())
         let allRegistrations = allAssemblies.flatMap { $0.registrations }
         let allRegistrationsIntoCollections = allAssemblies.flatMap { $0.registrationsIntoCollections }

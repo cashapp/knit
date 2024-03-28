@@ -124,6 +124,35 @@ final class UnitTestSourceFileTests: XCTestCase {
         XCTAssertEqual(try set.makeUnitTestSourceFile(includeExtensions: false), expected)
     }
 
+    func test_abstract_unit_tests() throws {
+        let configuration = Configuration(
+            assemblyName: "ModuleAbstractAssembly",
+            moduleName: "Module",
+            assemblyType: "AbstractAssembly",
+            registrations: [
+                .init(service: "ServiceA", accessLevel: .internal, arguments: [.init(type: "String")]),
+            ],
+            registrationsIntoCollections: [],
+            targetResolver: "Resolver"
+        )
+        
+        let set = ConfigurationSet(
+            assemblies: [configuration],
+            externalTestingAssemblies: []
+        )
+        
+        // No tests are generated as the assembly is abstract
+        let expected = #"""
+        // Generated using Knit
+        // Do not edit directly!
+
+        @testable import Module
+        import XCTest
+        """#
+        XCTAssertEqual(try set.makeUnitTestSourceFile(includeExtensions: false), expected)
+
+    }
+
     func test_generation_emptyRegistrations() throws {
         let result = try UnitTestSourceFile.make(
             moduleName: "MyModule",
