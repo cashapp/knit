@@ -16,33 +16,42 @@ public struct Registration: Equatable, Codable {
     /// Argument types required to resolve the registration
     public var arguments: [Argument]
 
-    /// This registration is forwarded to another service entry.
-    public var isForwarded: Bool
-
     /// This registration's getter setting.
     public var getterConfig: Set<GetterConfig>
 
     public var ifConfigCondition: ExprSyntax?
+    
+    /// The Swinject function that was used to register this factory
+    public let functionName: FunctionName
 
     public init(
         service: String,
         name: String? = nil,
-        accessLevel: AccessLevel,
+        accessLevel: AccessLevel = .internal,
         arguments: [Argument] = [],
-        isForwarded: Bool = false,
-        getterConfig: Set<GetterConfig> = GetterConfig.default
+        getterConfig: Set<GetterConfig> = GetterConfig.default,
+        functionName: FunctionName = .register
     ) {
         self.service = service
         self.name = name
         self.accessLevel = accessLevel
         self.arguments = arguments
-        self.isForwarded = isForwarded
         self.getterConfig = getterConfig
+        self.functionName = functionName
+    }
+
+    var isAbstract: Bool {
+        return functionName == .registerAbstract
+    }
+
+    /// This registration is forwarded to another service entry.
+    var isForwarded: Bool {
+        return functionName == .implements
     }
 
     private enum CodingKeys: CodingKey {
         // ifConfigCondition is not encoded since ExprSyntax does not conform to codable
-        case service, name, accessLevel, arguments, isForwarded, getterConfig
+        case service, name, accessLevel, arguments, getterConfig, functionName
     }
 
 }
@@ -68,5 +77,15 @@ extension Registration {
             case computed
         }
 
+    }
+
+    public enum FunctionName: String, Codable {
+        case register
+        case autoregister
+        case registerAbstract
+        case implements
+
+        static let standaloneFunctions: Set<FunctionName> = [.register, .autoregister, .registerAbstract]
+        static let standaloneNames: Set<String> = Set(standaloneFunctions.map { $0.rawValue })
     }
 }

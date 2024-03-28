@@ -97,7 +97,7 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
             $0.type.description.trimmingCharacters(in: .whitespaces)
         }
         self.assemblyType = inheritedTypes?.first(where: { $0.hasSuffix("Assembly")})
-        classDeclVisitor = ClassDeclVisitor(viewMode: .fixedUp, directives: directives)
+        classDeclVisitor = ClassDeclVisitor(viewMode: .fixedUp, directives: directives, assemblyType: assemblyType)
         classDeclVisitor?.walk(node)
         return .skipChildren
     }
@@ -107,6 +107,7 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
 private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
 
     private let directives: KnitDirectives
+    private let assemblyType: String?
 
     /// The registrations that were found in the tree.
     private(set) var registrations = [Registration]()
@@ -121,8 +122,9 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     /// For any registrations parsed, this #if condition should be applied when it is used
     var currentIfConfigCondition: IfConfigVisitorCondition?
 
-    init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives) {
+    init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives, assemblyType: String?) {
         self.directives = directives
+        self.assemblyType = assemblyType
         super.init(viewMode: viewMode)
     }
 
@@ -132,7 +134,10 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
             return .skipChildren
         }
         do {
-            var (registrations, registrationsIntoCollections) = try node.getRegistrations(defaultDirectives: directives)
+            var (registrations, registrationsIntoCollections) = try node.getRegistrations(
+                defaultDirectives: directives,
+                abstractOnly: assemblyType == "AbstractAssembly"
+            )
             registrations = registrations.map { registration in
                 var mutable = registration
                 mutable.ifConfigCondition = currentIfConfigCondition?.condition

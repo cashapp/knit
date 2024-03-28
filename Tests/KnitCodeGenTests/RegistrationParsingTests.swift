@@ -25,8 +25,8 @@ final class RegistrationParsingTests: XCTestCase {
             .inObjectScope(.container)
             """,
             registrations: [
-                Registration(service: "AType", name: nil, accessLevel: .internal, isForwarded: false),
-                Registration(service: "AnotherType", name: nil, accessLevel: .internal, isForwarded: true),
+                Registration(service: "AType", name: nil, accessLevel: .internal, functionName: .register),
+                Registration(service: "AnotherType", name: nil, accessLevel: .internal, functionName: .implements),
             ]
         )
         try assertRegistrationString(
@@ -143,8 +143,8 @@ final class RegistrationParsingTests: XCTestCase {
             .implements(B.self)
             """,
             registrations: [
-                Registration(service: "A", name: nil, accessLevel: .internal, isForwarded: false),
-                Registration(service: "B", name: nil, accessLevel: .internal, isForwarded: true),
+                Registration(service: "A", name: nil, accessLevel: .internal, functionName: .register),
+                Registration(service: "B", name: nil, accessLevel: .internal, functionName: .implements),
             ]
         )
 
@@ -157,10 +157,10 @@ final class RegistrationParsingTests: XCTestCase {
             .implements(D.self, name: "bar")
             """,
             registrations: [
-                Registration(service: "A", name: nil, accessLevel: .internal, isForwarded: false),
-                Registration(service: "B", name: nil, accessLevel: .internal, isForwarded: true),
-                Registration(service: "C", name: "foo", accessLevel: .public, isForwarded: true),
-                Registration(service: "D", name: "bar", accessLevel: .internal, isForwarded: true),
+                Registration(service: "A", name: nil, accessLevel: .internal, functionName: .autoregister),
+                Registration(service: "B", name: nil, accessLevel: .internal, functionName: .implements),
+                Registration(service: "C", name: "foo", accessLevel: .public, functionName: .implements),
+                Registration(service: "D", name: "bar", accessLevel: .internal, functionName: .implements),
             ]
         )
 
@@ -174,9 +174,9 @@ final class RegistrationParsingTests: XCTestCase {
             .implements(C.self)
             """,
             registrations: [
-                Registration(service: "A", name: nil, accessLevel: .hidden, isForwarded: false),
-                Registration(service: "B", name: nil, accessLevel: .public, isForwarded: true),
-                Registration(service: "C", name: nil, accessLevel: .hidden, isForwarded: true)
+                Registration(service: "A", name: nil, accessLevel: .hidden, functionName: .register),
+                Registration(service: "B", name: nil, accessLevel: .public, functionName: .implements),
+                Registration(service: "C", name: nil, accessLevel: .hidden, functionName: .implements)
             ]
         )
     }
@@ -268,7 +268,7 @@ final class RegistrationParsingTests: XCTestCase {
         try assertMultipleRegistrationsString(
             "container.autoregister(A.self, argument: URL.self, initializer: A.init)",
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "URL")])
+                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "URL")], functionName: .autoregister)
             ]
         )
 
@@ -291,7 +291,8 @@ final class RegistrationParsingTests: XCTestCase {
                         .init(type: "URL"),
                         .init(type: "Int"),
                         .init(type: "String"),
-                    ]
+                    ],
+                    functionName: .autoregister
                 )
             ]
         )
@@ -302,7 +303,7 @@ final class RegistrationParsingTests: XCTestCase {
             container.autoregister(A.self, name: "test", argument: URL.self, initializer: A.init)
             """,
             registrations: [
-                Registration(service: "A", name: "test", accessLevel: .internal, arguments: [.init(type: "URL")])
+                Registration(service: "A", name: "test", arguments: [.init(type: "URL")], functionName: .autoregister)
             ]
         )
 
@@ -322,7 +323,8 @@ final class RegistrationParsingTests: XCTestCase {
                     service: "A",
                     name: "test",
                     accessLevel: .internal,
-                    arguments: [.init(type: "URL"), .init(type: "Int")]
+                    arguments: [.init(type: "URL"), .init(type: "Int")],
+                    functionName: .autoregister
                 )
             ]
         )
@@ -335,7 +337,7 @@ final class RegistrationParsingTests: XCTestCase {
                 container.register(A.self, factory: A.staticFunc)
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [], isForwarded: false)
+                Registration(service: "A", arguments: [])
             ]
         )
     }
@@ -349,8 +351,8 @@ final class RegistrationParsingTests: XCTestCase {
             .implements(B.self)
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "URL")]),
-                Registration(service: "B", accessLevel: .internal, arguments: [.init(type: "URL")], isForwarded: true)
+                Registration(service: "A", arguments: [.init(type: "URL")], functionName: .autoregister),
+                Registration(service: "B", arguments: [.init(type: "URL")], functionName: .implements)
             ]
         )
 
@@ -363,8 +365,8 @@ final class RegistrationParsingTests: XCTestCase {
             .implements(B.self)
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(identifier: "arg", type: "String")]),
-                Registration(service: "B", accessLevel: .internal, arguments: [.init(identifier: "arg", type: "String")], isForwarded: true)
+                Registration(service: "A", arguments: [.init(identifier: "arg", type: "String")]),
+                Registration(service: "B", arguments: [.init(identifier: "arg", type: "String")], functionName: .implements)
             ]
         )
     }
@@ -399,7 +401,7 @@ final class RegistrationParsingTests: XCTestCase {
             container.autoregister(A.self, argument: String?.self, initializer: A.init)
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "String?")]),
+                Registration(service: "A", arguments: [.init(type: "String?")], functionName: .autoregister),
             ]
         )
 
@@ -410,11 +412,12 @@ final class RegistrationParsingTests: XCTestCase {
             registrations: [
                 Registration(
                     service: "A",
-                    accessLevel: .internal,
                     arguments: [
                         .init(type: "Result<Int, Error>"),
                         .init(type: "Optional<Int>"),
-                    ]),
+                    ],
+                    functionName: .autoregister
+                ),
             ]
         )
 
@@ -424,7 +427,7 @@ final class RegistrationParsingTests: XCTestCase {
             container.autoregister((String, Int?).self, initializer: Factory.make)
             """,
             registrations: [
-                .init(service: "(String, Int?)", accessLevel: .internal, getterConfig: [.identifiedGetter(nil)])
+                .init(service: "(String, Int?)", getterConfig: [.identifiedGetter(nil)], functionName: .autoregister)
             ]
         )
     }
@@ -433,7 +436,7 @@ final class RegistrationParsingTests: XCTestCase {
         try assertMultipleRegistrationsString(
             "container.autoregister(A.self, argument: (() -> Void).self, initializer: A.init)",
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "(() -> Void)")]),
+                Registration(service: "A", arguments: [.init(type: "(() -> Void)")], functionName: .autoregister),
             ]
         )
 
@@ -444,7 +447,7 @@ final class RegistrationParsingTests: XCTestCase {
             }
             """,
             registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(identifier: "arg1", type: "() -> Void")]),
+                Registration(service: "A", arguments: [.init(identifier: "arg1", type: "() -> Void")]),
             ]
         )
     }

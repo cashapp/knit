@@ -504,6 +504,27 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(config2?.moduleName, "My")
     }
 
+    func testAbstractAssemblyWithNonAbstractRegistrations() throws {
+        let sourceFile: SourceFileSyntax = """
+            class MyAbstractAssembly: AbstractAssembly {
+                func assemble(container: Container) {
+                    container.register(A.self) { }
+                }
+            }
+        """
+
+        _ = try assertParsesSyntaxTree(
+            sourceFile,
+            assertErrorsToPrint: { errors in
+                XCTAssertEqual(errors.count, 1)
+                XCTAssertEqual(
+                    errors.first?.localizedDescription,
+                    "AbstractAssemblys may only contain Abstract registrations"
+                )
+            }
+        )
+    }
+
 }
 
 private func assertParsesSyntaxTree(

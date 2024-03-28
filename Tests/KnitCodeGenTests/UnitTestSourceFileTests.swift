@@ -14,10 +14,10 @@ final class UnitTestSourceFileTests: XCTestCase {
             moduleName: "MyModule",
             importDecls: [.named("Swinject")],
             registrations: [
-                .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
-                .init(service: "ServiceB", name: "name", accessLevel: .internal, isForwarded: false),
-                .init(service: "ServiceB", name: "otherName", accessLevel: .internal, isForwarded: true),
-                .init(service: "ServiceC", name: nil, accessLevel: .hidden, isForwarded: false),
+                .init(service: "ServiceA", name: nil),
+                .init(service: "ServiceB", name: "name"),
+                .init(service: "ServiceB", name: "otherName", functionName: .implements),
+                .init(service: "ServiceC", name: nil, accessLevel: .hidden),
                 .init(service: "ServiceD", accessLevel: .hidden, arguments: [.init(type: "String")]),
             ],
             registrationsIntoCollections: [
@@ -154,7 +154,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             moduleName: "MyModule",
             importDecls: [.named("Swinject")],
             registrations: [
-                .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
+                .init(service: "ServiceA", name: nil),
             ],
             registrationsIntoCollections: []
         )
