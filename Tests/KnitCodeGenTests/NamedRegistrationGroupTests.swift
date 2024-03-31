@@ -10,11 +10,11 @@ final class NamedRegistrationGroupTests: XCTestCase {
 
     func testRegistrationGrouping() throws {
         let registrations: [Registration] = [
-            .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
-            .init(service: "ServiceA", name: "name1", accessLevel: .internal, isForwarded: false),
-            .init(service: "ServiceB", name: "name1", accessLevel: .internal, isForwarded: false),
-            .init(service: "ServiceA", name: "name2", accessLevel: .internal, isForwarded: false),
-            .init(service: "ServiceB", name: "name3", accessLevel: .public, isForwarded: false),
+            .init(service: "ServiceA", name: nil),
+            .init(service: "ServiceA", name: "name1"),
+            .init(service: "ServiceB", name: "name1"),
+            .init(service: "ServiceA", name: "name2"),
+            .init(service: "ServiceB", name: "name3", accessLevel: .public),
         ]
 
         let namedGroups = NamedRegistrationGroup.make(from: registrations)

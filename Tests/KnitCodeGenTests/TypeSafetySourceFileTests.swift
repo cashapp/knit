@@ -14,11 +14,11 @@ final class TypeSafetySourceFileTests: XCTestCase {
             assemblyName: "ModuleAssembly",
             extensionTarget: "Resolve",
             registrations: [
-                .init(service: "ServiceA", name: nil, accessLevel: .internal, isForwarded: false),
-                .init(service: "ServiceB", name: "name", accessLevel: .internal, isForwarded: false),
-                .init(service: "ServiceB", name: "otherName", accessLevel: .internal, isForwarded: false),
-                .init(service: "ServiceC", name: nil, accessLevel: .hidden, isForwarded: false), // No resolver is created
-                .init(service: "ServiceD", name: nil, accessLevel: .public, isForwarded: true, getterConfig: GetterConfig.both),
+                .init(service: "ServiceA", name: nil),
+                .init(service: "ServiceB", name: "name"),
+                .init(service: "ServiceB", name: "otherName"),
+                .init(service: "ServiceC", name: nil, accessLevel: .hidden), // No resolver is created
+                .init(service: "ServiceD", name: nil, accessLevel: .public, getterConfig: GetterConfig.both, functionName: .implements),
                 .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [.init(type: "() -> Void")]),
                 .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
                 .init(service: "(String, Int?)", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),

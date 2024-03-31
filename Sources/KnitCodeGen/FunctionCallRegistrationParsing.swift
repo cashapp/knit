@@ -22,7 +22,8 @@ extension FunctionCallExprSyntax {
     /// Retrieve any registrations if they exist in the function call expression.
     /// Function call expressions can contain chained function calls, and this method will parse the chain.
     func getRegistrations(
-        defaultDirectives: KnitDirectives = .empty
+        defaultDirectives: KnitDirectives = .empty,
+        abstractOnly: Bool = false
     ) throws -> (registrations: [Registration], registrationsIntoCollections: [RegistrationIntoCollection]) {
 
         let (calledMethods, baseIdentifier) = recurseAllCalledMethods(startingWith: self)
@@ -48,15 +49,23 @@ extension FunctionCallExprSyntax {
 
         let registerMethods = calledMethods.filter { method in
             let name = method.calledExpression.declName.baseName.text
-            return name == "register" || name == "autoregister" || name == "registerAbstract"
+            return Registration.FunctionName.standaloneNames.contains(name)
         }
 
         guard registerMethods.count <= 1 else {
             throw RegistrationParsingError.chainedRegistrations(syntax: registerMethods[0].calledExpression)
         }
 
-        guard let primaryRegisterMethod = registerMethods.first else {
+        guard let primaryRegisterMethod = registerMethods.first,
+              let functionName = Registration.FunctionName(
+                rawValue: primaryRegisterMethod.calledExpression.declName.baseName.text
+              )
+        else {
             return ([], [])
+        }
+
+        if abstractOnly && functionName != .registerAbstract {
+            throw RegistrationParsingError.nonAbstract(syntax: primaryRegisterMethod.calledExpression)
         }
 
         // Arguments from the primary registration apply to all .implements() calls
@@ -71,7 +80,7 @@ extension FunctionCallExprSyntax {
             arguments: primaryRegisterMethod.arguments,
             registrationArguments: registrationArguments,
             leadingTrivia: self.leadingTrivia,
-            isForwarded: false
+            functionName: functionName
         ) else {
             return ([], [])
         }
@@ -91,7 +100,7 @@ extension FunctionCallExprSyntax {
                 arguments: implementsCalledMethod.arguments,
                 registrationArguments: registrationArguments,
                 leadingTrivia: leadingTrivia,
-                isForwarded: true
+                functionName: .implements
             ) {
                 forwardedRegistrations.append(forwardedRegistration)
             }
@@ -143,7 +152,7 @@ private func makeRegistrationFor(
     arguments: LabeledExprListSyntax,
     registrationArguments: [Registration.Argument],
     leadingTrivia: Trivia?,
-    isForwarded: Bool
+    functionName: Registration.FunctionName
 ) throws -> Registration? {
     guard let firstParam = arguments.first?.as(LabeledExprSyntax.self)?
         .expression.as(MemberAccessExprSyntax.self) else { return nil }
@@ -165,8 +174,8 @@ private func makeRegistrationFor(
         name: name,
         accessLevel: directives.accessLevel ?? defaultDirectives.accessLevel ?? .default,
         arguments: registrationArguments,
-        isForwarded: isForwarded,
-        getterConfig: getterConfig
+        getterConfig: getterConfig,
+        functionName: functionName
     )
 }
 
@@ -286,6 +295,7 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
     case nonStaticString(syntax: SyntaxProtocol, name: String)
     case invalidIfConfig(syntax: SyntaxProtocol, text: String)
     case nestedIfConfig(syntax: SyntaxProtocol)
+    case nonAbstract(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
@@ -301,6 +311,8 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             return "Invalid IfConfig expression: \(text)"
         case .nestedIfConfig:
             return "Nested #if statements are not supported"
+        case .nonAbstract:
+            return "AbstractAssemblys may only contain Abstract registrations"
         }
     }
 
@@ -311,7 +323,8 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             let .nonStaticString(syntax, _),
             let .unwrappedClosureParams(syntax),
             let .invalidIfConfig(syntax, _),
-            let .nestedIfConfig(syntax):
+            let .nestedIfConfig(syntax),
+            let .nonAbstract(syntax):
             return syntax
         }
     }
