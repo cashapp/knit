@@ -63,6 +63,10 @@ public struct Configuration: Encodable {
         return String(assemblyName.dropLast(8))
     }
 
+    var isAbstract: Bool {
+        return assemblyType == "AbstractAssembly"
+    }
+
 }
 
 public extension Configuration {
