@@ -15,7 +15,9 @@ public extension Resolver {
         line: Int = #line
     ) -> T {
         guard let unwrapped = value else {
-            fatalError("Knit resolver failure for \(function) -> \(T.self) from \(file):\(line)")
+            let dependencyTree = self.resolve(DependencyTree.self)
+            let graph = dependencyTree.map { "Dependency Graph:\n\($0.debugDescription)" } ?? ""
+            fatalError("Knit resolver failure for \(function) -> \(T.self) from \(file):\(line)\n\(graph)")
         }
         return unwrapped
     }
