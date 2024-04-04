@@ -30,6 +30,10 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
         return classDeclVisitor?.registrations ?? []
     }
 
+    var implements: [String] {
+        return classDeclVisitor?.implements ?? []
+    }
+
     var registrationsIntoCollections: [RegistrationIntoCollection] {
         return classDeclVisitor?.registrationsIntoCollections ?? []
     }
@@ -112,6 +116,8 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     /// The registrations that were found in the tree.
     private(set) var registrations = [Registration]()
 
+    private(set) var implements: [String] = []
+
     /// The registrations into collections that were found in the tree
     private(set) var registrationsIntoCollections = [RegistrationIntoCollection]()
 
@@ -154,8 +160,46 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard let binding = node.bindings.first,
+              node.modifiers.contains(where: {$0.name.text == "static"}),
+              let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
+              name == "implements"
+        else {
+            return .skipChildren
+        }
+        if case let .getter(codeBlock) = binding.accessorBlock?.accessors {
+            self.implements = extractImplements(syntax: codeBlock)
+            return .skipChildren
+        }
+        if let arrayInit = binding.initializer?.value.as(ArrayExprSyntax.self) {
+            self.implements = extractImplements(array: arrayInit)
+            return .skipChildren
+        }
+        registrationErrors.append(ImplementsParsingError.unexpectedSyntax(syntax: binding))
+
         // There could be computed properties that contain other function calls we don't want to parse
         return .skipChildren
+    }
+
+    private func extractImplements(syntax: CodeBlockItemListSyntax) -> [String] {
+        var implements: [String] = []
+        syntax.forEach { item in
+            if let array = item.item.as(ArrayExprSyntax.self) {
+                implements.append(contentsOf: extractImplements(array: array))
+            }
+        }
+        return implements
+    }
+
+    private func extractImplements(array: ArrayExprSyntax) -> [String] {
+        return array.elements.compactMap { element in
+            let memberAccess = element.expression.as(MemberAccessExprSyntax.self)
+            let decl = memberAccess?.base?.as(DeclReferenceExprSyntax.self)?.baseName
+            if let name = decl?.text {
+                return name
+            }
+            return nil
+        }
     }
 
     override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -222,6 +266,24 @@ extension AssemblyParsingError: LocalizedError {
         }
     }
 
+}
+
+enum ImplementsParsingError: LocalizedError, SyntaxError {
+    case unexpectedSyntax(syntax: SyntaxProtocol)
+
+    var errorDescription: String? {
+        switch self {
+        case .unexpectedSyntax:
+            return "Unexpected implements syntax"
+        }
+    }
+
+    var syntax: SyntaxProtocol {
+        switch self {
+        case let .unexpectedSyntax(syntax):
+            return syntax
+        }
+    }
 }
 
 // Output any errors that occurred during parsing

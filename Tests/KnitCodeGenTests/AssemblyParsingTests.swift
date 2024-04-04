@@ -525,6 +525,57 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
+    func testAssemblyImplements() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: Assembly {
+                func assemble(container: Container) {
+                    container.register(A.self) { }
+                }
+                static var implements: [any ModuleAssembly.Type] {
+                    [RealAssembly.self, SecondAssembly.self]
+                }
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.implements, ["RealAssembly", "SecondAssembly"])
+    }
+
+    func testImplementsAsLet() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: Assembly {
+                func assemble(container: Container) {
+                    container.register(A.self) { }
+                }
+                static let implements: [any ModuleAssembly.Type] = [RealAssembly.self, SecondAssembly.self]
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.implements, ["RealAssembly", "SecondAssembly"])
+    }
+    
+    func testInvalidImplements() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: Assembly {
+                static lazy var implements: [any ModuleAssembly.Type] = {
+                []
+            }()
+            """
+
+        _ = try assertParsesSyntaxTree(
+            sourceFile,
+            assertErrorsToPrint: { errors in
+                XCTAssertEqual(errors.count, 1)
+                XCTAssertEqual(
+                    errors.first?.localizedDescription,
+                    "Unexpected implements syntax"
+                )
+            }
+        )
+    }
+
+
 }
 
 private func assertParsesSyntaxTree(
