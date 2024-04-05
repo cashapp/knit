@@ -148,6 +148,12 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         @testable import Module
         import XCTest
+        final class ModuleAbstractRegistrationTests: XCTestCase {
+            func testRegistrations() {
+                // The ModuleAbstractAssembly is an abstract-only assembly
+                // so no registration tests are needed
+            }
+        }
         """#
         XCTAssertEqual(try set.makeUnitTestSourceFile(includeExtensions: false), expected)
 
