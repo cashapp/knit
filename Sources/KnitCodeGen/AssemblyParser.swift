@@ -112,6 +112,7 @@ public struct AssemblyParser {
             registrations: assemblyFileVisitor.registrations,
             registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
             imports: assemblyFileVisitor.imports,
+            implements: assemblyFileVisitor.implements,
             targetResolver: targetResolver
         )
     }

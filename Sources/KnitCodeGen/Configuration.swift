@@ -17,6 +17,7 @@ public struct Configuration: Encodable {
     public var registrationsIntoCollections: [RegistrationIntoCollection]
 
     public var imports: [ModuleImport] = []
+    public var implements: [String]
     public var targetResolver: String
 
     public init(
@@ -27,6 +28,7 @@ public struct Configuration: Encodable {
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
         imports: [ModuleImport] = [],
+        implements: [String] = [],
         targetResolver: String
     ) {
         self.assemblyName = assemblyName
@@ -36,6 +38,7 @@ public struct Configuration: Encodable {
         self.registrationsIntoCollections = registrationsIntoCollections
         self.imports = imports
         self.targetResolver = targetResolver
+        self.implements = implements
         self.moduleName = moduleName
     }
 
@@ -44,6 +47,7 @@ public struct Configuration: Encodable {
         case directives
         case assemblyType
         case registrations
+        case implements
     }
 
     // Testing all registrations introduces complications, limit what is tested for simplicity
