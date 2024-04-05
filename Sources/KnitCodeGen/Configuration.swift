@@ -84,6 +84,18 @@ public extension Configuration {
     }
 
     func makeUnitTestSourceFile() throws -> SourceFileSyntax {
+        guard !self.isAbstract else {
+            // Abstract assemblies don't need unit tests but we should still generate an empty test case
+            // otherwise unit test jobs will fail if they don't find any test cases in a test target
+            return .init(stringLiteral: """
+            final class \(self.assemblyShortName)RegistrationTests: XCTestCase {
+                func testRegistrations() {
+                    // The \(self.assemblyName) is an abstract-only assembly
+                    // so no registration tests are needed
+                }
+            }
+            """)
+        }
         return try UnitTestSourceFile.make(
             configuration: self,
             testAssemblerClass: assemblyName,
