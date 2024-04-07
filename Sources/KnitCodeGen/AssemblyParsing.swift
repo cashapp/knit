@@ -15,7 +15,7 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
 
     private(set) var moduleName: String?
 
-    private(set) var assemblyType: String?
+    private(set) var assemblyType: Configuration.AssemblyType?
 
     private(set) var directives: KnitDirectives = .empty
 
@@ -97,10 +97,18 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
         assemblyName = names?.0
         moduleName = node.namesForAssembly?.1
 
-        let inheritedTypes = inheritance?.inheritedTypes.map {
-            $0.type.description.trimmingCharacters(in: .whitespaces)
+        let inheritedTypes = inheritance?.inheritedTypes.compactMap {
+            if let identifier = $0.type.as(IdentifierTypeSyntax.self) {
+                return identifier.name.text
+            } else if let member = $0.type.as(MemberTypeSyntax.self) {
+                return member.name.text
+            } else {
+                return nil
+            }
         }
-        self.assemblyType = inheritedTypes?.first(where: { $0.hasSuffix("Assembly")})
+        self.assemblyType = inheritedTypes?
+            .first { $0.hasSuffix(Configuration.AssemblyType.baseAssembly.rawValue) }
+            .flatMap { Configuration.AssemblyType(rawValue: $0) }
         classDeclVisitor = ClassDeclVisitor(viewMode: .fixedUp, directives: directives, assemblyType: assemblyType)
         classDeclVisitor?.walk(node)
         return .skipChildren
@@ -111,7 +119,7 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
 private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
 
     private let directives: KnitDirectives
-    private let assemblyType: String?
+    private let assemblyType: Configuration.AssemblyType?
 
     /// The registrations that were found in the tree.
     private(set) var registrations = [Registration]()
@@ -128,7 +136,7 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     /// For any registrations parsed, this #if condition should be applied when it is used
     var currentIfConfigCondition: IfConfigVisitorCondition?
 
-    init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives, assemblyType: String?) {
+    init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives, assemblyType: Configuration.AssemblyType?) {
         self.directives = directives
         self.assemblyType = assemblyType
         super.init(viewMode: viewMode)
@@ -142,7 +150,7 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
         do {
             var (registrations, registrationsIntoCollections) = try node.getRegistrations(
                 defaultDirectives: directives,
-                abstractOnly: assemblyType == "AbstractAssembly"
+                abstractOnly: assemblyType == .abstractAssembly
             )
             registrations = registrations.map { registration in
                 var mutable = registration

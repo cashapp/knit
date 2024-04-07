@@ -11,7 +11,15 @@ public struct Configuration: Encodable {
     public var assemblyName: String
     public let moduleName: String
     public var directives: KnitDirectives
-    public var assemblyType: String
+
+    public enum AssemblyType: String, Encodable {
+        /// `Swinject.Assembly`
+        case baseAssembly = "Assembly"
+        case moduleAssembly = "ModuleAssembly"
+        case autoInitAssembly = "AutoInitModuleAssembly"
+        case abstractAssembly = "AbstractAssembly"
+    }
+    public var assemblyType: AssemblyType
 
     public var registrations: [Registration]
     public var registrationsIntoCollections: [RegistrationIntoCollection]
@@ -24,7 +32,7 @@ public struct Configuration: Encodable {
         assemblyName: String,
         moduleName: String,
         directives: KnitDirectives = .init(),
-        assemblyType: String = "Assembly",
+        assemblyType: AssemblyType = .baseAssembly,
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection],
         imports: [ModuleImport] = [],
@@ -67,10 +75,6 @@ public struct Configuration: Encodable {
         return String(assemblyName.dropLast(8))
     }
 
-    var isAbstract: Bool {
-        return assemblyType == "AbstractAssembly"
-    }
-
 }
 
 public extension Configuration {
@@ -84,7 +88,7 @@ public extension Configuration {
     }
 
     func makeUnitTestSourceFile() throws -> SourceFileSyntax {
-        guard !self.isAbstract else {
+        guard self.assemblyType != .abstractAssembly else {
             // Abstract assemblies don't need unit tests but we should still generate an empty test case
             // otherwise unit test jobs will fail if they don't find any test cases in a test target
             return .init(stringLiteral: """

@@ -128,7 +128,7 @@ final class UnitTestSourceFileTests: XCTestCase {
         let configuration = Configuration(
             assemblyName: "ModuleAbstractAssembly",
             moduleName: "Module",
-            assemblyType: "AbstractAssembly",
+            assemblyType: .abstractAssembly,
             registrations: [
                 .init(service: "ServiceA", accessLevel: .internal, arguments: [.init(type: "String")]),
             ],

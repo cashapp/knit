@@ -25,7 +25,7 @@ final class AssemblyParsingTests: XCTestCase {
             ]
         )
         XCTAssertEqual(config.registrations.count, 0, "No registrations")
-        XCTAssertEqual(config.assemblyType, "ModuleAssembly")
+        XCTAssertEqual(config.assemblyType, .moduleAssembly)
         XCTAssertEqual(config.assemblyShortName, "FooTest")
     }
 
@@ -110,7 +110,7 @@ final class AssemblyParsingTests: XCTestCase {
 
         let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.assemblyName, "FooTestAssembly")
-        XCTAssertEqual(config.assemblyType, "Assembly")
+        XCTAssertEqual(config.assemblyType, .baseAssembly)
     }
 
     func testAssemblyStructModuleName() throws {
@@ -142,6 +142,66 @@ final class AssemblyParsingTests: XCTestCase {
             config.registrations.map { $0.service },
             ["A"]
         )
+    }
+
+    func testAssemblyTypes() throws {
+        let sourceFilesAndExpected: [(SourceFileSyntax, Configuration.AssemblyType)] = [
+            (
+                """
+                class TestAssembly: Assembly {
+                    func assemble(container: Container) {}
+                }
+                """,
+                .baseAssembly
+            ),
+
+            (
+                """
+                class TestAssembly: Swinject.Assembly {
+                    func assemble(container: Container) {}
+                }
+                """,
+                .baseAssembly
+            ),
+
+            (
+                """
+                class TestAssembly: ModuleAssembly {
+                    func assemble(container: Container) {}
+                }
+                """,
+                .moduleAssembly
+            ),
+
+            (
+                """
+                class TestAssembly: AutoInitModuleAssembly {
+                    func assemble(container: Container) {}
+                }
+                """,
+                .autoInitAssembly
+            ),
+
+            (
+                """
+                class TestAssembly: AbstractAssembly {
+                    func assemble(container: Container) {}
+                }
+                """,
+                .abstractAssembly
+            ),
+        ]
+
+        try sourceFilesAndExpected.enumerated().forEach { (index, tuple) in
+            let (sourceFile, expectedType) = tuple
+            let config = try assertParsesSyntaxTree(sourceFile)
+            XCTAssertEqual(
+                config.assemblyType,
+                expectedType,
+                "Failed for tuple at index \(index)"
+            )
+        }
+
     }
 
     func testKnitDirectives() throws {
