@@ -11,39 +11,17 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
     /// The imports that were found in the tree.
     private(set) var imports = [ModuleImport]()
 
-    private(set) var assemblyName: String?
+    private(set) var classDeclVisitors: [ClassDeclVisitor] = []
 
-    private(set) var moduleName: String?
-
-    private(set) var assemblyType: Configuration.AssemblyType?
-
-    private(set) var directives: KnitDirectives = .empty
-
-    private var classDeclVisitor: ClassDeclVisitor?
+    private(set) var hasIgnoredConfigurations: Bool = false
 
     private(set) var assemblyErrors: [Error] = []
 
     /// For any imports parsed, this #if condition should be applied when it is used
     var currentIfConfigCondition: IfConfigVisitorCondition?
 
-    var registrations: [Registration] {
-        return classDeclVisitor?.registrations ?? []
-    }
-
-    var implements: [String] {
-        return classDeclVisitor?.implements ?? []
-    }
-
-    var registrationsIntoCollections: [RegistrationIntoCollection] {
-        return classDeclVisitor?.registrationsIntoCollections ?? []
-    }
-
     var registrationErrors: [Error] {
-        return classDeclVisitor?.registrationErrors ?? []
-    }
-
-    var targetResolver: String? {
-        return classDeclVisitor?.targetResolver
+        return classDeclVisitors.flatMap { $0.registrationErrors }
     }
 
     init() {
@@ -77,25 +55,24 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
     }
 
     private func visitAssemblyType(_ node: NamedDeclSyntax, _ inheritance: InheritanceClauseSyntax?) -> SyntaxVisitorContinueKind {
-        guard classDeclVisitor == nil else {
-            // Only the first class declaration should be visited
-            return .skipChildren
-        }
+        var directives: KnitDirectives = .empty
         do {
             directives = try KnitDirectives.parse(leadingTrivia: node.leadingTrivia)
 
             if directives.accessLevel == .ignore {
                 // Entire assembly is marked as ignore, stop parsing
+                self.hasIgnoredConfigurations = true
                 return .skipChildren
             }
-
         } catch {
             assemblyErrors.append(error)
         }
 
         let names = node.namesForAssembly
-        assemblyName = names?.0
-        moduleName = node.namesForAssembly?.1
+        guard let assemblyName = names?.0,
+              let moduleName = node.namesForAssembly?.1 else {
+            return .skipChildren
+        }
 
         let inheritedTypes = inheritance?.inheritedTypes.compactMap {
             if let identifier = $0.type.as(IdentifierTypeSyntax.self) {
@@ -106,20 +83,31 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
                 return nil
             }
         }
-        self.assemblyType = inheritedTypes?
+        let assemblyType = inheritedTypes?
             .first { $0.hasSuffix(Configuration.AssemblyType.baseAssembly.rawValue) }
             .flatMap { Configuration.AssemblyType(rawValue: $0) }
-        classDeclVisitor = ClassDeclVisitor(viewMode: .fixedUp, directives: directives, assemblyType: assemblyType)
-        classDeclVisitor?.walk(node)
+
+        let classDeclVisitor = ClassDeclVisitor(
+            viewMode: .fixedUp,
+            directives: directives,
+            assemblyName: assemblyName,
+            moduleName: moduleName,
+            assemblyType: assemblyType
+        )
+        classDeclVisitor.walk(node)
+        self.classDeclVisitors.append(classDeclVisitor)
+
         return .skipChildren
     }
 
 }
 
-private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
+class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
 
-    private let directives: KnitDirectives
-    private let assemblyType: Configuration.AssemblyType?
+    let directives: KnitDirectives
+    let assemblyType: Configuration.AssemblyType?
+    let assemblyName: String
+    let moduleName: String
 
     /// The registrations that were found in the tree.
     private(set) var registrations = [Registration]()
@@ -136,8 +124,16 @@ private class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     /// For any registrations parsed, this #if condition should be applied when it is used
     var currentIfConfigCondition: IfConfigVisitorCondition?
 
-    init(viewMode: SyntaxTreeViewMode, directives: KnitDirectives, assemblyType: Configuration.AssemblyType?) {
+    init(
+        viewMode: SyntaxTreeViewMode,
+        directives: KnitDirectives,
+        assemblyName: String,
+        moduleName: String,
+        assemblyType: Configuration.AssemblyType?
+    ) {
         self.directives = directives
+        self.assemblyName = assemblyName
+        self.moduleName = moduleName
         self.assemblyType = assemblyType
         super.init(viewMode: viewMode)
     }
@@ -245,10 +241,10 @@ extension NamedDeclSyntax {
 
 enum AssemblyParsingError: Error {
     case fileReadError(Error, path: String)
-    case missingAssemblyName
-    case missingModuleName
     case missingAssemblyType
     case parsingError
+    case noAssembliesFound
+    case moduleNameMismatch
 }
 
 extension AssemblyParsingError: LocalizedError {
@@ -260,20 +256,16 @@ extension AssemblyParsingError: LocalizedError {
                    Error reading file: \(error.localizedDescription)
                    File path: \(path)
                    """
-
-        case .missingAssemblyName:
-            return "Cannot generate unit test source file without an assembly name. " +
-                "Is your Assembly file setup correctly?"
-        case .missingModuleName:
-            return "Cannot generate unit test source file without a module name. " +
-                "Is your Assembly file setup correctly?"
         case .parsingError:
             return "There were one or more errors parsing the assembly file"
         case .missingAssemblyType:
             return "Assembly files must inherit from an *Assembly type"
+        case .noAssembliesFound:
+            return "The given file did not contain any valid assemblies"
+        case .moduleNameMismatch:
+            return "Assemblies in a single file have different modules"
         }
     }
-
 }
 
 enum ImplementsParsingError: LocalizedError, SyntaxError {

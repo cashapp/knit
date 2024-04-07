@@ -234,7 +234,8 @@ final class AssemblyParsingTests: XCTestCase {
                     }
                 }
 
-                class InMemoryKeyValueStoreAssembly: ModuleAssemblyOverride {
+                // @knit ignore
+                class InMemoryKeyValueStoreAssembly: Assembly {
                     func assemble(container: Container) {
                         container.register(Override.self) { }
                     }
@@ -334,7 +335,7 @@ final class AssemblyParsingTests: XCTestCase {
             """
 
         XCTAssertThrowsError(try assertParsesSyntaxTree(sourceFile)) { error in
-            guard case AssemblyParsingError.missingAssemblyName = error else {
+            guard case AssemblyParsingError.noAssembliesFound = error else {
                 XCTFail("Incorrect error case")
                 return
             }
@@ -500,13 +501,52 @@ final class AssemblyParsingTests: XCTestCase {
 
         let parser = try AssemblyParser(defaultTargetResolver: "Resolver", useTargetResolver: true)
 
-        let configuration = try parser.parseSyntaxTree(
+        let configurations = try parser.parseSyntaxTree(
             sourceFile,
             errorsToPrint: &errorsToPrint
         )
 
         XCTAssertEqual(errorsToPrint.count, 0)
-        XCTAssertNil(configuration)
+        XCTAssertEqual(configurations.count, 0)
+    }
+
+    func testMultipleConfigurations() throws {
+        let sourceFile: SourceFileSyntax = """
+            class MyAssembly: Assembly {
+                typealias TargetResolver = TestResolver
+                func assemble(container: Container) {
+                    container.register(A.self) { }
+                }
+            }
+
+            // @knit module-name("My")
+            class MySecondAssembly: ModuleAssembly {
+                typealias TargetResolver = AppResolver
+                func assemble(container: Container) {
+                    container.register(B.self) { }
+                }
+            }
+        """
+        var errorsToPrint = [Error]()
+
+        let parser = try AssemblyParser(defaultTargetResolver: "Resolver", useTargetResolver: true)
+
+        let configurations = try parser.parseSyntaxTree(
+            sourceFile,
+            errorsToPrint: &errorsToPrint
+        )
+
+        XCTAssertEqual(errorsToPrint.count, 0)
+        XCTAssertEqual(configurations.count, 2)
+        let config1 = configurations[0]
+        let config2 = configurations[1]
+        XCTAssertEqual(config1.assemblyName, "MyAssembly")
+        XCTAssertEqual(config1.targetResolver, "TestResolver")
+        XCTAssertEqual(config1.assemblyType, .baseAssembly)
+
+        XCTAssertEqual(config2.assemblyName, "MySecondAssembly")
+        XCTAssertEqual(config2.targetResolver, "AppResolver")
+        XCTAssertEqual(config2.assemblyType, .moduleAssembly)
     }
 
     func testIgnoredRegistration() throws {
@@ -549,7 +589,7 @@ final class AssemblyParsingTests: XCTestCase {
             sourceFile,
             path: "/App/OtherModule/Sources/DI/SomeAssembly.swift",
             errorsToPrint: &errorsToPrint
-        )
+        ).first
 
         XCTAssertEqual(config?.assemblyName, "MyAssembly")
         XCTAssertEqual(config?.moduleName, "OtherModule")
@@ -558,7 +598,7 @@ final class AssemblyParsingTests: XCTestCase {
             sourceFile,
             path: "/Non/Matching/Path/SomeAssembly.swift",
             errorsToPrint: &errorsToPrint
-        )
+        ).first
 
         XCTAssertEqual(config2?.assemblyName, "MyAssembly")
         XCTAssertEqual(config2?.moduleName, "My")
@@ -660,5 +700,5 @@ private func assertParsesSyntaxTree(
         XCTAssertEqual(errorsToPrint.count, 0, file: file, line: line)
     }
 
-    return try XCTUnwrap(configuration)
+    return try XCTUnwrap(configuration.first)
 }
