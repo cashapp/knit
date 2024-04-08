@@ -41,6 +41,24 @@ final class ModuleAssemblerTests: XCTestCase {
         XCTAssertNotNil(child.resolver.resolve(Service1.self))
         XCTAssertNil(parent.resolver.resolve(Service3.self))
     }
+
+    func test_abstractAssemblyValidation() {
+        XCTAssertThrowsError(
+            try ModuleAssembler(
+                _modules: [ Assembly4() ]
+            ),
+            "Should throw an error for missing concrete registration to fulfill abstract registration",
+            { error in
+                guard let abstractRegistrationErrors = error as? Container.AbstractRegistrationErrors else {
+                    XCTFail("Incorrect error type \(error)")
+                    return
+                }
+                XCTAssertEqual(abstractRegistrationErrors.errors.count, 1)
+                XCTAssertEqual(abstractRegistrationErrors.errors.first?.serviceType, "Assembly5Protocol")
+            }
+        )
+    }
+
 }
 
 // Assembly1 depends on Assembly2 and registers Service1
@@ -92,3 +110,47 @@ private struct Service1 {
 
 private struct Service2 {}
 private struct Service3 {}
+
+// MARK: - AbstractAssembly
+
+private struct Assembly4: AutoInitModuleAssembly {
+
+    func assemble(container: Swinject.Container) {
+        // None
+    }
+
+    static var dependencies: [any ModuleAssembly.Type] {
+        [
+            AbstractAssembly5.self,
+            Assembly5.self,
+        ]
+    }
+}
+
+private struct AbstractAssembly5: AbstractAssembly {
+    
+    static var dependencies: [any ModuleAssembly.Type] {
+        []
+    }
+
+    func assemble(container: Swinject.Container) {
+        container.registerAbstract(Assembly5Protocol.self)
+    }
+
+}
+
+private protocol Assembly5Protocol { }
+
+private struct Assembly5: AutoInitModuleAssembly {
+    
+    static var dependencies: [any ModuleAssembly.Type] { [] }
+
+    func assemble(container: Swinject.Container) {
+        // Missing a concrete registration for `Assembly5Protocol`
+    }
+    
+    static var implements: [any ModuleAssembly.Type] {
+        [AbstractAssembly5.self]
+    }
+
+}

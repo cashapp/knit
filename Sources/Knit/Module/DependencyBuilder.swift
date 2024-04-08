@@ -40,13 +40,18 @@ final class DependencyBuilder {
         }
         let overrideTypes = allModuleTypes.filter { !$0.implements.isEmpty }
 
+        // Collect AbstractAssemblies as they should all be instantiated and added to the container.
+        // This needs to happen before the filter below as they are all expected to be implemented by other assemblies
+        // and will therefore be filtered out.
+        let allAbstractModules = allModuleTypes.filter { $0 is any AbstractAssembly.Type }
+
         // Filter out any types where an override was found
         allModuleTypes = allModuleTypes.filter { moduleType in
             return !overrideTypes.contains(where: {$0.doesImplement(type: moduleType)})
         }
 
         // Instantiate all types
-        for type in allModuleTypes {
+        for type in allModuleTypes + allAbstractModules {
             guard !self.isRegisteredInParent(type) else {
                 continue
             }

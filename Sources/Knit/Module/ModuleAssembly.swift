@@ -13,10 +13,10 @@ public protocol ModuleAssembly: Assembly {
 
     static var dependencies: [any ModuleAssembly.Type] { get }
 
-    /// A ModuleAssembly can implement any number of other modules
-    /// If this module implements another it is expected to provide all registrations that the base assembly supplies
-    /// A common case is for a fake assembly that registers fake services from matching those from the original module
-    /// The override is generally expected to live in a separate module so it can be imported just for tests
+    /// A ModuleAssembly can implement any number of other modules' assemblies.
+    /// If this module implements another it is expected to provide all registrations that the implemented assemblies supply.
+    /// A common case is for an "implementation" assembly to fulfill all the abstract registrations from an AbstractAssembly.
+    /// Similarly, another common case is a fake assembly that registers fake services matching those from the original module.
     static var implements: [any ModuleAssembly.Type] { get }
 
     /// Filter the list of dependencies down to those which match the scope of this assembly
