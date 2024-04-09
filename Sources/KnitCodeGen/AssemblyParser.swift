@@ -26,14 +26,14 @@ public struct AssemblyParser {
         at paths: [String],
         externalTestingAssemblies: [String]
     ) throws -> ConfigurationSet {
-        let configs = try paths.compactMap { path in
+        let configs = try paths.flatMap { path in
             return try parse(
                 path: path,
                 defaultTargetResolver: defaultTargetResolver,
                 useTargetResolver: useTargetResolver
             )
         }
-        let additionalConfigs = try externalTestingAssemblies.compactMap { path in
+        let additionalConfigs = try externalTestingAssemblies.flatMap { path in
             return try parse(
                 path: path,
                 defaultTargetResolver: defaultTargetResolver,
@@ -44,7 +44,7 @@ public struct AssemblyParser {
         return ConfigurationSet(assemblies: configs, externalTestingAssemblies: additionalConfigs)
     }
 
-    private func parse(path: String, defaultTargetResolver: String, useTargetResolver: Bool) throws -> Configuration? {
+    private func parse(path: String, defaultTargetResolver: String, useTargetResolver: Bool) throws -> [Configuration] {
         let url = URL(fileURLWithPath: path, isDirectory: false)
         var errorsToPrint = [Error]()
 
@@ -55,7 +55,7 @@ public struct AssemblyParser {
             throw AssemblyParsingError.fileReadError(error, path: path)
         }
         let syntaxTree = Parser.parse(source: source)
-        let configuration = try parseSyntaxTree(
+        let configurations = try parseSyntaxTree(
             syntaxTree,
             path: path,
             errorsToPrint: &errorsToPrint
@@ -64,55 +64,76 @@ public struct AssemblyParser {
         if errorsToPrint.count > 0 {
             throw AssemblyParsingError.parsingError
         }
-        return configuration
+        return configurations
     }
 
     func parseSyntaxTree(
         _ syntaxTree: SyntaxProtocol,
         path: String? = nil,
         errorsToPrint: inout [Error]
-    ) throws -> Configuration? {
-        var extractedModuleName: String?
-        if let path {
-            extractedModuleName = nameExtractor.extractModuleName(path: path)
-        }
+    ) throws -> [Configuration] {
 
         let assemblyFileVisitor = AssemblyFileVisitor()
         assemblyFileVisitor.walk(syntaxTree)
 
-        if assemblyFileVisitor.directives.accessLevel == .ignore { return nil }
-
-        guard let assemblyName = assemblyFileVisitor.assemblyName else {
-            throw AssemblyParsingError.missingAssemblyName
-        }
-        let moduleName = assemblyFileVisitor.directives.moduleName ?? extractedModuleName ?? assemblyFileVisitor.moduleName
-        guard let moduleName else {
-            throw AssemblyParsingError.missingModuleName
-        }
-
-        guard let assemblyType = assemblyFileVisitor.assemblyType else {
-            throw AssemblyParsingError.missingAssemblyType
-        }
-
         errorsToPrint.append(contentsOf: assemblyFileVisitor.assemblyErrors)
         errorsToPrint.append(contentsOf: assemblyFileVisitor.registrationErrors)
+        
+        // If the file doesn't contain assemblies in a valid format, throw to let the developer know
+        if assemblyFileVisitor.classDeclVisitors.isEmpty && !assemblyFileVisitor.hasIgnoredConfigurations {
+            throw AssemblyParsingError.noAssembliesFound
+        }
+
+
+        let configurations = try assemblyFileVisitor.classDeclVisitors.compactMap { classVisitor in
+            return try makeConfiguration(
+                classDeclVisitor: classVisitor,
+                assemblyFileVisitor: assemblyFileVisitor,
+                path: path
+            )
+        }
+        let moduleNames =  Set(configurations.map { $0.moduleName })
+        if moduleNames.count > 1 {
+            throw AssemblyParsingError.moduleNameMismatch
+        }
+
+        return configurations
+    }
+
+    private func makeConfiguration(
+        classDeclVisitor: ClassDeclVisitor,
+        assemblyFileVisitor: AssemblyFileVisitor,
+        path: String?
+    ) throws -> Configuration? {
+        if classDeclVisitor.directives.accessLevel == .ignore {
+            return nil
+        }
+        var extractedModuleName: String?
+        if let path {
+            extractedModuleName = nameExtractor.extractModuleName(path: path)
+        }
+        let moduleName = classDeclVisitor.directives.moduleName ?? extractedModuleName ?? classDeclVisitor.moduleName
 
         let targetResolver: String
         if useTargetResolver {
-            targetResolver = assemblyFileVisitor.targetResolver ?? defaultTargetResolver
+            targetResolver = classDeclVisitor.targetResolver ?? defaultTargetResolver
         } else {
             targetResolver = defaultTargetResolver
         }
 
+        guard let assemblyType = classDeclVisitor.assemblyType else {
+            throw AssemblyParsingError.missingAssemblyType
+        }
+
         return Configuration(
-            assemblyName: assemblyName,
+            assemblyName: classDeclVisitor.assemblyName,
             moduleName: moduleName,
-            directives: assemblyFileVisitor.directives,
+            directives: classDeclVisitor.directives,
             assemblyType: assemblyType,
-            registrations: assemblyFileVisitor.registrations,
-            registrationsIntoCollections: assemblyFileVisitor.registrationsIntoCollections,
+            registrations: classDeclVisitor.registrations,
+            registrationsIntoCollections: classDeclVisitor.registrationsIntoCollections,
             imports: assemblyFileVisitor.imports,
-            implements: assemblyFileVisitor.implements,
+            implements: classDeclVisitor.implements,
             targetResolver: targetResolver
         )
     }
