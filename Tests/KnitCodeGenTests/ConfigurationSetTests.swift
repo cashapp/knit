@@ -25,13 +25,13 @@ final class ConfigurationSetTests: XCTestCase {
 
             // The correct resolution of each of these types is enforced by a matching automated unit test
             // If a type registration is missing or broken then the automated tests will fail for that PR
-            // Generated from Module1Assembly
+            /// Generated from ``Module1Assembly``
             extension Resolver {
                 public func service1() -> Service1 {
                     knitUnwrap(resolve(Service1.self))
                 }
             }
-            // Generated from Module2Assembly
+            /// Generated from ``Module2Assembly``
             extension Resolver {
                 public func callAsFunction() -> Service2 {
                     knitUnwrap(resolve(Service2.self))
@@ -40,7 +40,7 @@ final class ConfigurationSetTests: XCTestCase {
                     knitUnwrap(resolve(ArgumentService.self, argument: string))
                 }
             }
-            // Generated from Module3Assembly
+            /// Generated from ``Module3Assembly``
             extension Resolver {
                 public func service3() -> Service3 {
                     knitUnwrap(resolve(Service3.self))
