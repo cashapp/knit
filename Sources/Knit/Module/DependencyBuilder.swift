@@ -78,7 +78,7 @@ final class DependencyBuilder {
             return autoInit.init()
         }
 
-        throw Error.moduleNotProvided(moduleType, sourcePathString(moduleType: moduleType))
+        throw DependencyBuilderError.moduleNotProvided(moduleType, dependencyTree.sourcePathString(moduleType: moduleType))
     }
 
     private func gatherDependencies(
@@ -103,7 +103,7 @@ final class DependencyBuilder {
             do {
                 try assemblyValidation(resolved)
             } catch {
-                throw DependencyBuilder.Error.assemblyValidationFailure(resolved, reason: error)
+                throw DependencyBuilderError.assemblyValidationFailure(resolved, reason: error)
             }
         }
 
@@ -147,60 +147,39 @@ final class DependencyBuilder {
 
         let type = defaultType.erasedType
         guard type.doesImplement(type: moduleType) else {
-            throw Error.invalidDefault(type, moduleType)
+            throw DependencyBuilderError.invalidDefault(type, moduleType)
         }
         return type
     }
-
-
-    func sourcePath(moduleType: any ModuleAssembly.Type) -> [String] {
-        return dependencyTree.sourcePath(moduleType: moduleType)
-    }
-
-    func sourcePath(moduleName: String) -> [String] {
-        return dependencyTree.sourcePath(moduleName: moduleName)
-    }
-
-    func sourcePathString(moduleName: String) -> String {
-        let modules = sourcePath(moduleName: moduleName).joined(separator: " -> ")
-        return "Dependency path: \(modules)"
-    }
-
-    func sourcePathString(moduleType: any ModuleAssembly.Type) -> String {
-        return sourcePathString(moduleName: String(describing: moduleType))
-    }
-
 }
 
-extension DependencyBuilder {
-    enum Error: LocalizedError {
-        case moduleNotProvided(_ moduleType: any ModuleAssembly.Type, _ sourcePath: String)
-        case invalidDefault(_ overrideType: any ModuleAssembly.Type, _ moduleType: any ModuleAssembly.Type)
-        case assemblyValidationFailure(_ moduleType: any ModuleAssembly.Type, reason: Swift.Error)
+public enum DependencyBuilderError: LocalizedError {
+    case moduleNotProvided(_ moduleType: any ModuleAssembly.Type, _ sourcePath: String)
+    case invalidDefault(_ overrideType: any ModuleAssembly.Type, _ moduleType: any ModuleAssembly.Type)
+    case assemblyValidationFailure(_ moduleType: any ModuleAssembly.Type, reason: Swift.Error)
 
-        var errorDescription: String? {
-            switch self {
-            case let .moduleNotProvided(moduleType, sourcePath):
-                var testAdvice = ""
-                if OverrideBehavior.isRunningTests {
-                    testAdvice += "Adding a dependency on the testing module for \(moduleType) should fix this issue"
-                }
-                return """
-                Found module dependency: \(moduleType) that was not provided to assembler.
-                \(sourcePath)
-                \(testAdvice)
-                """
-            case let .invalidDefault(overrideType, moduleType):
-                let suggestion = """
-                SUGGESTED FIX:
-                public static var implements: [any ModuleAssembly.Type] {
-                    return [\(moduleType).self]
-                }
-                """
-                return "\(overrideType) used as default override does not implement \(moduleType)\n\(suggestion)"
-            case let .assemblyValidationFailure(moduleType, reason):
-                return "\(moduleType) did not pass assembly validation check: \(reason.localizedDescription)"
+    public var errorDescription: String? {
+        switch self {
+        case let .moduleNotProvided(moduleType, sourcePath):
+            var testAdvice = ""
+            if OverrideBehavior.isRunningTests {
+                testAdvice += "Adding a dependency on the testing module for \(moduleType) should fix this issue"
             }
+            return """
+            Found module dependency: \(moduleType) that was not provided to assembler.
+            \(sourcePath)
+            \(testAdvice)
+            """
+        case let .invalidDefault(overrideType, moduleType):
+            let suggestion = """
+            SUGGESTED FIX:
+            public static var implements: [any ModuleAssembly.Type] {
+                return [\(moduleType).self]
+            }
+            """
+            return "\(overrideType) used as default override does not implement \(moduleType)\n\(suggestion)"
+        case let .assemblyValidationFailure(moduleType, reason):
+            return "\(moduleType) did not pass assembly validation check: \(reason.localizedDescription)"
         }
     }
 }

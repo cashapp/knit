@@ -65,11 +65,11 @@ public final class ScopedModuleAssembler<ScopedResolver> {
 
 // MARK: - Errors
 
-enum ScopedModuleAssemblerError: LocalizedError {
+public enum ScopedModuleAssemblerError: LocalizedError {
 
     case incorrectTargetResolver(expected: String, actual: String)
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case let .incorrectTargetResolver(expected, actual):
             return """

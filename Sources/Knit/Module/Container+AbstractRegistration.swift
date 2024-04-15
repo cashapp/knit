@@ -53,10 +53,10 @@ extension Container {
     }
 
     // Collect
-    struct AbstractRegistrationErrors: LocalizedError {
+    public struct AbstractRegistrationErrors: LocalizedError {
         let errors: [AbstractRegistrationError]
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             return errors.map { $0.localizedDescription }.joined(separator: "\n")
         }
     }

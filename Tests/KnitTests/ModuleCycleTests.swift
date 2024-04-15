@@ -15,12 +15,12 @@ final class ModuleCycleTests: XCTestCase {
         XCTAssertTrue(assembler.isRegistered(Assembly4.self))
 
         XCTAssertEqual(
-            assembler.builder.sourcePath(moduleType: Assembly1.self),
+            assembler.builder.dependencyTree.sourcePath(moduleType: Assembly1.self),
             ["\(Assembly1.self)"]
         )
 
         XCTAssertEqual(
-            assembler.builder.sourcePath(moduleType: Assembly3.self),
+            assembler.builder.dependencyTree.sourcePath(moduleType: Assembly3.self),
             ["\(Assembly1.self)", "\(Assembly3.self)"]
         )
     }
@@ -28,12 +28,12 @@ final class ModuleCycleTests: XCTestCase {
     func test_sourceCycle() {
         let assembler = ModuleAssembler([Assembly5()])
         XCTAssertEqual(
-            assembler.builder.sourcePath(moduleType: Assembly5.self),
+            assembler.builder.dependencyTree.sourcePath(moduleType: Assembly5.self),
             ["\(Assembly5.self)"]
         )
 
         XCTAssertEqual(
-            assembler.builder.sourcePath(moduleType: Assembly7.self),
+            assembler.builder.dependencyTree.sourcePath(moduleType: Assembly7.self),
             ["\(Assembly5.self)", "\(Assembly6.self)", "\(Assembly7.self)"]
         )
     }
