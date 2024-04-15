@@ -91,6 +91,15 @@ public struct DependencyTree: CustomDebugStringConvertible {
     private func findImplementations(assemblyRef: AssemblyReference) -> [AssemblyReference] {
         return allModules.filter { $0.type.doesImplement(type: assemblyRef.type) && $0 != assemblyRef}
     }
+
+    public func sourcePathString(moduleName: String) -> String {
+        let modules = sourcePath(moduleName: moduleName).joined(separator: " -> ")
+        return "Dependency path: \(modules)"
+    }
+
+    public func sourcePathString(moduleType: any ModuleAssembly.Type) -> String {
+        return sourcePathString(moduleName: String(describing: moduleType))
+    }
 }
 
 /// Wrapper for the types to allow them to be hashable

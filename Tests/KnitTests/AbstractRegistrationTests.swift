@@ -61,7 +61,8 @@ final class AbstractRegistrationTests: XCTestCase {
         let builder = try DependencyBuilder(modules: [Assembly1()])
         let error = Container.AbstractRegistrationError(serviceType: "String", file: "Assembly2.swift", name: nil)
         let errors = Container.AbstractRegistrationErrors(errors: [error])
-        let result = ModuleAssembler.formatErrors(dependencyBuilder: builder, error: errors)
+        let formatter = DefaultModuleAssemblerErrorFormatter()
+        let result = formatter.format(error: errors, dependencyTree: builder.dependencyTree)
         XCTAssertEqual(
             result,
             """

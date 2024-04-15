@@ -37,6 +37,7 @@ public final class ModuleAssembler {
         _ modules: [any Assembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
+        errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil,
         file: StaticString = #file,
         line: UInt = #line
@@ -53,7 +54,7 @@ public final class ModuleAssembler {
             )
             createdBuilder = self.builder
         } catch {
-            let message = Self.formatErrors(dependencyBuilder: createdBuilder, error: error)
+            let message = errorFormatter.format(error: error, dependencyTree: createdBuilder?.dependencyTree)
             fatalError(
                 message,
                 file: file,
@@ -102,20 +103,6 @@ public final class ModuleAssembler {
 
         // https://github.com/Swinject/Swinject/blob/master/Documentation/ThreadSafety.md
         self.resolver = container.synchronize()
-    }
-
-    static func formatErrors(dependencyBuilder: DependencyBuilder?, error: Error) -> String {
-        let info = "Error creating ModuleAssembler. Please make sure all necessary assemblies are provided."
-        if let abstractErrors = error as? Container.AbstractRegistrationErrors, let builder = dependencyBuilder {
-            let messages = abstractErrors.errors.map { abstractError in
-                let assemblyName = abstractError.file.replacingOccurrences(of: ".swift", with: "")
-                let path = builder.sourcePathString(moduleName: assemblyName)
-                return "\(abstractError.localizedDescription)\n\(path)"
-            }
-            return "\(messages.joined(separator: "\n"))\n\(info)"
-        } else {
-            return "Error: \(error.localizedDescription)\(info)"
-        }
     }
 
     // Return true if a module type has been registered into this container or the parent container

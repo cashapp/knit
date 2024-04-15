@@ -159,7 +159,7 @@ final class DependencyBuilderTests: XCTestCase {
                     "'Assembly1' is the assembly that should fail, and the reason from the embedded error should also be displayed"
                 )
 
-                if case let DependencyBuilder.Error.assemblyValidationFailure(moduleType, reason: reasonError) = error {
+                if case let DependencyBuilderError.assemblyValidationFailure(moduleType, reason: reasonError) = error {
                     XCTAssert(moduleType == Assembly1.self)
                     if case DependencyBuilderTestError.failedValidation = reasonError {
                         // Correct `reasonError`
