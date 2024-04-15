@@ -14,6 +14,9 @@ public struct ConfigurationSet {
     /// Assemblies which were also parsed but will not have full generation
     public let externalTestingAssemblies: [Configuration]
 
+    /// Dependencies of this module
+    public let moduleDependencies: [String]
+
     public var primaryAssembly: Configuration {
         // There must be at least 1 assembly and the first is treated as primary
         return assemblies[0]
@@ -21,7 +24,8 @@ public struct ConfigurationSet {
 
     public func writeGeneratedFiles(
         typeSafetyExtensionsOutputPath: String?,
-        unitTestOutputPath: String?
+        unitTestOutputPath: String?,
+        knitModuleOutputPath: String?
     ) throws {
         if let typeSafetyExtensionsOutputPath {
             write(
@@ -34,6 +38,13 @@ public struct ConfigurationSet {
             write(
                 text: try makeUnitTestSourceFile(),
                 to: unitTestOutputPath
+            )
+        }
+
+        if let knitModuleOutputPath {
+            write(
+                text: try makeKnitModuleSourceFile(),
+                to: knitModuleOutputPath
             )
         }
     }
@@ -74,6 +85,15 @@ public extension ConfigurationSet {
             sourceFiles.append(resolverExtensions)
         }
 
+        return Self.join(sourceFiles: sourceFiles)
+    }
+
+    func makeKnitModuleSourceFile() throws -> String {
+        var moduleImports = ModuleImportSet(imports: moduleDependencies.map { .named($0) })
+        moduleImports.insert(.named("Knit"))
+        let header = HeaderSourceFile.make(imports: moduleImports.sorted, comment: nil)
+        let body = try KnitModuleSourceFile.make(configurations: self.assemblies, dependencies: moduleDependencies)
+        let sourceFiles = [header, body]
         return Self.join(sourceFiles: sourceFiles)
     }
 

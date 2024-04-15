@@ -27,7 +27,14 @@ struct GenCommand: ParsableCommand {
     var externalTestingAssemblies: [String] = []
 
     @Option(help: """
-                  Path to the file location in the current module where the unit test source should be written.
+                    An array of string arguments for the name of each module dependency.
+                    If none are provided a file will still be written to the outputPath.
+                    If the module name ends in "Assembly" it will be treated as an additional assembly.
+                    """)
+    var dependencyModuleNames = [String]()
+
+    @Option(help: """
+                  Path to the file location in the current module where the resolver type safety source should be written.
                   For example: `${PODS_TARGET_SRCROOT}/Sources/Generated/KnitDITypeSafety.swift`
                   """)
     var typeSafetyExtensionsOutputPath: String?
@@ -37,6 +44,12 @@ struct GenCommand: ParsableCommand {
                   For example: `${PODS_TARGET_SRCROOT}/UnitTests/Generated/KnitDIRegistrationTests.swift`
                   """)
     var unitTestOutputPath: String?
+
+    @Option(help: """
+                  Path to the file location in the current module where the KnitModule defintion should be written.
+                  For example: `${PODS_TARGET_SRCROOT}/Sources/Generated/KnitDITypeSafety.swift`
+                  """)
+    var knitModuleOutputPath: String?
 
     @Option(help: """
                   Path to the file location where the intermediate parsed data should be written
@@ -68,7 +81,8 @@ struct GenCommand: ParsableCommand {
                 moduleNameRegex: moduleNameRegex)
             parsedConfig = try assemblyParser.parseAssemblies(
                 at: assemblyInputPath,
-                externalTestingAssemblies: externalTestingAssemblies
+                externalTestingAssemblies: externalTestingAssemblies,
+                moduleDependencies: dependencyModuleNames
             )
             if let jsonDataOutputPath {
                 let data = try JSONEncoder().encode(parsedConfig.allAssemblies)
@@ -81,7 +95,8 @@ struct GenCommand: ParsableCommand {
 
         try parsedConfig.writeGeneratedFiles(
             typeSafetyExtensionsOutputPath: typeSafetyExtensionsOutputPath,
-            unitTestOutputPath: unitTestOutputPath
+            unitTestOutputPath: unitTestOutputPath,
+            knitModuleOutputPath: knitModuleOutputPath
         )
     }
 

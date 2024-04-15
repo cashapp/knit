@@ -8,20 +8,25 @@ import SwiftSyntaxBuilder
 public enum KnitModuleSourceFile {
     
     public static func make(
-        configurations: [Configuration]
+        configurations: [Configuration],
+        dependencies: [String]
     ) throws -> SourceFileSyntax {
         guard let firstConfig = configurations.first else {
             throw Error.noAssemblies
         }
-        return SourceFileSyntax(leadingTrivia: TriviaProvider.headerTrivia) {
-            DeclSyntax("import Knit")
-            makeTypeDefinition(moduleName: firstConfig.moduleName, configurations: configurations)
+        let moduleName = firstConfig.moduleName
+        return try SourceFileSyntax {
+            makeTypeDefinition(moduleName: firstConfig.moduleName, configurations: configurations, dependencies: dependencies)
+            for configuration in configurations {
+                try makeGeneratedAssembly(configuration: configuration, moduleName: moduleName)
+            }
         }
     }
 
     private static func makeTypeDefinition(
         moduleName: String,
-        configurations: [Configuration]
+        configurations: [Configuration],
+        dependencies: [String]
     ) -> EnumDeclSyntax {
         let assemblyNames = configurations.map { $0.assemblyName }
         return EnumDeclSyntax(
@@ -31,41 +36,45 @@ public enum KnitModuleSourceFile {
             name: "\(raw: moduleName)_KnitModule: KnitModule"
         ) {
             makeAssembliesVar(assemblyNames: assemblyNames)
+            makeDependenciesVar(modules: dependencies)
         }
     }
 
+    private static func makeDependenciesVar(modules: [String]) -> VariableDeclSyntax {
+        let moduleTypes = modules.map { "\($0)_KnitModule.self" }
+        let accessorBlock = AccessorBlockSyntax.arrayAccessor(elements: moduleTypes)
+
+        return VariableDeclSyntax.makeVar(
+            keywords: [.public, .static],
+            name: "moduleDependencies",
+            type: "[KnitModule.Type]",
+            accessorBlock: accessorBlock
+        )
+    }
+
     private static func makeAssembliesVar(assemblyNames: [String]) -> VariableDeclSyntax {
+        let accessorBlock = AccessorBlockSyntax.arrayAccessor(elements: assemblyNames.map { "\($0).self" })
+
+        return VariableDeclSyntax.makeVar(
+            keywords: [.public, .static],
+            name: "assemblies",
+            type: "[any ModuleAssembly.Type]",
+            accessorBlock: accessorBlock
+        )
+    }
+
+    private static func makeGeneratedAssembly(configuration: Configuration, moduleName: String) throws -> ExtensionDeclSyntax {
         let accessorBlock = AccessorBlockSyntax(
-            accessors: .getter(.init(
-                itemsBuilder: {
-                    let elements = ArrayElementListSyntax {
-                        for name in assemblyNames {
-                            ArrayElementSyntax(
-                                leadingTrivia: [ .newlines(1) ],
-                                expression: "\(raw: name).self" as ExprSyntax
-                            )
-                        }
-                    }
-
-                    ArrayExprSyntax(elements: elements)
-                }
-            ))
+            accessors: .getter(.init(stringLiteral: "\(moduleName)_KnitModule.allAssemblies"))
         )
-
-        return VariableDeclSyntax(
-            modifiers: [
-                DeclModifierSyntax(name: TokenSyntax(.keyword(.public), presence: .present)),
-                DeclModifierSyntax(name: TokenSyntax(.keyword(.static), presence: .present)),
-            ],
-            bindingSpecifier: .keyword(.var),
-            bindingsBuilder: {
-                PatternBindingSyntax(
-                    pattern: IdentifierPatternSyntax(identifier: .identifier("assemblies")),
-                    typeAnnotation: TypeAnnotationSyntax(type: "[any ModuleAssembly.Type]" as TypeSyntax),
-                    accessorBlock: accessorBlock
-                )
-            }
-        )
+        return try ExtensionDeclSyntax("extension \(raw: configuration.assemblyName): GeneratedModuleAssembly") {
+            VariableDeclSyntax.makeVar(
+                keywords: [.public, .static],
+                name: "generatedDependencies",
+                type: "[any ModuleAssembly.Type]",
+                accessorBlock: accessorBlock
+            )
+        }
     }
 }
 

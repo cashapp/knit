@@ -10,7 +10,8 @@ final class ConfigurationSetTests: XCTestCase {
     func testTypeSafetyOutput() {
         let configSet = ConfigurationSet(
             assemblies: [Factory.config1, Factory.config2, Factory.config3],
-            externalTestingAssemblies: []
+            externalTestingAssemblies: [],
+            moduleDependencies: []
         )
 
         XCTAssertEqual(
@@ -53,7 +54,8 @@ final class ConfigurationSetTests: XCTestCase {
     func testUnitTestOutput() {
         let configSet = ConfigurationSet(
             assemblies: [Factory.config1, Factory.config2],
-            externalTestingAssemblies: []
+            externalTestingAssemblies: [],
+            moduleDependencies: []
         )
 
         XCTAssertEqual(
@@ -159,10 +161,59 @@ final class ConfigurationSetTests: XCTestCase {
         )
     }
 
+    func testKnitModuleOutput() throws {
+        let configSet = ConfigurationSet(
+            assemblies: [Factory.config1, Factory.config2, Factory.config3],
+            externalTestingAssemblies: [],
+            moduleDependencies: ["ModuleA", "ModuleB"]
+        )
+
+        XCTAssertEqual(
+            try configSet.makeKnitModuleSourceFile(),
+            """
+            // Generated using Knit
+            // Do not edit directly!
+
+            import Knit
+            import ModuleA
+            import ModuleB
+            public enum Module1_KnitModule: KnitModule {
+                public static var assemblies: [any ModuleAssembly.Type] {
+                    [
+                        Module1Assembly.self,
+                        Module2Assembly.self,
+                        Module3Assembly.self]
+                }
+                public static var moduleDependencies: [KnitModule.Type] {
+                    [
+                        ModuleA_KnitModule.self,
+                        ModuleB_KnitModule.self]
+                }
+            }
+            extension Module1Assembly: GeneratedModuleAssembly {
+                public static var generatedDependencies: [any ModuleAssembly.Type] {
+                    Module1_KnitModule.allAssemblies
+                }
+            }
+            extension Module2Assembly: GeneratedModuleAssembly {
+                public static var generatedDependencies: [any ModuleAssembly.Type] {
+                    Module1_KnitModule.allAssemblies
+                }
+            }
+            extension Module3Assembly: GeneratedModuleAssembly {
+                public static var generatedDependencies: [any ModuleAssembly.Type] {
+                    Module1_KnitModule.allAssemblies
+                }
+            }
+            """
+        )
+    }
+
     func testAdditionalTests() throws {
         let configSet = ConfigurationSet(
             assemblies: [Factory.config1],
-            externalTestingAssemblies: [Factory.config2]
+            externalTestingAssemblies: [Factory.config2],
+            moduleDependencies: []
         )
         
         XCTAssertEqual(

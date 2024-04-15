@@ -24,7 +24,8 @@ public struct AssemblyParser {
 
     public func parseAssemblies(
         at paths: [String],
-        externalTestingAssemblies: [String]
+        externalTestingAssemblies: [String],
+        moduleDependencies: [String]
     ) throws -> ConfigurationSet {
         let configs = try paths.flatMap { path in
             return try parse(
@@ -41,7 +42,11 @@ public struct AssemblyParser {
             )
         }
 
-        return ConfigurationSet(assemblies: configs, externalTestingAssemblies: additionalConfigs)
+        return ConfigurationSet(
+            assemblies: configs,
+            externalTestingAssemblies: additionalConfigs,
+            moduleDependencies: moduleDependencies
+        )
     }
 
     private func parse(path: String, defaultTargetResolver: String, useTargetResolver: Bool) throws -> [Configuration] {
