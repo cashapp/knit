@@ -25,18 +25,34 @@ final class KnitModuleSourceFileTests: XCTestCase {
             ),
         ]
 
-        let result = try XCTUnwrap(KnitModuleSourceFile.make(configurations: configurations))
+        let result = try XCTUnwrap(
+            KnitModuleSourceFile.make(
+                configurations: configurations,
+                dependencies: ["ModuleB", "ModuleC"]
+            )
+        )
 
         let expected = #"""
-        // Generated using Knit
-        // Do not edit directly!
-
-        import Knit
         public enum MyModule_KnitModule: KnitModule {
             public static var assemblies: [any ModuleAssembly.Type] {
                 [
                     MyAssembly.self,
                     SecondAssembly.self]
+            }
+            public static var moduleDependencies: [KnitModule.Type] {
+                [
+                    ModuleB_KnitModule.self,
+                    ModuleC_KnitModule.self]
+            }
+        }
+        extension MyAssembly: GeneratedModuleAssembly {
+            public static var generatedDependencies: [any ModuleAssembly.Type] {
+                MyModule_KnitModule.allAssemblies
+            }
+        }
+        extension SecondAssembly: GeneratedModuleAssembly {
+            public static var generatedDependencies: [any ModuleAssembly.Type] {
+                MyModule_KnitModule.allAssemblies
             }
         }
         """#

@@ -79,7 +79,8 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let set = ConfigurationSet(
             assemblies: [mainConfiguration, appConfiguration],
-            externalTestingAssemblies: []
+            externalTestingAssemblies: [],
+            moduleDependencies: []
         )
 
         let expected = #"""
@@ -138,7 +139,8 @@ final class UnitTestSourceFileTests: XCTestCase {
         
         let set = ConfigurationSet(
             assemblies: [configuration],
-            externalTestingAssemblies: []
+            externalTestingAssemblies: [],
+            moduleDependencies: []
         )
         
         // No tests are generated as the assembly is abstract
