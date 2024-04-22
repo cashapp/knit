@@ -86,7 +86,7 @@ public struct AssemblyParser {
         
         // If the file doesn't contain assemblies in a valid format, throw to let the developer know
         if assemblyFileVisitor.classDeclVisitors.isEmpty && !assemblyFileVisitor.hasIgnoredConfigurations {
-            throw AssemblyParsingError.noAssembliesFound
+            throw AssemblyParsingError.noAssembliesFound(path ?? "Missing Path")
         }
 
 
