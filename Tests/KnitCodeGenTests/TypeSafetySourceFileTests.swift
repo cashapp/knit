@@ -26,7 +26,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         )
 
         let expected = """
-        // Generated from ModuleAssembly
+        /// Generated from ``ModuleAssembly``
         extension Resolve {
             func serviceA() -> ServiceA {
                 knitUnwrap(resolve(ServiceA.self))

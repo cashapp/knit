@@ -21,7 +21,7 @@ public enum TypeSafetySourceFile {
         let namedGroups = NamedRegistrationGroup.make(from: visibleRegistrations)
         return try SourceFileSyntax() {
             try ExtensionDeclSyntax("""
-                          // Generated from \(raw: assemblyName)
+                          /// Generated from ``\(raw: assemblyName)``
                           extension \(raw: extensionTarget)
                           """) {
 
