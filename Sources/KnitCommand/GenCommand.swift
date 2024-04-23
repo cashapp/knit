@@ -16,13 +16,15 @@ struct GenCommand: ParsableCommand {
 
     @Option(help: """
                   Path to the file location in the current module where the Assembly source is located.
-                  For example: `${PODS_TARGET_SRCROOT}/Sources/DI/ModuleNameAssembly.swift`
+                  For example: `${PODS_TARGET_SRCROOT}/Sources/DI/ModuleNameAssembly.swift`.
+                  If a directory is provided all filed ending in `Assembly.swift` files will be parsed
                   """)
     var assemblyInputPath: [String]
 
     @Option(help: """
                   Paths to assemblies external to the current module which should also be parsed.
-                  Tests will be generated for these assemblies
+                  Tests will be generated for these assemblies.
+                  If a directory is provided all filed ending in `Assembly.swift` files will be parsed
                   """)
     var externalTestingAssemblies: [String] = []
 
@@ -75,13 +77,16 @@ struct GenCommand: ParsableCommand {
     public func run() throws {
         let parsedConfig: ConfigurationSet
         do {
+            let expandedAssemblyPaths = try assemblyInputPath.flatMap { try expandInputPath(path: $0) }
+            let expandedTestingPaths = try externalTestingAssemblies.flatMap { try expandInputPath(path: $0) }
+
             let assemblyParser = try AssemblyParser(
                 defaultTargetResolver: defaultExtensionTargetResolver,
                 useTargetResolver: useTargetResolver,
                 moduleNameRegex: moduleNameRegex)
             parsedConfig = try assemblyParser.parseAssemblies(
-                at: assemblyInputPath,
-                externalTestingAssemblies: externalTestingAssemblies,
+                at: expandedAssemblyPaths,
+                externalTestingAssemblies: expandedTestingPaths,
                 moduleDependencies: dependencyModuleNames
             )
             if let jsonDataOutputPath {
@@ -99,5 +104,34 @@ struct GenCommand: ParsableCommand {
             knitModuleOutputPath: knitModuleOutputPath
         )
     }
+    
+    // Expand directory file paths to the assembly paths contained in the directory
+    private func expandInputPath(path: String) throws -> [String] {
+        let fileManager: FileManager = .default
+        var isDirectory = ObjCBool(false)
+        guard fileManager.fileExists(atPath: path, isDirectory: &isDirectory) else {
+            throw Error.invalidPath(path)
+        }
+        if !isDirectory.boolValue {
+            return [path]
+        }
+        let contents = try fileManager.contentsOfDirectory(atPath: path)
+            .filter { $0.hasSuffix("Assembly.swift") }
+        let dirURL = URL(fileURLWithPath: path)
+        return contents.map { dirURL.appendingPathComponent($0).pathComponents.joined(separator: "/") }
+    }
+    
+}
 
+private extension GenCommand {
+    enum Error: LocalizedError {
+        case invalidPath(String)
+
+        var errorDescription: String? {
+            switch self {
+            case let .invalidPath(path):
+                return "Assembly path does not exist: \(path)"
+            }
+        }
+    }
 }
