@@ -27,6 +27,8 @@ private final class TestErrorFormatter: ModuleAssemblerErrorFormatter {
             return "Scoped"
         case .abstract:
             return "Abstract"
+        case .abstractList:
+            return "Abstract List"
         }
     }
 

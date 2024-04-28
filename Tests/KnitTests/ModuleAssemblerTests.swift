@@ -45,7 +45,8 @@ final class ModuleAssemblerTests: XCTestCase {
     func test_abstractAssemblyValidation() {
         XCTAssertThrowsError(
             try ModuleAssembler(
-                _modules: [ Assembly4() ]
+                _modules: [ Assembly4() ],
+                overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: false)
             ),
             "Should throw an error for missing concrete registration to fulfill abstract registration",
             { error in
@@ -56,6 +57,14 @@ final class ModuleAssemblerTests: XCTestCase {
                 XCTAssertEqual(abstractRegistrationErrors.errors.count, 1)
                 XCTAssertEqual(abstractRegistrationErrors.errors.first?.serviceType, "Assembly5Protocol")
             }
+        )
+    }
+
+    func test_abstractAssemblyPlaceholders() throws {
+        // No error is thrown as the graph is using abstract placeholders
+        _ = try ModuleAssembler(
+            _modules: [ Assembly4() ],
+            overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: true)
         )
     }
 

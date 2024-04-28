@@ -12,6 +12,8 @@ extension ModuleAssemblerErrorFormatter {
 
     func format(error: Error, dependencyTree: DependencyTree?) -> String {
         if let abstract = error as? Container.AbstractRegistrationErrors {
+            return format(knitError: .abstractList(abstract), dependencyTree: dependencyTree)
+        } else if let abstract = error as? Container.AbstractRegistrationError {
             return format(knitError: .abstract(abstract), dependencyTree: dependencyTree)
         } else if let scoped = error as? ScopedModuleAssemblerError {
             return format(knitError: .scoped(scoped), dependencyTree: dependencyTree)
@@ -31,7 +33,7 @@ public struct DefaultModuleAssemblerErrorFormatter: ModuleAssemblerErrorFormatte
     public func format(knitError: KnitAssemblyError, dependencyTree: DependencyTree?) -> String {
         let info = "Error creating ModuleAssembler. Please make sure all necessary assemblies are provided."
         switch knitError {
-        case let .abstract(abstractErrors):
+        case let .abstractList(abstractErrors):
             let messages = abstractErrors.errors.map { abstractError in
                 let assemblyName = abstractError.file.replacingOccurrences(of: ".swift", with: "")
                 if let path = dependencyTree?.sourcePathString(moduleName: assemblyName) {
@@ -56,8 +58,11 @@ public enum KnitAssemblyError {
     /// An error related to validating the scoping rules
     case scoped(ScopedModuleAssemblerError)
 
-    /// Errors related to abstract registrations
-    case abstract(Container.AbstractRegistrationErrors)
+    /// List of errors related to abstract registrations
+    case abstractList(Container.AbstractRegistrationErrors)
+    
+    /// A single abstract registration error
+    case abstract(Container.AbstractRegistrationError)
 
     public var localizedDescription: String {
         switch self {
@@ -65,8 +70,10 @@ public enum KnitAssemblyError {
             return dependencyBuilderError.localizedDescription
         case let .scoped(scopedModuleAssemblerError):
             return scopedModuleAssemblerError.localizedDescription
-        case let .abstract(abstractRegistrationErrors):
+        case let .abstractList(abstractRegistrationErrors):
             return abstractRegistrationErrors.localizedDescription
+        case let .abstract(abstractError):
+            return abstractError.localizedDescription
         }
     }
 }
