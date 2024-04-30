@@ -58,7 +58,12 @@ public enum TypeSafetySourceFile {
         let nameInput = enumName.map { "name: \($0)" }
         let nameUsage = enumName != nil ? "name: name.rawValue" : nil
         let (argInput, argUsage) = argumentString(registration: registration)
-        let inputs = [nameInput, argInput].compactMap { $0 }.joined(separator: ", ")
+        let inputs = [
+            nameInput,
+            argInput,
+            // Add call-site context params with default values to forward to the error messaging
+            "file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line"
+        ].compactMap { $0 }.joined(separator: ", ")
         let usages = ["\(registration.service).self", nameUsage, argUsage].compactMap { $0 }.joined(separator: ", ")
         let funcName: String
         switch getterType {
@@ -69,7 +74,7 @@ public enum TypeSafetySourceFile {
         }
 
         let function = try FunctionDeclSyntax("\(raw: modifier)func \(raw: funcName)(\(raw: inputs)) -> \(raw: registration.service)") {
-            "knitUnwrap(resolve(\(raw: usages)))"
+            "knitUnwrap(resolve(\(raw: usages)), callsiteFile: file, callsiteFunction: function, callsiteLine: line)"
         }
 
         // Wrap the output in an #if where needed

@@ -28,23 +28,23 @@ final class ConfigurationSetTests: XCTestCase {
             // If a type registration is missing or broken then the automated tests will fail for that PR
             /// Generated from ``Module1Assembly``
             extension Resolver {
-                public func service1() -> Service1 {
-                    knitUnwrap(resolve(Service1.self))
+                public func service1(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service1 {
+                    knitUnwrap(resolve(Service1.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
             }
             /// Generated from ``Module2Assembly``
             extension Resolver {
-                public func callAsFunction() -> Service2 {
-                    knitUnwrap(resolve(Service2.self))
+                public func callAsFunction(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service2 {
+                    knitUnwrap(resolve(Service2.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
-                func argumentService(string: String) -> ArgumentService {
-                    knitUnwrap(resolve(ArgumentService.self, argument: string))
+                func argumentService(string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ArgumentService {
+                    knitUnwrap(resolve(ArgumentService.self, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
             }
             /// Generated from ``Module3Assembly``
             extension Resolver {
-                public func service3() -> Service3 {
-                    knitUnwrap(resolve(Service3.self))
+                public func service3(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service3 {
+                    knitUnwrap(resolve(Service3.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
             }
             """
