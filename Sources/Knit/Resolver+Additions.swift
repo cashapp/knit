@@ -12,12 +12,20 @@ public extension Resolver {
         _ value: T?,
         file: StaticString = #fileID,
         function: StaticString = #function,
-        line: Int = #line
+        line: UInt = #line,
+        // Allow for an additional frame of the call-stack for better context
+        callsiteFile: StaticString,
+        callsiteFunction: StaticString,
+        callsiteLine: UInt
     ) -> T {
         guard let unwrapped = value else {
             let dependencyTree = self.resolve(DependencyTree.self)
             let graph = dependencyTree.map { "Dependency Graph:\n\($0.debugDescription)" } ?? ""
-            fatalError("Knit resolver failure for \(function) -> \(T.self) from \(file):\(line)\n\(graph)")
+            fatalError("""
+                Knit resolver failure for \(function) -> \(T.self) from \(file):\(line)
+                Called by \(callsiteFunction) from \(callsiteFile):\(callsiteLine)
+                \(graph)
+                """)
         }
         return unwrapped
     }

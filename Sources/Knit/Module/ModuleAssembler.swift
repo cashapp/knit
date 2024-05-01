@@ -130,7 +130,7 @@ public final class ModuleAssembler {
 
 // Publicly expose the dependency tree so it can be used for debugging
 public extension Resolver {
-    func _dependencyTree() -> DependencyTree {
-        return knitUnwrap(resolve(DependencyTree.self))
+    func _dependencyTree(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> DependencyTree {
+        return knitUnwrap(resolve(DependencyTree.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
     }
 }
