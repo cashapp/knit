@@ -63,26 +63,32 @@ extension ModuleAssembly where Self: GeneratedModuleAssembly {
 }
 
 /// Control the behavior of Assembly Overrides.
-public enum OverrideBehavior {
+public struct OverrideBehavior {
+
+    public let allowDefaultOverrides: Bool
+    public let useAbstractPlaceholders: Bool
+
+    public init(allowDefaultOverrides: Bool, useAbstractPlaceholders: Bool) {
+        self.allowDefaultOverrides = allowDefaultOverrides
+        self.useAbstractPlaceholders = useAbstractPlaceholders
+    }
 
     /// Use any default overrides that are available.
-    case useDefaultOverrides
+    public static var useDefaultOverrides: Self {
+        return .init(allowDefaultOverrides: true, useAbstractPlaceholders: true)
+    }
 
     /// Disable and ignore any default overrides.
     /// Overrides that are _explicitly provided_ will still be used.
-    case disableDefaultOverrides
+    public static var disableDefaultOverrides: Self {
+        return .init(allowDefaultOverrides: false, useAbstractPlaceholders: false)
+    }
 
     /// Use default overrides *based on the runtime context*.
     /// If the ModuleAssembler is running in a unit test environment, the default overrides will be used.
     /// Otherwise disable and ignore default overrides.
-    case defaultOverridesWhenTesting
-
-    var allowDefaultOverrides: Bool {
-        switch self {
-        case .useDefaultOverrides: return true
-        case .disableDefaultOverrides: return false
-        case .defaultOverridesWhenTesting: return Self.isRunningTests
-        }
+    public static var defaultOverridesWhenTesting: Self {
+        return .init(allowDefaultOverrides: isRunningTests, useAbstractPlaceholders: isRunningTests)
     }
 
     static var isRunningTests: Bool {

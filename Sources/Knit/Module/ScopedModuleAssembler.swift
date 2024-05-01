@@ -18,6 +18,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         parent: ModuleAssembler? = nil,
         _ modules: [any Assembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
+        errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil,
         file: StaticString = #file,
         line: UInt = #line
@@ -30,8 +31,9 @@ public final class ScopedModuleAssembler<ScopedResolver> {
                 postAssemble: postAssemble
             )
         } catch {
+            let message = errorFormatter.format(error: error, dependencyTree: nil)
             fatalError(
-                error.localizedDescription,
+                message,
                 file: file,
                 line: line
             )
@@ -43,6 +45,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         parent: ModuleAssembler? = nil,
         _modules modules: [any Assembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
+        errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil
     ) throws {
         self.internalAssembler = try ModuleAssembler(
@@ -57,6 +60,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
                     )
                 }
             },
+            errorFormatter: errorFormatter,
             postAssemble: postAssemble
         )
     }

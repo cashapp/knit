@@ -50,6 +50,7 @@ public final class ModuleAssembler {
                 _modules: modules,
                 overrideBehavior: overrideBehavior,
                 assemblyValidation: assemblyValidation,
+                errorFormatter: errorFormatter,
                 postAssemble: postAssemble
             )
             createdBuilder = self.builder
@@ -69,6 +70,7 @@ public final class ModuleAssembler {
         _modules modules: [any Assembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
+        errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil
     ) throws {
         let moduleAssemblies = modules.compactMap { $0 as? any ModuleAssembly }
@@ -97,8 +99,19 @@ public final class ModuleAssembler {
         assembler.apply(assemblies: nonModuleAssemblies)
         assembler.apply(assemblies: builder.assemblies)
         postAssemble?(container)
+        
+        if overrideBehavior.useAbstractPlaceholders {
+            for registration in abstractRegistrations.unfulfilledRegistrations {
+                registration.registerPlaceholder(
+                    container: container,
+                    errorFormatter: errorFormatter,
+                    dependencyTree: dependencyTree
+                )
+            }
+        } else {
+            try abstractRegistrations.validate()
+        }
 
-        try abstractRegistrations.validate()
         abstractRegistrations.reset()
 
         // https://github.com/Swinject/Swinject/blob/master/Documentation/ThreadSafety.md
