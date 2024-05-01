@@ -16,7 +16,7 @@ extension Container {
         // Simplify the name to support Xcode 14.2.
         // Once 14.2 support is dropped and #file becomes shortened this can be removed
         let shortFile = URL(fileURLWithPath: file.description).lastPathComponent
-        let registration = RegistrationKey<Service>(name: name, file: shortFile)
+        let registration = RealAbstractRegistration<Service>(name: name, file: shortFile)
         abstractRegistrations().abstractRegistrations.append(registration)
     }
 
@@ -34,15 +34,21 @@ extension Container {
     }
 }
 
+/// The information required to uniquely reference a Swinject registration
+internal struct RegistrationKey: Hashable, Equatable {
+    let typeIdentifier: ObjectIdentifier
+    let name: String?
+}
+
 /// Protocol version to allow storing generic types an array
-internal protocol AbstractRegistrationKey {
+internal protocol AbstractRegistration {
     associatedtype ServiceType
 
     var serviceType: ServiceType.Type { get }
     var file: String { get }
     var name: String? { get }
-    var keyID: String { get }
-    
+    var key: RegistrationKey { get }
+
     /// Register a placeholder registration to fill the unfullfilled abstract registration
     /// This placeholder cannot be resolved
     func registerPlaceholder(
@@ -52,7 +58,7 @@ internal protocol AbstractRegistrationKey {
     )
 }
 
-extension AbstractRegistrationKey {
+extension AbstractRegistration {
     // Convert the key into an error
     var error: Container.AbstractRegistrationError {
         return Container.AbstractRegistrationError(
@@ -60,6 +66,35 @@ extension AbstractRegistrationKey {
             file: file,
             name: name
         )
+    }
+}
+
+// Implementation of AbstractRegistration
+fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
+    let name: String?
+    // Source file used for debugging. Not included in hash calculation or equality
+    let file: String
+
+    var serviceType: ServiceType.Type { ServiceType.self }
+
+    var key: RegistrationKey {
+        return .init(typeIdentifier: ObjectIdentifier(ServiceType.self), name: name)
+    }
+
+    func registerPlaceholder(
+        container: Container,
+        errorFormatter: ModuleAssemblerErrorFormatter,
+        dependencyTree: DependencyTree
+    ) {
+        let message = errorFormatter.format(error: self.error, dependencyTree: dependencyTree)
+        container.register(ServiceType.self) { _ in
+            fatalError("Attempt to resolve unfulfilled abstract registration.\n\(message)")
+        }
+    }
+
+    static func keyID(name: String?) -> String {
+        let serviceID = ObjectIdentifier(ServiceType.self)
+        return "\(serviceID)-\(name ?? "")"
     }
 }
 
@@ -90,38 +125,10 @@ extension Container {
         }
     }
 
-    fileprivate struct RegistrationKey<ServiceType>: AbstractRegistrationKey {
-        let name: String?
-        // Source file used for debugging. Not included in hash calculation or equality
-        let file: String
-
-        var serviceType: ServiceType.Type { ServiceType.self }
-
-        var keyID: String {
-            return Self.keyID(name: name)
-        }
-
-        func registerPlaceholder(
-            container: Container,
-            errorFormatter: ModuleAssemblerErrorFormatter,
-            dependencyTree: DependencyTree
-        ) {
-            let message = errorFormatter.format(error: self.error, dependencyTree: dependencyTree)
-            container.register(ServiceType.self) { _ in
-                fatalError("Attempt to resolve unfulfilled abstract registration.\n\(message)")
-            }
-        }
-
-        static func keyID(name: String?) -> String {
-            let serviceID = ObjectIdentifier(ServiceType.self)
-            return "\(serviceID)-\(name ?? "")"
-        }
-    }
-
     final class AbstractRegistrationContainer: Behavior {
 
-        fileprivate var concreteRegistrations: Set<String> = []
-        fileprivate var abstractRegistrations: [any AbstractRegistrationKey] = []
+        fileprivate var concreteRegistrations: Set<RegistrationKey> = []
+        fileprivate var abstractRegistrations: [any AbstractRegistration] = []
 
         func reset() {
             concreteRegistrations = []
@@ -134,12 +141,12 @@ extension Container {
             toService entry: ServiceEntry<Service>,
             withName name: String?
         ) {
-            let id = RegistrationKey<Type>.keyID(name: name)
+            let id = RegistrationKey(typeIdentifier: ObjectIdentifier(Type.self), name: name)
             concreteRegistrations.insert(id)
         }
 
-        var unfulfilledRegistrations: [any AbstractRegistrationKey] {
-            abstractRegistrations.filter { !concreteRegistrations.contains($0.keyID) }
+        var unfulfilledRegistrations: [any AbstractRegistration] {
+            abstractRegistrations.filter { !concreteRegistrations.contains($0.key) }
         }
 
         // Throws an error if any abstract registrations have not been implemented
