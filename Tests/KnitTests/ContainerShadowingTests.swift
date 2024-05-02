@@ -22,15 +22,21 @@ final class ContainerShadowingTests: XCTestCase {
 
     func test_withShadow() {
         let appContainer = Container()
-        appContainer.register(Example.self) { _ in
-            ProxyExample()
+        appContainer.register(Dep.self) { _ in
+            ProxyDep()
+        }
+        .inObjectScope(.container)
+
+        appContainer.register(Example.self) { r in
+            Example(dep: r.dep())
         }
         .inObjectScope(.container)
 
         let signedInContainer = Container(parent: appContainer)
-        signedInContainer.register(Example.self) { _ in
-            RealExample()
+        signedInContainer.register(Dep.self) { _ in
+            RealDep()
         }
+        .inObjectScope(.container)
 
         let example1 = appContainer.resolve(Example.self)!
         let example2 = signedInContainer.resolve(Example.self)!
@@ -38,14 +44,18 @@ final class ContainerShadowingTests: XCTestCase {
     }
 }
 
-private protocol Example {
+private protocol Dep {
     var value: UUID { get }
 }
 
-private struct ProxyExample: Example {
+private struct ProxyDep: Dep {
     let value: UUID = UUID()
 }
 
-private struct RealExample: Example {
+private struct RealDep: Dep {
     let value: UUID = UUID()
+}
+
+private protocol Example {
+    var dep: any Dep
 }
