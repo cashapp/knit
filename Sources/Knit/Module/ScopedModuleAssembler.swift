@@ -14,6 +14,11 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         internalAssembler.resolver as! ScopedResolver
     }
 
+    /// The container that registrations have been placed in. Prefer using resolver unless mutable access is required
+    public var _container: Container {
+        return internalAssembler._container
+    }
+
     public convenience init(
         parent: ModuleAssembler? = nil,
         _ modules: [any Assembly],
