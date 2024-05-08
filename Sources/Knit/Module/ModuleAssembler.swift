@@ -6,7 +6,8 @@
 /// If dependencies are missing from the tree then the resolution will fail and indicate the missing module
 public final class ModuleAssembler {
 
-    let container: Container
+    /// The container that registrations have been placed in. Prefer using resolver unless mutable access is required
+    let _container: Container
     let parent: ModuleAssembler?
     let serviceCollector: ServiceCollector
 
@@ -86,24 +87,24 @@ public final class ModuleAssembler {
         )
 
         self.parent = parent
-        self.container = Container(parent: parent?.container)
+        self._container = Container(parent: parent?._container)
         self.serviceCollector = .init(parent: parent?.serviceCollector)
-        self.container.addBehavior(serviceCollector)
-        let abstractRegistrations = self.container.registerAbstractContainer()
+        self._container.addBehavior(serviceCollector)
+        let abstractRegistrations = self._container.registerAbstractContainer()
 
         // Expose the dependency tree for debugging
         let dependencyTree = builder.dependencyTree
-        self.container.register(DependencyTree.self) { _ in dependencyTree }
+        self._container.register(DependencyTree.self) { _ in dependencyTree }
 
-        let assembler = Assembler(container: self.container)
+        let assembler = Assembler(container: self._container)
         assembler.apply(assemblies: nonModuleAssemblies)
         assembler.apply(assemblies: builder.assemblies)
-        postAssemble?(container)
-        
+        postAssemble?(_container)
+
         if overrideBehavior.useAbstractPlaceholders {
             for registration in abstractRegistrations.unfulfilledRegistrations {
                 registration.registerPlaceholder(
-                    container: container,
+                    container: _container,
                     errorFormatter: errorFormatter,
                     dependencyTree: dependencyTree
                 )
@@ -115,7 +116,7 @@ public final class ModuleAssembler {
         abstractRegistrations.reset()
 
         // https://github.com/Swinject/Swinject/blob/master/Documentation/ThreadSafety.md
-        self.resolver = container.synchronize()
+        self.resolver = _container.synchronize()
     }
 
     // Return true if a module type has been registered into this container or the parent container
