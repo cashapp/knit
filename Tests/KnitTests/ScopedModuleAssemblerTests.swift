@@ -49,6 +49,28 @@ final class ScopedModuleAssemblerTests: XCTestCase {
         )
     }
 
+    func testIncorrectInputScope() throws {
+        let parent = try ScopedModuleAssembler<TestResolver>(_modules: [Assembly1()])
+        // Even though Assembly1 is already registered, because it was explicitly provided the validation should fail
+        XCTAssertThrowsError(
+            try ScopedModuleAssembler<OutsideResolver>(
+                parent: parent.internalAssembler,
+                _modules: [Assembly3(), Assembly1()]
+            ),
+            "Assembly1 with target TestResolver should throw an error",
+            { error in
+                XCTAssertEqual(
+                    error.localizedDescription,
+                    """
+                    Assembly1 did not pass assembly validation check: The ModuleAssembly's TargetResolver is incorrect.
+                    Expected: OutsideResolver
+                    Actual: TestResolver
+                    """
+                )
+            }
+        )
+    }
+
 }
 
 private struct Assembly1: AutoInitModuleAssembly {
