@@ -53,6 +53,21 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil
     ) throws {
+        // For provided modules, fail early if they are scoped incorrectly
+        for assembly in modules {
+            guard let moduleAssembly = assembly as? any ModuleAssembly else {
+                continue
+            }
+            let moduleAssemblyType = type(of: moduleAssembly)
+            if moduleAssemblyType.resolverType != ScopedResolver.self {
+                let scopingError = ScopedModuleAssemblerError.incorrectTargetResolver(
+                    expected: String(describing: ScopedResolver.self),
+                    actual: String(describing: moduleAssemblyType.resolverType)
+                )
+
+                throw DependencyBuilderError.assemblyValidationFailure(moduleAssemblyType, reason: scopingError)
+            }
+        }
         self.internalAssembler = try ModuleAssembler(
             parent: parent,
             _modules: modules,
