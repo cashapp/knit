@@ -10,7 +10,7 @@ public struct KnitCommand: ParsableCommand {
     public static let configuration = CommandConfiguration(
         commandName: "knit",
         subcommands: [
-            GenCommand.self
+            GenCommand.self,
         ]
     )
 

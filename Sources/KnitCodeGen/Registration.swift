@@ -40,10 +40,6 @@ public struct Registration: Equatable, Codable {
         self.functionName = functionName
     }
 
-    var isAbstract: Bool {
-        return functionName == .registerAbstract
-    }
-
     /// This registration is forwarded to another service entry.
     var isForwarded: Bool {
         return functionName == .implements

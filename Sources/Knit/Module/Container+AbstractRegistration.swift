@@ -91,11 +91,6 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
             fatalError("Attempt to resolve unfulfilled abstract registration.\n\(message)")
         }
     }
-
-    static func keyID(name: String?) -> String {
-        let serviceID = ObjectIdentifier(ServiceType.self)
-        return "\(serviceID)-\(name ?? "")"
-    }
 }
 
 // MARK: - Inner types
