@@ -11,7 +11,6 @@ public struct KnitCommand: ParsableCommand {
         commandName: "knit",
         subcommands: [
             GenCommand.self,
-            ModuleDependenciesCommand.self,
         ]
     )
 
