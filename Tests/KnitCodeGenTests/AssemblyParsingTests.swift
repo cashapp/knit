@@ -675,6 +675,31 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
+    func testFakeAssembly() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: FakeAssembly {
+                typealias ImplementedAssembly = RealAssembly
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.implements, ["RealAssembly"])
+        XCTAssertEqual(config.assemblyType, .fakeAssembly)
+        XCTAssertEqual(config.assemblyName, "TestAssembly")
+    }
+
+    func testFakeAssemblyCustomImplements() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: FakeAssembly {
+                typealias ImplementedAssembly = RealAssembly
+                static var implements: [any ModuleAssembly.Type] { [AdditionalAssembly.self] }
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.implements, ["RealAssembly", "AdditionalAssembly"])
+        XCTAssertEqual(config.assemblyType, .fakeAssembly)
+    }
 
 }
 

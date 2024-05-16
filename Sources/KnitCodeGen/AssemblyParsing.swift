@@ -121,6 +121,8 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
 
     private(set) var targetResolver: String?
 
+    private(set) var fakeImplementedType: String?
+
     /// For any registrations parsed, this #if condition should be applied when it is used
     var currentIfConfigCondition: IfConfigVisitorCondition?
 
@@ -207,9 +209,13 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     }
 
     override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
-        if node.name.text == "TargetResolver",
-           let identifier = node.initializer.value.as(IdentifierTypeSyntax.self) {
+        guard let identifier = node.initializer.value.as(IdentifierTypeSyntax.self) else {
+            return .skipChildren
+        }
+        if node.name.text == "TargetResolver" {
             self.targetResolver = identifier.name.text
+        } else if node.name.text == "ImplementedAssembly" {
+            self.fakeImplementedType = identifier.name.text
         }
 
         return .skipChildren
