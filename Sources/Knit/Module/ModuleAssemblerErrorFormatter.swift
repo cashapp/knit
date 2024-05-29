@@ -44,7 +44,7 @@ public struct DefaultModuleAssemblerErrorFormatter: ModuleAssemblerErrorFormatte
             }
             return "\(messages.joined(separator: "\n"))\n\(info)"
         default:
-            return "Error: \(knitError.localizedDescription)\(info)"
+            return "Error: \(knitError.localizedDescription)\n\(info)"
         }
     }
 
