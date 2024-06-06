@@ -67,7 +67,9 @@ public enum KnitModuleSourceFile {
         let accessorBlock = AccessorBlockSyntax(
             accessors: .getter(.init(stringLiteral: "\(moduleName)_KnitModule.allAssemblies"))
         )
-        return try ExtensionDeclSyntax("extension \(raw: configuration.assemblyName): GeneratedModuleAssembly") {
+        // Don't conform FakeAssembly to GeneratedModuleAssembly to prevent conflicting implementations of `dependencies`
+        let conformance = configuration.assemblyType != .fakeAssembly ? ": GeneratedModuleAssembly" : ""
+        return try ExtensionDeclSyntax("extension \(raw: configuration.assemblyName)\(raw: conformance)") {
             VariableDeclSyntax.makeVar(
                 keywords: [.public, .static],
                 name: "generatedDependencies",

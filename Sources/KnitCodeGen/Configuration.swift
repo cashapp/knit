@@ -18,6 +18,7 @@ public struct Configuration: Encodable {
         case moduleAssembly = "ModuleAssembly"
         case autoInitAssembly = "AutoInitModuleAssembly"
         case abstractAssembly = "AbstractAssembly"
+        case fakeAssembly = "FakeAssembly"
     }
     public var assemblyType: AssemblyType
 
