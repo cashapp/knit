@@ -63,7 +63,7 @@ private struct Assembly2: ModuleAssembly {
 // Assembly2Fake overrides Assembly2
 private struct Assembly2Fake: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    static var implements: [any ModuleAssembly.Type] { [Assembly2.self] }
+    static var replaces: [any ModuleAssembly.Type] { [Assembly2.self] }
     func assemble(container: Container) {}
 }
 

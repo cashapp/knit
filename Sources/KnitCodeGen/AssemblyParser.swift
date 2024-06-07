@@ -130,7 +130,7 @@ public struct AssemblyParser {
             throw AssemblyParsingError.missingAssemblyType
         }
 
-        let fakeImplements = classDeclVisitor.fakeImplementedType.map { [$0] } ?? []
+        let fakeReplaces = classDeclVisitor.fakeReplacesType.map { [$0] } ?? []
 
         return Configuration(
             assemblyName: classDeclVisitor.assemblyName,
@@ -140,7 +140,7 @@ public struct AssemblyParser {
             registrations: classDeclVisitor.registrations,
             registrationsIntoCollections: classDeclVisitor.registrationsIntoCollections,
             imports: assemblyFileVisitor.imports,
-            implements: fakeImplements + classDeclVisitor.implements,
+            replaces: fakeReplaces + classDeclVisitor.replaces,
             targetResolver: targetResolver
         )
     }

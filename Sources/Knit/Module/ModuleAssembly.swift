@@ -13,11 +13,10 @@ public protocol ModuleAssembly: Assembly {
 
     static var dependencies: [any ModuleAssembly.Type] { get }
 
-    /// A ModuleAssembly can implement any number of other modules' assemblies.
-    /// If this module implements another it is expected to provide all registrations that the implemented assemblies supply.
-    /// A common case is for an "implementation" assembly to fulfill all the abstract registrations from an AbstractAssembly.
-    /// Similarly, another common case is a fake assembly that registers fake services matching those from the original module.
-    static var implements: [any ModuleAssembly.Type] { get }
+    /// A ModuleAssembly can replace any number of other module assemblies.
+    /// If this assembly replaces another it is expected to provide all registrations from the replaced assemblies.
+    /// A common case is a fake assembly that registers fake services matching those from the original module.
+    static var replaces: [any ModuleAssembly.Type] { get }
 
     /// Filter the list of dependencies down to those which match the scope of this assembly
     /// This can be overridden in apps with custom Resolver hierarchies
@@ -31,7 +30,7 @@ public extension ModuleAssembly {
         TargetResolver.self
     }
 
-    static var implements: [any ModuleAssembly.Type] { [] }
+    static var replaces: [any ModuleAssembly.Type] { [] }
 
     static func scoped(_ dependencies: [any ModuleAssembly.Type]) -> [any ModuleAssembly.Type] {
         return dependencies.filter {

@@ -17,7 +17,7 @@ private final class RealAssembly: AutoInitModuleAssembly {
 }
 
 private final class FakeTestAssembly: FakeAssembly {
-    typealias ImplementedAssembly = RealAssembly
+    typealias ReplacedAssembly = RealAssembly
     func assemble(container: Swinject.Container) {}
 }
 

@@ -38,7 +38,7 @@ final class DependencyBuilder {
                 source: nil
             )
         }
-        let overrideTypes = allModuleTypes.filter { !$0.implements.isEmpty }
+        let overrideTypes = allModuleTypes.filter { !$0.replaces.isEmpty }
 
         // Collect AbstractAssemblies as they should all be instantiated and added to the container.
         // This needs to happen before the filter below as they are all expected to be implemented by other assemblies
@@ -47,7 +47,7 @@ final class DependencyBuilder {
 
         // Filter out any types where an override was found
         allModuleTypes = allModuleTypes.filter { moduleType in
-            return !overrideTypes.contains(where: {$0.doesImplement(type: moduleType)})
+            return !overrideTypes.contains(where: {$0.doesReplace(type: moduleType)})
         }
 
         // Instantiate all types
@@ -62,7 +62,7 @@ final class DependencyBuilder {
     private func instantiate(moduleType: any ModuleAssembly.Type) throws -> any ModuleAssembly {
         let inputModule = inputModules.first(where: { type(of: $0) == moduleType})
         let existingType = inputModules.first { assembly in
-            return type(of: assembly).doesImplement(type: moduleType)
+            return type(of: assembly).doesReplace(type: moduleType)
         }
         if let existingType {
             return existingType
@@ -146,7 +146,7 @@ final class DependencyBuilder {
         }
 
         let type = defaultType.erasedType
-        guard type.doesImplement(type: moduleType) else {
+        guard type.doesReplace(type: moduleType) else {
             throw DependencyBuilderError.invalidDefault(type, moduleType)
         }
         return type
@@ -173,7 +173,7 @@ public enum DependencyBuilderError: LocalizedError {
         case let .invalidDefault(overrideType, moduleType):
             let suggestion = """
             SUGGESTED FIX:
-            public static var implements: [any ModuleAssembly.Type] {
+            public static var replaces: [any ModuleAssembly.Type] {
                 return [\(moduleType).self]
             }
             """
@@ -193,11 +193,11 @@ private extension DefaultModuleAssemblyOverride {
 
 extension ModuleAssembly {
     static func matches(moduleType: any ModuleAssembly.Type) -> Bool {
-        self == moduleType || doesImplement(type: moduleType)
+        self == moduleType || doesReplace(type: moduleType)
     }
 
-    static func doesImplement(type: any ModuleAssembly.Type) -> Bool {
-        return implements.contains(where: {$0 == type})
+    static func doesReplace(type: any ModuleAssembly.Type) -> Bool {
+        return replaces.contains(where: {$0 == type})
     }
 
     /// All original dependencies are registered along with any additional dependencies that the override requires
@@ -206,8 +206,8 @@ extension ModuleAssembly {
             // For tests only take this modules dependencies
             return Self.dependencies
         } else {
-            // For app code, combine this modules dependencies and any dependencies from modules it implements
-            return Self.dependencies + Self.implements.flatMap { $0.dependencies }
+            // For app code, combine this modules dependencies and any dependencies from modules it replaces
+            return Self.dependencies + Self.replaces.flatMap { $0.dependencies }
         }
     }
 
