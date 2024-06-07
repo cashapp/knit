@@ -14,11 +14,11 @@ if the `ModuleAssembly` cannot be initialised without a parameter that is provid
 ## Overriding Implementations
 
 For testing it may be required that an entire module should be swapped out. For example, a database module assembly may want to setup an in memory database while running tests.
-For these cases `static var implements` defines which modules the assembly overrides. It can then be used as a replacement for any `ModuleAssembly` that it implements. When an override is defined the original assembly will not be registered, the override will be substituted.
+For these cases `static var replaces` defines which modules the assembly overrides. It can then be used as a replacement for any `ModuleAssembly` that it declares it replaces. When an override is defined the original assembly will not be registered, the override will be substituted.
 Overrides do not need to be in the same codebase as the original. The usual expectation is that the ModuleFakes would provide a separate version for testing if required.
 
 ## DefaultModuleAssemblyOverride
 
-Using `implements` provides the power to swap DI module implementations but requires explicit setup. A base assembly that implements `DefaultModuleAssemblyOverride` can automatically choose the override when default overrides are enabled in the `ModuleAssembler`. This defaults to true for unit testing and false for normal app runs.
+Using `replaces` provides the power to swap DI module implementations but requires explicit setup. A base assembly that implements `DefaultModuleAssemblyOverride` can automatically choose the override when default overrides are enabled in the `ModuleAssembler`. This defaults to true for unit testing and false for normal app runs.
 
 

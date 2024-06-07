@@ -158,7 +158,7 @@ private struct Assembly5: AutoInitModuleAssembly {
         // Missing a concrete registration for `Assembly5Protocol`
     }
     
-    static var implements: [any ModuleAssembly.Type] {
+    static var replaces: [any ModuleAssembly.Type] {
         [AbstractAssembly5.self]
     }
 

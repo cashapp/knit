@@ -10,15 +10,15 @@ import Foundation
 /// * The FakeAssembly must use the same TargetResolver as the real assembly
 /// * The real assembly must have a DefaultModuleAssemblyOverride setup pointing to this fake
 /// * The FakeAssembly defaults to no dependencies to prevent expanding the DI graph
-/// * The FakeAssembly is defined to implement the real assembly
-public protocol FakeAssembly<ImplementedAssembly>: AutoInitModuleAssembly {
-    associatedtype ImplementedAssembly: DefaultModuleAssemblyOverride where
-        ImplementedAssembly.OverrideType == Self,
-        ImplementedAssembly.TargetResolver == Self.TargetResolver
+/// * The FakeAssembly is defined to replace the real assembly
+public protocol FakeAssembly<ReplacedAssembly>: AutoInitModuleAssembly {
+    associatedtype ReplacedAssembly: DefaultModuleAssemblyOverride where
+        ReplacedAssembly.OverrideType == Self,
+        ReplacedAssembly.TargetResolver == Self.TargetResolver
 }
 
 public extension FakeAssembly {
 
-    static var implements: [any ModuleAssembly.Type] { [ImplementedAssembly.self] }
+    static var replaces: [any ModuleAssembly.Type] { [ReplacedAssembly.self] }
     static var dependencies: [any ModuleAssembly.Type] { [] }
 }

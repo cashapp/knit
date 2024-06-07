@@ -59,7 +59,7 @@ private struct Assembly3: AutoInitModuleAssembly {
     init() {}
     static var dependencies: [any ModuleAssembly.Type] { [Assembly2.self, Assembly4.self] }
     func assemble(container: Container) {}
-    static var implements: [any ModuleAssembly.Type] { [Assembly2.self] }
+    static var replaces: [any ModuleAssembly.Type] { [Assembly2.self] }
 }
 
 private struct Assembly4: AutoInitModuleAssembly {

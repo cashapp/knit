@@ -133,7 +133,7 @@ final class DependencyBuilderTests: XCTestCase {
                 """
                 Assembly6 used as default override does not implement Assembly5
                 SUGGESTED FIX:
-                public static var implements: [any ModuleAssembly.Type] {
+                public static var replaces: [any ModuleAssembly.Type] {
                     return [Assembly5.self]
                 }
                 """
@@ -196,14 +196,14 @@ private struct Assembly1: ModuleAssembly {
     func assemble(container: Container) {}
 }
 
-// Assembly2 has no dependencies but implements Assembly8
+// Assembly2 has no dependencies but replaces Assembly8
 private struct Assembly2: AutoInitModuleAssembly {
 
     static var dependencies: [any ModuleAssembly.Type] {
         return []
     }
 
-    static var implements: [any ModuleAssembly.Type] { [Assembly8.self] }
+    static var replaces: [any ModuleAssembly.Type] { [Assembly8.self] }
 
     func assemble(container: Container) {}
 }

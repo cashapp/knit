@@ -112,7 +112,7 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     /// The registrations that were found in the tree.
     private(set) var registrations = [Registration]()
 
-    private(set) var implements: [String] = []
+    private(set) var replaces: [String] = []
 
     /// The registrations into collections that were found in the tree
     private(set) var registrationsIntoCollections = [RegistrationIntoCollection]()
@@ -121,7 +121,7 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
 
     private(set) var targetResolver: String?
 
-    private(set) var fakeImplementedType: String?
+    private(set) var fakeReplacesType: String?
 
     /// For any registrations parsed, this #if condition should be applied when it is used
     var currentIfConfigCondition: IfConfigVisitorCondition?
@@ -167,37 +167,39 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         guard let binding = node.bindings.first,
-              node.modifiers.contains(where: {$0.name.text == "static"}),
+              node.modifiers.contains(where: {
+                  $0.name.tokenKind == .keyword(.static)
+              }),
               let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
-              name == "implements"
+              name == "replaces"
         else {
             return .skipChildren
         }
         if case let .getter(codeBlock) = binding.accessorBlock?.accessors {
-            self.implements = extractImplements(syntax: codeBlock)
+            self.replaces = extractReplaces(syntax: codeBlock)
             return .skipChildren
         }
         if let arrayInit = binding.initializer?.value.as(ArrayExprSyntax.self) {
-            self.implements = extractImplements(array: arrayInit)
+            self.replaces = extractReplaces(array: arrayInit)
             return .skipChildren
         }
-        registrationErrors.append(ImplementsParsingError.unexpectedSyntax(syntax: binding))
+        registrationErrors.append(ReplacesParsingError.unexpectedSyntax(syntax: binding))
 
         // There could be computed properties that contain other function calls we don't want to parse
         return .skipChildren
     }
 
-    private func extractImplements(syntax: CodeBlockItemListSyntax) -> [String] {
-        var implements: [String] = []
+    private func extractReplaces(syntax: CodeBlockItemListSyntax) -> [String] {
+        var replaces: [String] = []
         syntax.forEach { item in
             if let array = item.item.as(ArrayExprSyntax.self) {
-                implements.append(contentsOf: extractImplements(array: array))
+                replaces.append(contentsOf: extractReplaces(array: array))
             }
         }
-        return implements
+        return replaces
     }
 
-    private func extractImplements(array: ArrayExprSyntax) -> [String] {
+    private func extractReplaces(array: ArrayExprSyntax) -> [String] {
         return array.elements.compactMap { element in
             let memberAccess = element.expression.as(MemberAccessExprSyntax.self)
             let decl = memberAccess?.base?.as(DeclReferenceExprSyntax.self)?.baseName
@@ -214,8 +216,8 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
         }
         if node.name.text == "TargetResolver" {
             self.targetResolver = identifier.name.text
-        } else if node.name.text == "ImplementedAssembly" {
-            self.fakeImplementedType = identifier.name.text
+        } else if node.name.text == "ReplacedAssembly" {
+            self.fakeReplacesType = identifier.name.text
         }
 
         return .skipChildren
@@ -274,13 +276,13 @@ extension AssemblyParsingError: LocalizedError {
     }
 }
 
-enum ImplementsParsingError: LocalizedError, SyntaxError {
+enum ReplacesParsingError: LocalizedError, SyntaxError {
     case unexpectedSyntax(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
         case .unexpectedSyntax:
-            return "Unexpected implements syntax"
+            return "Unexpected replaces syntax"
         }
     }
 

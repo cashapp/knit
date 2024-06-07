@@ -80,16 +80,16 @@ public struct DependencyTree: CustomDebugStringConvertible {
         let childRows = children.flatMap { debugDescription(assemblyRef: $0, indent: newIndent) }
 
         var selfRow = "\(indent)\(assemblyRef.name)"
-        let implementations = findImplementations(assemblyRef: assemblyRef).map { $0.name }.joined(separator: ", ")
-        if !implementations.isEmpty {
-            selfRow += " (\(implementations))"
+        let replacements = findReplacements(assemblyRef: assemblyRef).map { $0.name }.joined(separator: ", ")
+        if !replacements.isEmpty {
+            selfRow += " (\(replacements))"
         }
 
         return [selfRow] + childRows
     }
 
-    private func findImplementations(assemblyRef: AssemblyReference) -> [AssemblyReference] {
-        return allModules.filter { $0.type.doesImplement(type: assemblyRef.type) && $0 != assemblyRef}
+    private func findReplacements(assemblyRef: AssemblyReference) -> [AssemblyReference] {
+        return allModules.filter { $0.type.doesReplace(type: assemblyRef.type) && $0 != assemblyRef}
     }
 
     public func sourcePathString(moduleName: String) -> String {

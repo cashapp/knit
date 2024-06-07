@@ -86,7 +86,7 @@ extension FunctionCallExprSyntax {
         }
 
         let implementsCalledMethods = calledMethods.filter { method in
-            method.calledExpression.declName.baseName.text == "implements"
+            method.calledExpression.declName.baseName.text == Registration.FunctionName.implements.rawValue
         }
 
         var forwardedRegistrations = [Registration]()

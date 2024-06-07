@@ -177,7 +177,7 @@ private struct Assembly2Fake: AutoInitModuleAssembly {
         container.autoregister(Service2Protocol.self, initializer: Service2Fake.init)
     }
 
-    static var implements: [any ModuleAssembly.Type] { [Assembly2.self] }
+    static var replaces: [any ModuleAssembly.Type] { [Assembly2.self] }
     static var dependencies: [any ModuleAssembly.Type] {
         return [FakeAssembly3.self]
     }
@@ -186,7 +186,7 @@ private struct Assembly2Fake: AutoInitModuleAssembly {
 private struct Assembly1Fake: AutoInitModuleAssembly {
     func assemble(container: Container) {}
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    static var implements: [any ModuleAssembly.Type] { [Assembly1.self] }
+    static var replaces: [any ModuleAssembly.Type] { [Assembly1.self] }
 }
 
 extension Assembly1: DefaultModuleAssemblyOverride {
@@ -212,19 +212,19 @@ extension Assembly4: DefaultModuleAssemblyOverride {
 private struct Assembly4Fake: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
     func assemble(container: Container) { }
-    static var implements: [any ModuleAssembly.Type] { [Assembly4.self] }
+    static var replaces: [any ModuleAssembly.Type] { [Assembly4.self] }
 }
 
 private struct Assembly4Fake2: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
     func assemble(container: Container) { }
-    static var implements: [any ModuleAssembly.Type] { [Assembly4.self] }
+    static var replaces: [any ModuleAssembly.Type] { [Assembly4.self] }
 }
 
 private struct NonAutoOverride: ModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
     func assemble(container: Container) { }
-    static var implements: [any ModuleAssembly.Type] { [Assembly1.self] }
+    static var replaces: [any ModuleAssembly.Type] { [Assembly1.self] }
 }
 
 private struct Assembly5: ModuleAssembly {
@@ -240,7 +240,7 @@ private struct MultipleDependencyAssembly: ModuleAssembly {
 private struct MultipleOverrideAssembly: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
     func assemble(container: Container) { }
-    static var implements: [any ModuleAssembly.Type] { [Assembly1.self, Assembly4.self, Assembly5.self] }
+    static var replaces: [any ModuleAssembly.Type] { [Assembly1.self, Assembly4.self, Assembly5.self] }
 }
 
 private protocol Service2Protocol {}

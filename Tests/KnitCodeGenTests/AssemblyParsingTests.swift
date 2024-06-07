@@ -625,40 +625,40 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
-    func testAssemblyImplements() throws {
+    func testAssemblyReplaces() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: Assembly {
                 func assemble(container: Container) {
                     container.register(A.self) { }
                 }
-                static var implements: [any ModuleAssembly.Type] {
+                static var replaces: [any ModuleAssembly.Type] {
                     [RealAssembly.self, SecondAssembly.self]
                 }
             }
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.implements, ["RealAssembly", "SecondAssembly"])
+        XCTAssertEqual(config.replaces, ["RealAssembly", "SecondAssembly"])
     }
 
-    func testImplementsAsLet() throws {
+    func testReplacesAsLet() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: Assembly {
                 func assemble(container: Container) {
                     container.register(A.self) { }
                 }
-                static let implements: [any ModuleAssembly.Type] = [RealAssembly.self, SecondAssembly.self]
+                static let replaces: [any ModuleAssembly.Type] = [RealAssembly.self, SecondAssembly.self]
             }
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.implements, ["RealAssembly", "SecondAssembly"])
+        XCTAssertEqual(config.replaces, ["RealAssembly", "SecondAssembly"])
     }
     
-    func testInvalidImplements() throws {
+    func testInvalidReplaces() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: Assembly {
-                static lazy var implements: [any ModuleAssembly.Type] = {
+                static lazy var replaces: [any ModuleAssembly.Type] = {
                 []
             }()
             """
@@ -669,7 +669,7 @@ final class AssemblyParsingTests: XCTestCase {
                 XCTAssertEqual(errors.count, 1)
                 XCTAssertEqual(
                     errors.first?.localizedDescription,
-                    "Unexpected implements syntax"
+                    "Unexpected replaces syntax"
                 )
             }
         )
@@ -678,26 +678,26 @@ final class AssemblyParsingTests: XCTestCase {
     func testFakeAssembly() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: FakeAssembly {
-                typealias ImplementedAssembly = RealAssembly
+                typealias ReplacedAssembly = RealAssembly
             }
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.implements, ["RealAssembly"])
+        XCTAssertEqual(config.replaces, ["RealAssembly"])
         XCTAssertEqual(config.assemblyType, .fakeAssembly)
         XCTAssertEqual(config.assemblyName, "TestAssembly")
     }
 
-    func testFakeAssemblyCustomImplements() throws {
+    func testFakeAssemblyCustomReplaces() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: FakeAssembly {
-                typealias ImplementedAssembly = RealAssembly
-                static var implements: [any ModuleAssembly.Type] { [AdditionalAssembly.self] }
+                typealias ReplacedAssembly = RealAssembly
+                static var replaces: [any ModuleAssembly.Type] { [AdditionalAssembly.self] }
             }
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.implements, ["RealAssembly", "AdditionalAssembly"])
+        XCTAssertEqual(config.replaces, ["RealAssembly", "AdditionalAssembly"])
         XCTAssertEqual(config.assemblyType, .fakeAssembly)
     }
 
