@@ -276,7 +276,6 @@ private enum Factory {
             .init(service: "ArgumentService", accessLevel: .internal, arguments: [.init(type: "String")])
 
         ],
-        registrationsIntoCollections: [],
         imports: [
             .named("Dependency2")
         ],
@@ -289,7 +288,6 @@ private enum Factory {
         registrations: [
             .init(service: "Service3", accessLevel: .public),
         ],
-        registrationsIntoCollections: [],
         imports: [
             .named("Dependency2")
         ],

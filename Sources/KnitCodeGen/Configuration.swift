@@ -35,7 +35,7 @@ public struct Configuration: Encodable {
         directives: KnitDirectives = .init(),
         assemblyType: AssemblyType = .baseAssembly,
         registrations: [Registration],
-        registrationsIntoCollections: [RegistrationIntoCollection],
+        registrationsIntoCollections: [RegistrationIntoCollection] = [],
         imports: [ModuleImport] = [],
         replaces: [String] = [],
         targetResolver: String
@@ -82,9 +82,7 @@ public extension Configuration {
 
     func makeTypeSafetySourceFile() throws -> SourceFileSyntax {
         return try TypeSafetySourceFile.make(
-            assemblyName: assemblyName,
-            extensionTarget: targetResolver,
-            registrations: registrations
+            from: self
         )
     }
 

@@ -13,14 +13,12 @@ final class KnitModuleSourceFileTests: XCTestCase {
                 assemblyName: "MyAssembly",
                 moduleName: "MyModule",
                 registrations: [],
-                registrationsIntoCollections: [],
                 targetResolver: "AppResolver"
             ),
             .init(
                 assemblyName: "SecondAssembly",
                 moduleName: "MyModule",
                 registrations: [],
-                registrationsIntoCollections: [],
                 targetResolver: "SignedInResolver"
             ),
         ]
