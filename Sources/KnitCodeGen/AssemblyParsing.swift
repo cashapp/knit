@@ -95,6 +95,10 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
             assemblyType: assemblyType
         )
         classDeclVisitor.walk(node)
+
+        // Validate across properties on the visitor
+        classDeclVisitor.performPostWalkingValidation()
+
         self.classDeclVisitors.append(classDeclVisitor)
 
         return .skipChildren
@@ -112,7 +116,10 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     /// The registrations that were found in the tree.
     private(set) var registrations = [Registration]()
 
-    private(set) var replaces: [String] = []
+    /// A tuple of the replaced assemblies as declared by `static var replaces` on the assembly,
+    /// and the syntax node where `replaces` was defined (for later potential error message).
+    /// If the assembly does not manually declare `static var replaces` then this will be `nil`.
+    private(set) var replaces: ([String], SyntaxProtocol)?
 
     /// The registrations into collections that were found in the tree
     private(set) var registrationsIntoCollections = [RegistrationIntoCollection]()
@@ -176,11 +183,17 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
             return .skipChildren
         }
         if case let .getter(codeBlock) = binding.accessorBlock?.accessors {
-            self.replaces = extractReplaces(syntax: codeBlock)
+            self.replaces = (
+                extractReplaces(syntax: codeBlock),
+                node
+            )
             return .skipChildren
         }
         if let arrayInit = binding.initializer?.value.as(ArrayExprSyntax.self) {
-            self.replaces = extractReplaces(array: arrayInit)
+            self.replaces = (
+                extractReplaces(array: arrayInit),
+                node
+            )
             return .skipChildren
         }
         registrationErrors.append(ReplacesParsingError.unexpectedSyntax(syntax: binding))
@@ -227,6 +240,21 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
         return self.visitIfNode(node)
     }
 
+    // Validation steps to be performed after all nodes have been visited
+    func performPostWalkingValidation() {
+        // Validate that if the assembly is a `FakeAssembly` and declares a manual `static var replaces`,
+        // that the `ReplacedAssembly` is included in `replaces`
+        if assemblyType == .fakeAssembly, let replaces, let fakeReplacesType {
+            if !replaces.0.contains(where: { string in
+                string == fakeReplacesType
+            }) {
+                registrationErrors.append(
+                    ReplacesParsingError.missingReplacedAssembly(syntax: replaces.1)
+                )
+            }
+        }
+    }
+
 }
 
 extension NamedDeclSyntax {
@@ -253,6 +281,7 @@ enum AssemblyParsingError: Error {
     case parsingError
     case noAssembliesFound(String)
     case moduleNameMismatch
+    case missingReplacedAssemblyTypealias
 }
 
 extension AssemblyParsingError: LocalizedError {
@@ -272,23 +301,30 @@ extension AssemblyParsingError: LocalizedError {
             return "The given file path did not contain any valid assemblies: \(path)"
         case .moduleNameMismatch:
             return "Assemblies in a single file have different modules"
+        case .missingReplacedAssemblyTypealias:
+            return "The FakeAssembly is missing a required `typealias ReplacedAssembly`"
         }
     }
 }
 
 enum ReplacesParsingError: LocalizedError, SyntaxError {
     case unexpectedSyntax(syntax: SyntaxProtocol)
+    case missingReplacedAssembly(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
         case .unexpectedSyntax:
             return "Unexpected replaces syntax"
+        case .missingReplacedAssembly:
+            return "Manually declared `replaces` array is missing required `ReplacedAssembly` type"
         }
     }
 
     var syntax: SyntaxProtocol {
         switch self {
         case let .unexpectedSyntax(syntax):
+            return syntax
+        case let .missingReplacedAssembly(syntax: syntax):
             return syntax
         }
     }
