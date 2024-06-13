@@ -299,15 +299,30 @@ func printErrors(_ errors: [Error], filePath: String, syntaxTree: SyntaxProtocol
     guard !errors.isEmpty else {
         return
     }
-    let lineConverter = SourceLocationConverter(fileName: filePath, tree: syntaxTree)
+
+    let url: URL
+    if let workspaceDirectory = ProcessInfo.processInfo.environment["BUILD_WORKSPACE_DIRECTORY"] {
+        let workspaceDirectoryURL = URL(filePath: workspaceDirectory, directoryHint: .isDirectory)
+        url = URL(filePath: filePath, directoryHint: .notDirectory, relativeTo: workspaceDirectoryURL)
+    } else {
+        print("warning: No `BUILD_WORKSPACE_DIRECTORY` env variable was provided to Knit, " +
+              "which limits the ability to correctly report parsing errors to Xcode")
+        url = URL(filePath: filePath, directoryHint: .notDirectory)
+    }
+    let lineConverter = SourceLocationConverter(
+        fileName: url.lastPathComponent,
+        tree: syntaxTree
+    )
+    let absolutePath = url.absoluteString.dropFirst("file://".count)
 
     for error in errors {
         if let syntaxError = error as? SyntaxError {
             let position = syntaxError.syntax.startLocation(converter: lineConverter, afterLeadingTrivia: true)
             let line = position.line
-            print("\(filePath):\(line): error: \(error.localizedDescription)")
+            let column = position.column
+            print("\(absolutePath):\(line):\(column): error: \(error.localizedDescription)")
         } else {
-            print("\(filePath): error: \(error.localizedDescription)")
+            print("\(absolutePath): error: \(error.localizedDescription)")
         }
     }
 }

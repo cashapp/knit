@@ -50,7 +50,7 @@ public struct AssemblyParser {
     }
 
     private func parse(path: String, defaultTargetResolver: String, useTargetResolver: Bool) throws -> [Configuration] {
-        let url = URL(fileURLWithPath: path, isDirectory: false)
+        let url = URL(filePath: path, directoryHint: .notDirectory)
         var errorsToPrint = [Error]()
 
         let source: String
