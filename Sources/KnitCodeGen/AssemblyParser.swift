@@ -130,7 +130,21 @@ public struct AssemblyParser {
             throw AssemblyParsingError.missingAssemblyType
         }
 
-        let fakeReplaces = classDeclVisitor.fakeReplacesType.map { [$0] } ?? []
+        let replaces: [String]
+        if let classDeclReplaces = classDeclVisitor.replaces {
+            // The assembly type manually declared a `static replaces`
+            // so use what is defined there
+            replaces = classDeclReplaces.0
+        } else if classDeclVisitor.assemblyType == .fakeAssembly {
+            // The assembly conforms to `FakeAssembly`, so will have a `typealias ReplacedAssembly`
+            // There is a default extension that will return the `ReplacedAssembly` from `static replaces` at runtime
+            guard let fakeReplacesType = classDeclVisitor.fakeReplacesType else {
+                throw AssemblyParsingError.missingReplacedAssemblyTypealias
+            }
+            replaces = [fakeReplacesType]
+        } else {
+            replaces = []
+        }
 
         return Configuration(
             assemblyName: classDeclVisitor.assemblyName,
@@ -140,7 +154,7 @@ public struct AssemblyParser {
             registrations: classDeclVisitor.registrations,
             registrationsIntoCollections: classDeclVisitor.registrationsIntoCollections,
             imports: assemblyFileVisitor.imports,
-            replaces: fakeReplaces + classDeclVisitor.replaces,
+            replaces: replaces,
             targetResolver: targetResolver
         )
     }

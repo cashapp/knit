@@ -692,20 +692,94 @@ final class AssemblyParsingTests: XCTestCase {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: FakeAssembly {
                 typealias ReplacedAssembly = RealAssembly
-                static var replaces: [any ModuleAssembly.Type] { [AdditionalAssembly.self] }
+                static var replaces: [any ModuleAssembly.Type] { [
+                    RealAssembly.self,
+                    AdditionalAssembly.self,
+                ] }
             }
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
-        XCTAssertEqual(config.replaces, ["RealAssembly", "AdditionalAssembly"])
+        XCTAssertEqual(config.replaces, [
+            "RealAssembly",
+            "AdditionalAssembly"
+        ])
         XCTAssertEqual(config.assemblyType, .fakeAssembly)
+    }
+
+    func testFakeAssemblyCustomReplaces_missingReplacedAssembly() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: FakeAssembly {
+                typealias ReplacedAssembly = RealAssembly
+                static var replaces: [any ModuleAssembly.Type] { [
+                    AdditionalAssembly.self
+                    // RealAssembly is missing
+                ] }
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(
+            sourceFile,
+            assertErrorsToPrint: { errors in
+                XCTAssertEqual(errors.count, 1)
+                let error = try XCTUnwrap(errors.first)
+                if case ReplacesParsingError.missingReplacedAssembly = error {
+                    // Correct, `replaces` is missing `RealAssembly`
+                } else {
+                    XCTFail("Incorrect error type")
+                }
+            }
+        )
+        XCTAssertEqual(config.replaces, ["AdditionalAssembly"])
+        XCTAssertEqual(config.assemblyType, .fakeAssembly)
+    }
+
+    func testReplacedAssemblyTypealias_nonFakeAssembly() throws {
+        /// If someone happens to declare a `typealias ReplacedAssembly` but the assembly is *not*
+        /// a `FakeAssembly`, then it will not get the default extension to provide the `ReplacedAssembly`
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: Assembly {
+                typealias ReplacedAssembly = RealAssembly
+
+                func assemble(container: Container) {
+                    container.register(A.self) { }
+                }
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(
+            config.replaces,
+            [],
+            "No replaced assemblies are declared"
+        )
+    }
+
+    func testFakeAssembly_missingReplacedAssemblyTypealias() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: FakeAssembly {
+
+            }
+            """
+
+        XCTAssertThrowsError(
+            try assertParsesSyntaxTree(sourceFile),
+            "Required typealias is missing",
+            { error in
+                if case AssemblyParsingError.missingReplacedAssemblyTypealias = error {
+                    // Correct
+                } else {
+                    XCTFail("Incorrect error case")
+                }
+            }
+        )
     }
 
 }
 
 private func assertParsesSyntaxTree(
     _ sourceFile: SourceFileSyntax,
-    assertErrorsToPrint assertErrorsCallback: (([Error]) -> Void)? = nil,
+    assertErrorsToPrint assertErrorsCallback: (([Error]) throws -> Void)? = nil,
     useTargetResolver: Bool = true,
     file: StaticString = #filePath,
     line: UInt = #line
@@ -720,7 +794,7 @@ private func assertParsesSyntaxTree(
     )
 
     if let assertErrorsCallback {
-        assertErrorsCallback(errorsToPrint)
+        try assertErrorsCallback(errorsToPrint)
     } else {
         XCTAssertEqual(errorsToPrint.count, 0, file: file, line: line)
     }
