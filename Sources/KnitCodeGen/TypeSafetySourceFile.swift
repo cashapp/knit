@@ -9,11 +9,9 @@ import SwiftSyntaxBuilder
 public enum TypeSafetySourceFile {
 
     public static func make(
-        assemblyName: String,
-        extensionTarget: String,
-        registrations allRegistrations: [Registration]
+        from config: Configuration
     ) throws -> SourceFileSyntax {
-        let visibleRegistrations = allRegistrations.filter {
+        let visibleRegistrations = config.registrations.filter {
             // Exclude hidden registrations always
             $0.accessLevel != .hidden && $0.accessLevel != .ignore
         }
@@ -21,8 +19,8 @@ public enum TypeSafetySourceFile {
         let namedGroups = NamedRegistrationGroup.make(from: visibleRegistrations)
         return try SourceFileSyntax() {
             try ExtensionDeclSyntax("""
-                          /// Generated from ``\(raw: assemblyName)``
-                          extension \(raw: extensionTarget)
+                          /// Generated from ``\(raw: config.assemblyName)``
+                          extension \(raw: config.targetResolver)
                           """) {
 
                 for registration in unnamedRegistrations {
@@ -37,13 +35,16 @@ public enum TypeSafetySourceFile {
                     let firstGetterConfig = namedGroup.registrations[0].getterConfig.first ?? .callAsFunction
                     try makeResolver(
                         registration: namedGroup.registrations[0],
-                        enumName: "\(assemblyName).\(namedGroup.enumName)",
+                        enumName: "\(config.assemblyName).\(namedGroup.enumName)",
                         getterType: firstGetterConfig
                     )
                 }
             }
             if !namedGroups.isEmpty {
-                try makeNamedEnums(assemblyName: assemblyName, namedGroups: namedGroups)
+                try makeNamedEnums(assemblyName: config.assemblyName, namedGroups: namedGroups)
+            }
+            if let defaultOverrides = try makeDefaultOverrideExtensions(config: config) {
+                defaultOverrides
             }
         }
     }
@@ -114,6 +115,37 @@ public enum TypeSafetySourceFile {
                 }
             }
         }
+    }
+
+    private static func makeDefaultOverrideExtensions(
+        config: Configuration
+    ) throws -> CodeBlockItemListSyntax? {
+        // Only `FakeAssembly` types should automatically generate the default override extensions
+        guard config.assemblyType == .fakeAssembly else {
+            return nil
+        }
+
+        return try CodeBlockItemListSyntax {
+            for replacedType in config.replaces {
+                try ExtensionDeclSyntax(
+                    extendedType: TypeSyntax("\(raw: replacedType)"),
+                    inheritanceClause: InheritanceClauseSyntax(inheritedTypesBuilder: {
+                        InheritedTypeSyntax(type: TypeSyntax(stringLiteral: "DefaultModuleAssemblyOverride"))
+                    }),
+                    memberBlockBuilder: {
+                        try TypeAliasDeclSyntax("public typealias OverrideType = \(raw: config.assemblyName)")
+                    }
+                )
+            }
+        }
+        .with(
+            \.leadingTrivia,
+             """
+             /// For assemblies that conform to `FakeAssembly`, Knit automatically generates
+             /// default overrides for all other types it replaces.
+
+             """
+        )
     }
 
 }

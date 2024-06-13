@@ -62,7 +62,6 @@ final class UnitTestSourceFileTests: XCTestCase {
             registrations: [
                 .init(service: "ServiceA", accessLevel: .internal, arguments: [.init(type: "String")]),
             ],
-            registrationsIntoCollections: [],
             targetResolver: "SignedInResolver"
         )
 
@@ -73,7 +72,6 @@ final class UnitTestSourceFileTests: XCTestCase {
                 .init(service: "ServiceB", name: nil, accessLevel: .internal),
                 .init(service: "ServiceC", accessLevel: .internal, arguments: [.init(type: "String")]),
             ],
-            registrationsIntoCollections: [],
             targetResolver: "AppResolver"
         )
 
@@ -133,7 +131,6 @@ final class UnitTestSourceFileTests: XCTestCase {
             registrations: [
                 .init(service: "ServiceA", accessLevel: .internal, arguments: [.init(type: "String")]),
             ],
-            registrationsIntoCollections: [],
             targetResolver: "Resolver"
         )
         

@@ -11,18 +11,21 @@ final class TypeSafetySourceFileTests: XCTestCase {
 
     func test_generation() throws {
         let result = try TypeSafetySourceFile.make(
-            assemblyName: "ModuleAssembly",
-            extensionTarget: "Resolve",
-            registrations: [
-                .init(service: "ServiceA", name: nil),
-                .init(service: "ServiceB", name: "name"),
-                .init(service: "ServiceB", name: "otherName"),
-                .init(service: "ServiceC", name: nil, accessLevel: .hidden), // No resolver is created
-                .init(service: "ServiceD", name: nil, accessLevel: .public, getterConfig: GetterConfig.both, functionName: .implements),
-                .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [.init(type: "() -> Void")]),
-                .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
-                .init(service: "(String, Int?)", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
-            ]
+            from: Configuration(
+                assemblyName: "ModuleAssembly",
+                moduleName: "Module",
+                registrations: [
+                    .init(service: "ServiceA", name: nil),
+                    .init(service: "ServiceB", name: "name"),
+                    .init(service: "ServiceB", name: "otherName"),
+                    .init(service: "ServiceC", name: nil, accessLevel: .hidden), // No resolver is created
+                    .init(service: "ServiceD", name: nil, accessLevel: .public, getterConfig: GetterConfig.both, functionName: .implements),
+                    .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [.init(type: "() -> Void")]),
+                    .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
+                    .init(service: "(String, Int?)", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
+                ],
+                targetResolver: "Resolve"
+            )
         )
 
         let expected = """
@@ -183,6 +186,64 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ["result"]
         )
 
+    }
+
+    func test_fakeAssembly_defaultOverride_generation() throws {
+        let result = try TypeSafetySourceFile.make(
+            from: Configuration(
+                assemblyName: "MyFakeAssembly",
+                moduleName: "Module",
+                assemblyType: .fakeAssembly,
+                registrations: [],
+                replaces: ["RealAssembly"],
+                targetResolver: "Resolver"
+            )
+        )
+
+        let expected = """
+        /// Generated from ``MyFakeAssembly``
+        extension Resolver {
+        }
+        /// For assemblies that conform to `FakeAssembly`, Knit automatically generates
+        /// default overrides for all other types it replaces.
+        extension RealAssembly: DefaultModuleAssemblyOverride {
+            public typealias OverrideType = MyFakeAssembly
+        }
+        """
+
+        XCTAssertEqual(expected, result.formatted().description)
+    }
+
+    func test_fakeAssembly_defaultOverride_multipleGeneration() throws {
+        let result = try TypeSafetySourceFile.make(
+            from: Configuration(
+                assemblyName: "MyFakeAssembly",
+                moduleName: "Module",
+                assemblyType: .fakeAssembly,
+                registrations: [],
+                replaces: [
+                    "RealAssembly",
+                    "OtherRealAssembly",
+                ],
+                targetResolver: "Resolver"
+            )
+        )
+
+        let expected = """
+        /// Generated from ``MyFakeAssembly``
+        extension Resolver {
+        }
+        /// For assemblies that conform to `FakeAssembly`, Knit automatically generates
+        /// default overrides for all other types it replaces.
+        extension RealAssembly: DefaultModuleAssemblyOverride {
+            public typealias OverrideType = MyFakeAssembly
+        }
+        extension OtherRealAssembly: DefaultModuleAssemblyOverride {
+            public typealias OverrideType = MyFakeAssembly
+        }
+        """
+
+        XCTAssertEqual(expected, result.formatted().description)
     }
 
 }

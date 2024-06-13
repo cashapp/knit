@@ -10,6 +10,9 @@ import Foundation
 /// * The FakeAssembly must use the same TargetResolver as the real assembly
 /// * The real assembly must have a DefaultModuleAssemblyOverride setup pointing to this fake
 /// * The FakeAssembly defaults to no dependencies to prevent expanding the DI graph
+///
+/// Knit will then generate the following for you:
+/// * An extension on the real assembly to conform to DefaultModuleAssemblyOverride and pointing to this fake
 /// * The FakeAssembly is defined to replace the real assembly
 public protocol FakeAssembly<ReplacedAssembly>: AutoInitModuleAssembly {
     associatedtype ReplacedAssembly: DefaultModuleAssemblyOverride where
