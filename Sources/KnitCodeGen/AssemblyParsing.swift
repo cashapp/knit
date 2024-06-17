@@ -253,6 +253,15 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
                 )
             }
         }
+
+        // If the assembly is a `FakeAssembly` and declares a manual `static var replaces`
+        // that only contains the `ReplacedAssembly` typealias, then that `static var replaces` is redundant
+        // and should be removed.
+        if assemblyType == .fakeAssembly, let replaces, replaces.0.count == 1, replaces.0.first == fakeReplacesType {
+            registrationErrors.append(
+                ReplacesParsingError.redundantDeclaration(syntax: replaces.1)
+            )
+        }
     }
 
 }
@@ -310,6 +319,7 @@ extension AssemblyParsingError: LocalizedError {
 enum ReplacesParsingError: LocalizedError, SyntaxError {
     case unexpectedSyntax(syntax: SyntaxProtocol)
     case missingReplacedAssembly(syntax: SyntaxProtocol)
+    case redundantDeclaration(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
@@ -317,14 +327,16 @@ enum ReplacesParsingError: LocalizedError, SyntaxError {
             return "Unexpected replaces syntax"
         case .missingReplacedAssembly:
             return "Manually declared `replaces` array is missing required `ReplacedAssembly` type"
+        case .redundantDeclaration:
+            return "Manually declared `replaces` array is unnecessary, just use the `ReplacedAssembly` typealias"
         }
     }
 
     var syntax: SyntaxProtocol {
         switch self {
-        case let .unexpectedSyntax(syntax):
-            return syntax
-        case let .missingReplacedAssembly(syntax: syntax):
+        case let .unexpectedSyntax(syntax),
+            let .missingReplacedAssembly(syntax: syntax),
+            let .redundantDeclaration(syntax: syntax):
             return syntax
         }
     }
