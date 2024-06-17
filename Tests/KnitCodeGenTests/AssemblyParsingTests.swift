@@ -734,6 +734,34 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(config.assemblyType, .fakeAssembly)
     }
 
+    func testFakeAssemblyCustomReplaces_redundantStaticReplaces() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: FakeAssembly {
+                typealias ReplacedAssembly = RealAssembly
+
+                // Redundant declaration, should be removed
+                static var replaces: [any ModuleAssembly.Type] { [
+                    RealAssembly.self
+                ] }
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(
+            sourceFile,
+            assertErrorsToPrint: { errors in
+                XCTAssertEqual(errors.count, 1)
+                let error = try XCTUnwrap(errors.first)
+                if case ReplacesParsingError.redundantDeclaration = error {
+                    // Correct, `replaces` declaration is redundant
+                } else {
+                    XCTFail("Incorrect error type")
+                }
+            }
+        )
+        XCTAssertEqual(config.replaces, ["RealAssembly"])
+        XCTAssertEqual(config.assemblyType, .fakeAssembly)
+    }
+
     func testReplacedAssemblyTypealias_nonFakeAssembly() throws {
         /// If someone happens to declare a `typealias ReplacedAssembly` but the assembly is *not*
         /// a `FakeAssembly`, then it will not get the default extension to provide the `ReplacedAssembly`
