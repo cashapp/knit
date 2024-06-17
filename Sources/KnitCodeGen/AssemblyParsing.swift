@@ -5,7 +5,7 @@
 import Foundation
 import SwiftSyntax
 import SwiftParser
- 
+
 class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
 
     /// The imports that were found in the tree.
@@ -341,9 +341,13 @@ func printErrors(_ errors: [Error], filePath: String, syntaxTree: SyntaxProtocol
         if let syntaxError = error as? SyntaxError {
             let position = syntaxError.syntax.startLocation(converter: lineConverter, afterLeadingTrivia: true)
             let line = position.line
-            print("\(filePath):\(line): error: \(error.localizedDescription)")
+            FileHandle.standardError.write(Data(
+                "\(filePath):\(line): error: \(error.localizedDescription)\n".utf8
+            ))
         } else {
-            print("\(filePath): error: \(error.localizedDescription)")
+            FileHandle.standardError.write(Data(
+                "\(filePath): error: \(error.localizedDescription)\n".utf8
+            ))
         }
     }
 }
