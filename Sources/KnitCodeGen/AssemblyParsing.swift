@@ -341,8 +341,9 @@ func printErrors(_ errors: [Error], filePath: String, syntaxTree: SyntaxProtocol
         if let syntaxError = error as? SyntaxError {
             let position = syntaxError.syntax.startLocation(converter: lineConverter, afterLeadingTrivia: true)
             let line = position.line
+            let column = position.column
             FileHandle.standardError.write(Data(
-                "\(filePath):\(line): error: \(error.localizedDescription)\n".utf8
+                "\(filePath):\(line):\(column): error: \(error.localizedDescription)\n".utf8
             ))
         } else {
             FileHandle.standardError.write(Data(
