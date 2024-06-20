@@ -206,7 +206,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         }
         /// For assemblies that conform to `FakeAssembly`, Knit automatically generates
         /// default overrides for all other types it replaces.
-        extension RealAssembly: DefaultModuleAssemblyOverride {
+        extension RealAssembly: Knit.DefaultModuleAssemblyOverride {
             public typealias OverrideType = MyFakeAssembly
         }
         """
@@ -235,10 +235,10 @@ final class TypeSafetySourceFileTests: XCTestCase {
         }
         /// For assemblies that conform to `FakeAssembly`, Knit automatically generates
         /// default overrides for all other types it replaces.
-        extension RealAssembly: DefaultModuleAssemblyOverride {
+        extension RealAssembly: Knit.DefaultModuleAssemblyOverride {
             public typealias OverrideType = MyFakeAssembly
         }
-        extension OtherRealAssembly: DefaultModuleAssemblyOverride {
+        extension OtherRealAssembly: Knit.DefaultModuleAssemblyOverride {
             public typealias OverrideType = MyFakeAssembly
         }
         """
