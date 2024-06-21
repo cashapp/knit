@@ -130,7 +130,11 @@ public enum TypeSafetySourceFile {
                 try ExtensionDeclSyntax(
                     extendedType: TypeSyntax("\(raw: replacedType)"),
                     inheritanceClause: InheritanceClauseSyntax(inheritedTypesBuilder: {
-                        InheritedTypeSyntax(type: TypeSyntax(stringLiteral: "DefaultModuleAssemblyOverride"))
+                        InheritedTypeSyntax(type: MemberTypeSyntax(
+                            // explicitly qualifying the type with the Knit module fixes a warning for Swift 6
+                            baseType: IdentifierTypeSyntax(name: "Knit"),
+                            name: TokenSyntax(stringLiteral: "DefaultModuleAssemblyOverride")
+                        ))
                     }),
                     memberBlockBuilder: {
                         try TypeAliasDeclSyntax("public typealias OverrideType = \(raw: config.assemblyName)")
