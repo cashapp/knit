@@ -6,17 +6,17 @@ import PackageDescription
 let package = Package(
     name: "Knit",
     platforms: [
-        .macOS(.v12),
+        .macOS(.v13),
     ],
     products: [
         .library(name: "Knit", targets: ["Knit"]),
         .executable(name: "knit-cli", targets: ["KnitCommand"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.1.0"),
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
-        .package(url: "https://github.com/Swinject/Swinject.git", from: "2.8.3"),
-        .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.8.3"),
+        .package(url: "https://github.com/apple/swift-syntax.git", from: "510.0.2"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.4.0"),
+        .package(url: "https://github.com/Swinject/Swinject.git", from: "2.9.1"),
+        .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.8.4"),
     ],
     targets: [
         .target(

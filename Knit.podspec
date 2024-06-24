@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
 
   s.source_files     = 'Sources/Knit/**/*.swift'
   s.preserve_paths   = '*'
-  s.ios.deployment_target = '14.0'
-  s.dependency 'Swinject', '~> 2.8.3'
-  s.dependency 'SwinjectAutoregistration', '~> 2.8.3'
+  s.ios.deployment_target = '15.0'
+  s.dependency 'Swinject', '~> 2.9.1'
+  s.dependency 'SwinjectAutoregistration', '~> 2.8.4'
 end

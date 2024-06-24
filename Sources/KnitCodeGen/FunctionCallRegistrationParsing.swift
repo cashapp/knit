@@ -154,8 +154,7 @@ private func makeRegistrationFor(
     leadingTrivia: Trivia?,
     functionName: Registration.FunctionName
 ) throws -> Registration? {
-    guard let firstParam = arguments.first?.as(LabeledExprSyntax.self)?
-        .expression.as(MemberAccessExprSyntax.self) else { return nil }
+    guard let firstParam = arguments.first?.expression.as(MemberAccessExprSyntax.self) else { return nil }
     guard firstParam.declName.baseName.tokenKind == .keyword(.`self`) else { return nil }
 
     let registrationText = firstParam.base!.trimmed.description
@@ -182,8 +181,7 @@ private func makeRegistrationFor(
 private func makeRegistrationIntoCollection(
     arguments: LabeledExprListSyntax
 ) -> RegistrationIntoCollection? {
-    guard let firstParam = arguments.first?.as(LabeledExprSyntax.self)?
-        .expression.as(MemberAccessExprSyntax.self) else { return nil }
+    guard let firstParam = arguments.first?.expression.as(MemberAccessExprSyntax.self) else { return nil }
     guard firstParam.declName.baseName.tokenKind == .keyword(.`self`) else { return nil }
 
     let registrationText = firstParam.base!.trimmed.description
