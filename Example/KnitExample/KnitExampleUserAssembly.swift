@@ -5,7 +5,7 @@
 import Foundation
 import Knit
 
-// @knit internal getter-named
+// @knit internal
 /// An assembly expected to be registered at the user level rather than at the app level
 final class KnitExampleUserAssembly: Assembly {
 
