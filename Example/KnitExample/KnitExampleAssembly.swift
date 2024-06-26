@@ -11,7 +11,6 @@ final class KnitExampleAssembly: Assembly {
     func assemble(container: Container) {
         container.addBehavior(ServiceCollector())
 
-        // @knit getter-named
         container.autoregister(ExampleService.self, initializer: ExampleService.init)
 
         // @knit getter-named("example")
