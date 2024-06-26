@@ -7,8 +7,7 @@ Pod::Spec.new do |s|
   s.license          = { :type => 'MIT' }
   s.author           = { 'Cash App' => 'https://github.com/cashapp' }
 
-  # TODO: Update this endpoint to be GitHub once this repository is public.
-  s.source           = { http: "https://artifactory.global.square/artifactory/squarepods/knit-#{s.version}.zip" }
+  s.source           = { http: "https://github.com/cashapp/knit/releases/download/#{s.version}/knit-#{s.version}.zip" }
 
   s.source_files     = 'Sources/Knit/**/*.swift'
   s.preserve_paths   = '*'
