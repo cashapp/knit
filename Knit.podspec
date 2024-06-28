@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Knit'
-  s.version          = '0.3.6'
+  s.version          = '1.0.0'
   s.summary          = 'A tool for adding safety features to Swinject'
   s.description      = 'Knit parses Swinject code and generates Swift files for type safety and unit testing.'
   s.homepage         = 'https://github.com/cashapp/knit'
