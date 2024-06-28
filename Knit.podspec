@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Knit'
-  s.version          = '1.0.0'
+  s.version          = '1.0.1'
   s.summary          = 'A tool for adding safety features to Swinject'
   s.description      = 'Knit parses Swinject code and generates Swift files for type safety and unit testing.'
   s.homepage         = 'https://github.com/cashapp/knit'
@@ -13,5 +13,5 @@ Pod::Spec.new do |s|
   s.preserve_paths   = '*'
   s.ios.deployment_target = '15.0'
   s.dependency 'Swinject', '~> 2.9.1'
-  s.dependency 'SwinjectAutoregistration', '~> 2.8.4'
+  s.dependency 'SwinjectAutoregistration', '~> 2.9.1'
 end

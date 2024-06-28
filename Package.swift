@@ -16,7 +16,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-syntax.git", from: "510.0.2"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.4.0"),
         .package(url: "https://github.com/Swinject/Swinject.git", from: "2.9.1"),
-        .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.8.4"),
+        .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.9.1"),
     ],
     targets: [
         .target(
