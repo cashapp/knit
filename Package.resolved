@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Swinject/SwinjectAutoregistration.git",
       "state" : {
-        "revision" : "89f9357680ed65dbc95b66732fe3338aca79064a",
-        "version" : "2.8.4"
+        "revision" : "fd9ffae5f666d37b4b3c210af2e16a10598342e4",
+        "version" : "2.9.1"
       }
     }
   ],
