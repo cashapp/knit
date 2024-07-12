@@ -74,10 +74,13 @@ extension FunctionCallExprSyntax {
             trailingClosure: primaryRegisterMethod.trailingClosure
         )
 
+        let concurrencyModifier = getConcurrencyModifier(trailingClosure: primaryRegisterMethod.trailingClosure)
+
         // The primary registration (not `.implements()`)
         guard let primaryRegistration = try makeRegistrationFor(
             defaultDirectives: defaultDirectives,
             arguments: primaryRegisterMethod.arguments,
+            concurrencyModifier: concurrencyModifier,
             registrationArguments: registrationArguments,
             leadingTrivia: self.leadingTrivia,
             functionName: functionName
@@ -98,6 +101,7 @@ extension FunctionCallExprSyntax {
             if let forwardedRegistration = try makeRegistrationFor(
                 defaultDirectives: defaultDirectives,
                 arguments: implementsCalledMethod.arguments,
+                concurrencyModifier: concurrencyModifier,
                 registrationArguments: registrationArguments,
                 leadingTrivia: leadingTrivia,
                 functionName: .implements
@@ -150,6 +154,7 @@ func recurseAllCalledMethods(
 private func makeRegistrationFor(
     defaultDirectives: KnitDirectives,
     arguments: LabeledExprListSyntax,
+    concurrencyModifier: String?,
     registrationArguments: [Registration.Argument],
     leadingTrivia: Trivia?,
     functionName: Registration.FunctionName
@@ -173,6 +178,7 @@ private func makeRegistrationFor(
         name: name,
         accessLevel: directives.accessLevel ?? defaultDirectives.accessLevel ?? .default,
         arguments: registrationArguments,
+        concurrencyModifier: concurrencyModifier,
         getterConfig: getterConfig,
         functionName: functionName
     )
@@ -269,6 +275,16 @@ private func getArguments(
     }
 
     return []
+}
+
+private func getConcurrencyModifier(trailingClosure: ClosureExprSyntax?) -> String? {
+    guard let signature = trailingClosure?.signature else { return nil }
+    for att in signature.attributes {
+        if att.description.trimmingCharacters(in: .whitespaces) == "@MainActor" {
+            return "@MainActor"
+        }
+    }
+    return nil
 }
 
 private func getArgumentType(arg: LabeledExprSyntax) -> String? {

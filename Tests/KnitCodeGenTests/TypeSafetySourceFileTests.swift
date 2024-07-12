@@ -246,4 +246,27 @@ final class TypeSafetySourceFileTests: XCTestCase {
         XCTAssertEqual(expected, result.formatted().description)
     }
 
+    func test_mainActor_resolver() throws {
+        let result = try TypeSafetySourceFile.make(
+            from: Configuration(
+                assemblyName: "MainActorAssembly",
+                moduleName: "Module",
+                registrations: [
+                    .init(service: "ServiceA", concurrencyModifier: "@MainActor")
+                ],
+                targetResolver: "Resolver"
+            )
+        )
+        let expected = """
+        /// Generated from ``MainActorAssembly``
+        extension Resolver {
+            @MainActor func serviceA(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceA {
+                knitUnwrap(resolve(ServiceA.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
+        }
+        """
+
+        XCTAssertEqual(expected, result.formatted().description)
+    }
+
 }
