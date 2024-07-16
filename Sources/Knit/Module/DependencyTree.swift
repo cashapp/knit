@@ -106,15 +106,17 @@ public struct DependencyTree: CustomDebugStringConvertible {
 private struct AssemblyReference: Hashable {
 
     let type: any ModuleAssembly.Type
-    let name: String
+    let id: ObjectIdentifier
+
+    var name: String { String(describing: type) }
 
     init(_ type: any ModuleAssembly.Type) {
         self.type = type
-        self.name = String(describing: type)
+        self.id = ObjectIdentifier(type)
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(name)
+        hasher.combine(id)
     }
     
     static func == (lhs: AssemblyReference, rhs: AssemblyReference) -> Bool {
