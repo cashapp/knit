@@ -6,7 +6,11 @@ import Combine
 import Swinject
 import XCTest
 
-private actor ActorA { }
+private actor ActorA { 
+    func sayHello() -> String {
+        "Hello"
+    }
+}
 
 /// A class confined to `@MainActor`
 @MainActor
@@ -35,6 +39,17 @@ private class CustomGlobalActorClass {
 
 }
 
+/// A class that is async init but otherwise has sync methods.
+private class AsyncInitClass {
+
+    init() async {}
+
+    func sayHello() -> String {
+        "Hello"
+    }
+
+}
+
 /// Consumes the above types
 private class FinalConsumer {
 
@@ -45,19 +60,33 @@ private class FinalConsumer {
     /// The dependency here is on a future of CustomGlobalActorClass, not CustomGlobalActorClass itself
     let customGlobalActorClass: Future<CustomGlobalActorClass, Never>
 
+    var asyncInitClass: AsyncInitClass?
+
+    private var cancellables = [AnyCancellable]()
+
     init(
         actorA: ActorA,
         mainClassA: MainClassA,
-        customGlobalActorClass: Future<CustomGlobalActorClass, Never>
+        customGlobalActorClass: Future<CustomGlobalActorClass, Never>,
+        asyncInitClass: Future<AsyncInitClass, Never>
     ) {
         self.actorA = actorA
         self.mainClassA = mainClassA
         self.customGlobalActorClass = customGlobalActorClass
+
+        asyncInitClass.sink { [weak self] result in
+            self?.asyncInitClass = result
+            // Can also inform other methods that this property is now available
+        }.store(in: &cancellables)
     }
 
     /// Needs to be an async function due to `@CustomGlobalActor` confinement
     func askCustomGlobalActorClassToSayHello() async -> String {
         await customGlobalActorClass.value.sayHello()
+    }
+
+    func askActorAToSayHello() async -> String {
+        await actorA.sayHello()
     }
 
 }
@@ -103,13 +132,32 @@ private class TestAssembly: Assembly {
         )
 
         container.register(
+            Future<AsyncInitClass, Never>.self,
+            factory: { resolver in
+                MainActor.assumeIsolated {
+                    return Future<AsyncInitClass, Never>() { promise in
+                        Task {
+                            promise(.success(await AsyncInitClass()))
+                        }
+                    }
+                }
+            }
+        )
+
+        container.register(
             FinalConsumer.self,
             factory: { resolver in
                 MainActor.assumeIsolated {
                     let actorA = resolver.resolve(ActorA.self)!
                     let mainClassA = resolver.resolve(MainClassA.self)!
                     let customGlobalActorClass = resolver.resolve(Future<CustomGlobalActorClass, Never>.self)!
-                    return FinalConsumer(actorA: actorA, mainClassA: mainClassA, customGlobalActorClass: customGlobalActorClass)
+                    let asyncInitClass = resolver.resolve(Future<AsyncInitClass, Never>.self)!
+                    return FinalConsumer(
+                        actorA: actorA,
+                        mainClassA: mainClassA,
+                        customGlobalActorClass: customGlobalActorClass,
+                        asyncInitClass: asyncInitClass
+                    )
                 }
             }
         )
