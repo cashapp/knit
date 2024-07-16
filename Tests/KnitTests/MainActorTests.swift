@@ -120,12 +120,10 @@ private class TestAssembly: Assembly {
                     let mainClassA = resolver.resolve(MainClassA.self)!
 
                     return Future<CustomGlobalActorClass, Never>() { promise in
-                        Task {
-                            let customGlobalActorClass = await CustomGlobalActorClass(
-                                mainClassA: mainClassA
-                            )
-                            promise(.success(customGlobalActorClass))
-                        }
+                        let customGlobalActorClass = await CustomGlobalActorClass(
+                            mainClassA: mainClassA
+                        )
+                        promise(.success(customGlobalActorClass))
                     }
                 }
             }
@@ -136,9 +134,7 @@ private class TestAssembly: Assembly {
             factory: { resolver in
                 MainActor.assumeIsolated {
                     return Future<AsyncInitClass, Never>() { promise in
-                        Task {
-                            promise(.success(await AsyncInitClass()))
-                        }
+                        promise(.success(await AsyncInitClass()))
                     }
                 }
             }
