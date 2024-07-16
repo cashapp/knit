@@ -22,21 +22,20 @@ public struct DependencyTree: CustomDebugStringConvertible {
     }
 
     mutating func add(
-        assemblyType: any ModuleAssembly.Type,
-        source: (any ModuleAssembly.Type)?
+        assemblyType: AssemblyReference,
+        source: AssemblyReference?
     ) {
-        let fromInputs = inputModules.contains(where: { $0.type == assemblyType })
-        let typeReference = AssemblyReference(assemblyType)
-        if let source, !fromInputs && moduleSources[typeReference] == nil {
-            moduleSources[typeReference] = AssemblyReference(source)
+        let fromInputs = inputModules.contains(assemblyType)
+        if let source, !fromInputs && moduleSources[assemblyType] == nil {
+            moduleSources[assemblyType] = source
         }
-        allModules.insert(typeReference)
+        allModules.insert(assemblyType)
     }
 
     // MARK: - Public API
 
     public func sourcePath(moduleName: String) -> [String] {
-        guard let match = allModules.first(where: { $0.name == moduleName}) else {
+        guard let match = allModules.first(where: { $0.debugDescription == moduleName}) else {
             return ["** Knit: Could not find module \(moduleName) **"]
         }
         return sourcePath(moduleType: match.type)
@@ -59,13 +58,13 @@ public struct DependencyTree: CustomDebugStringConvertible {
     // MARK: - Private Methods
 
     private func buildSourcePath(moduleName: AssemblyReference, path: inout [String]) {
-        path.insert(moduleName.name, at: 0)
+        path.insert(moduleName.debugDescription, at: 0)
         guard let source = moduleSources[moduleName] else {
             return
         }
 
         // Prevent an infinite loop
-        if path.contains(source.name) {
+        if path.contains(source.debugDescription) {
             return
         }
         return buildSourcePath(moduleName: source, path: &path)
@@ -74,13 +73,15 @@ public struct DependencyTree: CustomDebugStringConvertible {
     private func debugDescription(assemblyRef: AssemblyReference, indent: String) -> [String] {
         let children = moduleSources.filter { key, value in
             return value == assemblyRef
-        }.keys.sorted(by: { $0.name < $1.name })
+        }.keys.sorted(by: { $0.debugDescription < $1.debugDescription })
         let hasDash = indent.firstIndex(of: "-") != nil
         let newIndent = hasDash ? "  \(indent)" : "  - \(indent)"
         let childRows = children.flatMap { debugDescription(assemblyRef: $0, indent: newIndent) }
 
-        var selfRow = "\(indent)\(assemblyRef.name)"
-        let replacements = findReplacements(assemblyRef: assemblyRef).map { $0.name }.joined(separator: ", ")
+        var selfRow = "\(indent)\(assemblyRef.debugDescription)"
+        let replacements = findReplacements(assemblyRef: assemblyRef)
+            .map { $0.debugDescription }
+            .joined(separator: ", ")
         if !replacements.isEmpty {
             selfRow += " (\(replacements))"
         }
@@ -103,12 +104,12 @@ public struct DependencyTree: CustomDebugStringConvertible {
 }
 
 /// Wrapper for the types to allow them to be hashable
-private struct AssemblyReference: Hashable {
+internal struct AssemblyReference: Hashable {
 
     let type: any ModuleAssembly.Type
     let id: ObjectIdentifier
 
-    var name: String { String(describing: type) }
+    var debugDescription: String { String(describing: type) }
 
     init(_ type: any ModuleAssembly.Type) {
         self.type = type

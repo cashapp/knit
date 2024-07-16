@@ -10,15 +10,16 @@ final class DependencyBuilder {
     private let assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)?
     private var inputModules: [any ModuleAssembly] = []
     var assemblies: [any ModuleAssembly] = []
-    let isRegisteredInParent: (any ModuleAssembly.Type) -> Bool
+    let isRegisteredInParent: (AssemblyReference) -> Bool
     private let overrideBehavior: OverrideBehavior
     private(set) var dependencyTree: DependencyTree
+    internal var assemblyCache = RegistrationCache()
 
     init(
         modules: [any ModuleAssembly],
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
-        isRegisteredInParent: ((any ModuleAssembly.Type) -> Bool)? = nil
+        isRegisteredInParent: ((AssemblyReference) -> Bool)? = nil
     ) throws {
         self.assemblyValidation = assemblyValidation
         self.overrideBehavior = overrideBehavior
@@ -28,34 +29,23 @@ final class DependencyBuilder {
         self.isRegisteredInParent = isRegisteredInParent ?? {_ in false }
 
         // Gather a list of all dependencies needed in the tree
-        var allModuleTypes: [any ModuleAssembly.Type] = []
         for mod in modules {
             // Pass insertionPoint so that the tree gathered from later modules are instantiated later
             try gatherDependencies(
-                from: type(of: mod),
-                insertionPoint: allModuleTypes.count,
-                result: &allModuleTypes,
+                from: AssemblyReference(type(of: mod)),
+                insertionPoint: assemblyCache.assemblyList.count,
                 source: nil
             )
         }
-        let overrideTypes = allModuleTypes.filter { !$0.replaces.isEmpty }
 
-        // Collect AbstractAssemblies as they should all be instantiated and added to the container.
-        // This needs to happen before the filter below as they are all expected to be implemented by other assemblies
-        // and will therefore be filtered out.
-        let allAbstractModules = allModuleTypes.filter { $0 is any AbstractAssembly.Type }
-
-        // Filter out any types where an override was found
-        allModuleTypes = allModuleTypes.filter { moduleType in
-            return !overrideTypes.contains(where: {$0.doesReplace(type: moduleType)})
-        }
+        let toAssemble = assemblyCache.toAssemble
 
         // Instantiate all types
-        for type in allModuleTypes + allAbstractModules {
-            guard !self.isRegisteredInParent(type) else {
+        for ref in toAssemble {
+            guard !self.isRegisteredInParent(ref) else {
                 continue
             }
-            assemblies.append(try instantiate(moduleType: type))
+            assemblies.append(try instantiate(moduleType: ref.type))
         }
     }
 
@@ -82,10 +72,9 @@ final class DependencyBuilder {
     }
 
     private func gatherDependencies(
-        from: any ModuleAssembly.Type,
+        from: AssemblyReference,
         insertionPoint: Int,
-        result: inout [any ModuleAssembly.Type],
-        source: (any ModuleAssembly.Type)?
+        source: AssemblyReference?
     ) throws {
         if isRegisteredInParent(from) {
             return
@@ -94,12 +83,18 @@ final class DependencyBuilder {
         // Add a source for the original type
         dependencyTree.add(assemblyType: from, source: source)
 
-        let resolved = try resolvedType(from)
+        // We've already seen this module, abort early
+        if assemblyCache.seenCache.contains(from) {
+            return
+        }
+        assemblyCache.seenCache.insert(from)
+        let resolved = try resolvedType(from.type)
+        let resolvedRef = AssemblyReference(resolved)
 
         // Assembly validation should be performed "up front"
         // For example if we are validating the assemblies' `TargetResolver`, we should not walk the tree
         // if the root assembly is targeting an incorrect resolver.
-        if let assemblyValidation, !isRegisteredInParent(resolved) {
+        if let assemblyValidation, !isRegisteredInParent(resolvedRef) {
             do {
                 try assemblyValidation(resolved)
             } catch {
@@ -107,18 +102,17 @@ final class DependencyBuilder {
             }
         }
 
-        guard !result.contains(where: {$0 == resolved}) else {
+        guard !assemblyCache.contains(resolvedRef) else {
             return
         }
-        // Add a source for the resolved type
-        dependencyTree.add(assemblyType: resolved, source: source)
 
-        result.insert(resolved, at: insertionPoint)
+        // Add a source for the resolved type
+        dependencyTree.add(assemblyType: resolvedRef, source: source)
+        assemblyCache.insert(resolvedRef, insertionPoint: insertionPoint)
         for dep in getDependencies(resolved) {
             try gatherDependencies(
-                from: dep,
+                from: AssemblyReference(dep),
                 insertionPoint: insertionPoint,
-                result: &result,
                 source: from
             )
         }
@@ -211,4 +205,38 @@ extension ModuleAssembly {
         }
     }
 
+}
+
+internal extension DependencyBuilder {
+
+    struct RegistrationCache {
+        var assemblyList: [AssemblyReference] = []
+        var assemblySet: Set<AssemblyReference> = []
+        var replacedAssemblies: Set<AssemblyReference> = []
+        var seenCache: Set<AssemblyReference> = []
+
+        func contains(_ ref: AssemblyReference) -> Bool {
+            return assemblySet.contains(ref) || replacedAssemblies.contains(ref)
+        }
+
+        mutating func insert(_ assembly: AssemblyReference, insertionPoint: Int) {
+            assemblyList.insert(assembly, at: insertionPoint)
+            assemblySet.insert(assembly)
+            assembly.type.replaces.forEach { replacedAssemblies.insert(.init($0)) }
+        }
+
+        var toAssemble: [AssemblyReference] {
+            return assemblyList.filter { ref in
+                // Collect AbstractAssemblies as they should all be instantiated and added to the container.
+                // This needs to happen before the filter below as they are all expected to be implemented by other assemblies
+                // and will therefore be filtered out.
+                if ref.type is any AbstractAssembly.Type {
+                    return true
+                }
+
+                // Filter out any types which have been replaced
+                return !replacedAssemblies.contains(ref)
+            }
+        }
+    }
 }

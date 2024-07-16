@@ -82,7 +82,7 @@ final class DependencyBuilderTests: XCTestCase {
         let builder = try DependencyBuilder(
             modules: [Assembly1()],
             isRegisteredInParent:  { type in
-                return type == Assembly2.self
+                return type == AssemblyReference(Assembly2.self)
             }
         )
         // Assembly2 is not registered because the builder was told that it had been done by the parent

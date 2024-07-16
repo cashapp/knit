@@ -119,12 +119,16 @@ public final class ModuleAssembler {
         self.resolver = _container.synchronize()
     }
 
-    // Return true if a module type has been registered into this container or the parent container
     func isRegistered<T: ModuleAssembly>(_ type: T.Type) -> Bool {
+        return isRegistered(AssemblyReference(type))
+    }
+
+    // Return true if a module type has been registered into this container or the parent container
+    func isRegistered(_ type: AssemblyReference) -> Bool {
         if let parent, parent.isRegistered(type) {
             return true
         }
-        return registeredModules.contains(where: {$0.matches(moduleType: type)})
+        return builder.assemblyCache.contains(type)
     }
 
 }
