@@ -9,7 +9,7 @@ final class DependencyTreeTests: XCTestCase {
 
     func test_source_paths() {
         var tree = DependencyTree(inputModules: [Assembly1()])
-        tree.add(assemblyType: Assembly2.self, source: Assembly1.self)
+        tree.add(assemblyType: AssemblyReference(Assembly2.self), source: AssemblyReference(Assembly1.self))
 
         XCTAssertEqual(
             tree.sourcePath(moduleType: Assembly1.self),
@@ -24,8 +24,8 @@ final class DependencyTreeTests: XCTestCase {
 
     func test_tree_structure() {
         var tree = DependencyTree(inputModules: [Assembly1(), Assembly4()])
-        tree.add(assemblyType: Assembly2.self, source: Assembly1.self)
-        tree.add(assemblyType: Assembly3.self, source: Assembly2.self)
+        tree.add(assemblyType: AssemblyReference(Assembly2.self), source: AssemblyReference(Assembly1.self))
+        tree.add(assemblyType: AssemblyReference(Assembly3.self), source: AssemblyReference(Assembly2.self))
 
         XCTAssertEqual(
             tree.debugDescription,
