@@ -21,7 +21,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
 
     public convenience init(
         parent: ModuleAssembler? = nil,
-        _ modules: [any Assembly],
+        _ modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil,
@@ -48,17 +48,14 @@ public final class ScopedModuleAssembler<ScopedResolver> {
     // Internal required init that throws rather than fatal errors
     required init(
         parent: ModuleAssembler? = nil,
-        _modules modules: [any Assembly],
+        _modules modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil
     ) throws {
         // For provided modules, fail early if they are scoped incorrectly
         for assembly in modules {
-            guard let moduleAssembly = assembly as? any ModuleAssembly else {
-                continue
-            }
-            let moduleAssemblyType = type(of: moduleAssembly)
+            let moduleAssemblyType = type(of: assembly)
             if moduleAssemblyType.resolverType != ScopedResolver.self {
                 let scopingError = ScopedModuleAssemblerError.incorrectTargetResolver(
                     expected: String(describing: ScopedResolver.self),

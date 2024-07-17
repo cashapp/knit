@@ -35,7 +35,7 @@ public final class ModuleAssembler {
      */
     public convenience init(
         parent: ModuleAssembler? = nil,
-        _ modules: [any Assembly],
+        _ modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
@@ -68,17 +68,14 @@ public final class ModuleAssembler {
     // Internal required init that throws rather than fatal errors
     required init(
         parent: ModuleAssembler? = nil,
-        _modules modules: [any Assembly],
+        _modules modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil
     ) throws {
-        let moduleAssemblies = modules.compactMap { $0 as? any ModuleAssembly }
-        let nonModuleAssemblies = modules.filter { !($0 is any ModuleAssembly) }
-
         self.builder = try DependencyBuilder(
-            modules: moduleAssemblies,
+            modules: modules,
             assemblyValidation: assemblyValidation,
             overrideBehavior: overrideBehavior,
             isRegisteredInParent: { type in
@@ -97,7 +94,6 @@ public final class ModuleAssembler {
         self._container.register(DependencyTree.self) { _ in dependencyTree }
 
         let assembler = Assembler(container: self._container)
-        assembler.apply(assemblies: nonModuleAssemblies)
         assembler.apply(assemblies: builder.assemblies)
         postAssemble?(_container)
 
