@@ -549,6 +549,19 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testMainActorParsing() throws {
+        try assertMultipleRegistrationsString(
+            """
+            container.register(A.self) { @MainActor in A() }
+            .implements(B.self)
+            """,
+            registrations: [
+                Registration(service: "A", concurrencyModifier: "@MainActor", functionName: .register),
+                Registration(service: "B", concurrencyModifier: "@MainActor", functionName: .implements),
+            ]
+        )
+    }
+
     func testIncorrectRegistrations() throws {
         try assertNoRegistrationsString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
         try assertNoRegistrationsString("container.register(A)", message: "First param is not a metatype")

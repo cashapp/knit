@@ -55,7 +55,11 @@ public enum TypeSafetySourceFile {
         enumName: String? = nil,
         getterType: GetterConfig = .callAsFunction
     ) throws -> DeclSyntaxProtocol {
-        let modifier = registration.accessLevel == .public ? "public " : ""
+        var modifier = ""
+        if let concurrencyModifier = registration.concurrencyModifier {
+            modifier = "\(concurrencyModifier) "
+        }
+        modifier += registration.accessLevel == .public ? "public " : ""
         let nameInput = enumName.map { "name: \($0)" }
         let nameUsage = enumName != nil ? "name: name.rawValue" : nil
         let (argInput, argUsage) = argumentString(registration: registration)
