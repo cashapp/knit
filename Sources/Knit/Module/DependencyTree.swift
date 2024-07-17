@@ -8,7 +8,7 @@ import Foundation
 public struct DependencyTree: CustomDebugStringConvertible {
 
     // Assemblies that were originally provided to create the tree
-    private let inputModules: [AssemblyReference]
+    private let inputModules: Set<AssemblyReference>
     
     // List of all registered modules
     private var allModules: Set<AssemblyReference>
@@ -17,8 +17,8 @@ public struct DependencyTree: CustomDebugStringConvertible {
     private var moduleSources: [AssemblyReference: AssemblyReference] = [:]
 
     init(inputModules: [any ModuleAssembly]) {
-        self.inputModules = inputModules.map { AssemblyReference(type(of: $0)) }
-        allModules = Set(self.inputModules)
+        self.inputModules = Set(inputModules.map { AssemblyReference(type(of: $0)) })
+        allModules = self.inputModules
     }
 
     mutating func add(
@@ -48,7 +48,10 @@ public struct DependencyTree: CustomDebugStringConvertible {
     }
 
     public var debugDescription: String {
-        return inputModules.flatMap { debugDescription(assemblyRef: $0, indent: "") }.joined(separator: "\n")
+        let sortedInputs = inputModules
+            .map { ($0, $0.debugDescription) }
+            .sorted(by: {$0.1 < $1.1})
+        return sortedInputs.flatMap { debugDescription(assemblyRef: $0.0, indent: "") }.joined(separator: "\n")
     }
 
     public func dumpGraph() {

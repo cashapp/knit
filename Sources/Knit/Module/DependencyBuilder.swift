@@ -40,35 +40,42 @@ final class DependencyBuilder {
 
         let toAssemble = assemblyCache.toAssemble
 
+        var inputLookup: [AssemblyReference: any ModuleAssembly] = [:]
+        for module in modules {
+            let ref = AssemblyReference(type(of: module))
+            inputLookup[ref] = module
+            for replaced in ref.type.replaces {
+                inputLookup[AssemblyReference(replaced)] = module
+            }
+        }
+
         // Instantiate all types
         for ref in toAssemble {
-            guard !self.isRegisteredInParent(ref) else {
-                continue
-            }
-            assemblies.append(try instantiate(moduleType: ref.type))
+            assemblies.append(try instantiate(moduleRef: ref, inputLookup: inputLookup))
         }
     }
 
-    private func instantiate(moduleType: any ModuleAssembly.Type) throws -> any ModuleAssembly {
-        let inputModule = inputModules.first(where: { type(of: $0) == moduleType})
-        let existingType = inputModules.first { assembly in
-            return type(of: assembly).doesReplace(type: moduleType)
+    private func instantiate(
+        moduleRef: AssemblyReference,
+        inputLookup: [AssemblyReference: any ModuleAssembly]
+    ) throws -> any ModuleAssembly {
+        if let inputModule = inputLookup[moduleRef] {
+            return inputModule
         }
-        if let existingType {
-            return existingType
-        }
-        if let overrideType = try defaultOverride(moduleType, fromInput: inputModule != nil),
+
+        if let overrideType = try defaultOverride(moduleRef.type, fromInput: false),
            let autoInit = overrideType as? any AutoInitModuleAssembly.Type {
             return autoInit.init()
         }
-        if let inputModule {
-            return inputModule
-        }
-        if let autoInit = moduleType as? any AutoInitModuleAssembly.Type {
+
+        if let autoInit = moduleRef.type as? any AutoInitModuleAssembly.Type {
             return autoInit.init()
         }
 
-        throw DependencyBuilderError.moduleNotProvided(moduleType, dependencyTree.sourcePathString(moduleType: moduleType))
+        throw DependencyBuilderError.moduleNotProvided(
+            moduleRef.type,
+            dependencyTree.sourcePathString(moduleType: moduleRef.type)
+        )
     }
 
     private func gatherDependencies(
