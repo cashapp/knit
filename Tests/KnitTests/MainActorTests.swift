@@ -3,7 +3,7 @@
 //
 
 import Combine
-import Swinject
+import Knit
 import XCTest
 
 private actor ActorA { 
@@ -91,82 +91,81 @@ private class FinalConsumer {
 
 }
 
-private class TestAssembly: Assembly {
+private final class TestAssembly: AutoInitModuleAssembly {
 
-    func assemble(container: Container) {
+    typealias TargetResolver = TestResolver
+
+    func assemble(container: Container<TargetResolver>) {
 
         container.register(
             ActorA.self,
-            factory: { resolver in
-                MainActor.assumeIsolated {
-                    return ActorA()
-                }
+            mainActorFactory: { @MainActor resolver in
+                ActorA()
             }
         )
 
         container.register(
             MainClassA.self,
-            factory: { resolver in
-                MainActor.assumeIsolated {
-                    return MainClassA()
-                }
+            mainActorFactory: { @MainActor resolver in
+                MainClassA()
             }
         )
 
         container.register(
             Future<CustomGlobalActorClass, Never>.self,
-            factory: { resolver in
-                MainActor.assumeIsolated {
-                    let mainClassA = resolver.resolve(MainClassA.self)!
+            mainActorFactory: { @MainActor resolver in
+                let mainClassA = resolver.unsafeResolver.resolve(MainClassA.self)!
 
-                    return Future<CustomGlobalActorClass, Never>() { promise in
-                        let customGlobalActorClass = await CustomGlobalActorClass(
-                            mainClassA: mainClassA
-                        )
-                        promise(.success(customGlobalActorClass))
-                    }
+                return Future<CustomGlobalActorClass, Never>() { promise in
+                    let customGlobalActorClass = await CustomGlobalActorClass(
+                        mainClassA: mainClassA
+                    )
+                    promise(.success(customGlobalActorClass))
                 }
             }
         )
 
         container.register(
             Future<AsyncInitClass, Never>.self,
-            factory: { resolver in
-                MainActor.assumeIsolated {
-                    return Future<AsyncInitClass, Never>() { promise in
-                        promise(.success(await AsyncInitClass()))
-                    }
+            mainActorFactory: { @MainActor resolver in
+                return Future<AsyncInitClass, Never>() { promise in
+                    promise(.success(await AsyncInitClass()))
                 }
             }
         )
 
         container.register(
             FinalConsumer.self,
-            factory: { resolver in
-                MainActor.assumeIsolated {
-                    let actorA = resolver.resolve(ActorA.self)!
-                    let mainClassA = resolver.resolve(MainClassA.self)!
-                    let customGlobalActorClass = resolver.resolve(Future<CustomGlobalActorClass, Never>.self)!
-                    let asyncInitClass = resolver.resolve(Future<AsyncInitClass, Never>.self)!
-                    return FinalConsumer(
-                        actorA: actorA,
-                        mainClassA: mainClassA,
-                        customGlobalActorClass: customGlobalActorClass,
-                        asyncInitClass: asyncInitClass
-                    )
-                }
+            mainActorFactory: { @MainActor resolver in
+                let actorA = resolver.unsafeResolver.resolve(ActorA.self)!
+                let mainClassA = resolver.unsafeResolver.resolve(MainClassA.self)!
+                let customGlobalActorClass = resolver.unsafeResolver.resolve(Future<CustomGlobalActorClass, Never>.self)!
+                let asyncInitClass = resolver.unsafeResolver.resolve(Future<AsyncInitClass, Never>.self)!
+                return FinalConsumer(
+                    actorA: actorA,
+                    mainClassA: mainClassA,
+                    customGlobalActorClass: customGlobalActorClass,
+                    asyncInitClass: asyncInitClass
+                )
             }
         )
 
     }
+
+    init() {}
+
+    static var dependencies: [any Knit.ModuleAssembly.Type] { [] }
+
 }
 
 class MainActorTests: XCTestCase {
 
+    @MainActor
     func testAssembly() throws {
-        let container = Container()
-        TestAssembly().assemble(container: container)
-        let finalConsumer = try XCTUnwrap(container.resolve(FinalConsumer.self))
+        let assembler = ModuleAssembler(
+            [TestAssembly()]
+        )
+        let finalConsumer = try XCTUnwrap(assembler.resolver.resolve(FinalConsumer.self))
 
         let asyncExpectation = expectation(description: "async task")
 
