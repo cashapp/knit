@@ -550,6 +550,7 @@ final class RegistrationParsingTests: XCTestCase {
     }
 
     func testMainActorParsing() throws {
+        // Basic registration
         try assertMultipleRegistrationsString(
             """
             container.register(A.self) { @MainActor in A() }
@@ -558,6 +559,26 @@ final class RegistrationParsingTests: XCTestCase {
             registrations: [
                 Registration(service: "A", concurrencyModifier: "@MainActor", functionName: .register),
                 Registration(service: "B", concurrencyModifier: "@MainActor", functionName: .implements),
+            ]
+        )
+
+        // With arguments (must use mainActorFactory syntax)
+        try assertMultipleRegistrationsString(
+            """
+            container.register(
+                A.self,
+                mainActorFactory: { (resolver: Resolver, arg1: B, arg2: C) in
+                    A(arg1: arg1, arg2: arg2)
+                }
+            )
+            """,
+            registrations: [
+                Registration(
+                    service: "A",
+                    arguments: [.init(identifier: "arg1", type: "B"), .init(identifier: "arg2", type: "C")],
+                    concurrencyModifier: "@MainActor",
+                    functionName: .register
+                ),
             ]
         )
     }

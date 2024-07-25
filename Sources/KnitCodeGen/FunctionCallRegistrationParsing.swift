@@ -74,7 +74,10 @@ extension FunctionCallExprSyntax {
             trailingClosure: primaryRegisterMethod.trailingClosure
         )
 
-        let concurrencyModifier = getConcurrencyModifier(trailingClosure: primaryRegisterMethod.trailingClosure)
+        let concurrencyModifier = getConcurrencyModifier(
+            arguments: primaryRegisterMethod.arguments,
+            trailingClosure: primaryRegisterMethod.trailingClosure
+        )
 
         // The primary registration (not `.implements()`)
         guard let primaryRegistration = try makeRegistrationFor(
@@ -235,7 +238,7 @@ private func getArguments(
     let factoryClosure: ClosureExprSyntax?
 
     // Normalize factory closure between argument and trailing closure
-    if let factoryParam = arguments.first(where: { $0.label?.text == "factory" }) {
+    if let factoryParam = arguments.first(where: { $0.label?.text == "factory" || $0.label?.text == "mainActorFactory" }) {
         if let closure = factoryParam.expression.as(ClosureExprSyntax.self) {
             factoryClosure = closure
         } else {
@@ -277,10 +280,23 @@ private func getArguments(
     return []
 }
 
-private func getConcurrencyModifier(trailingClosure: ClosureExprSyntax?) -> String? {
+private func getConcurrencyModifier(
+    arguments: LabeledExprListSyntax,
+    trailingClosure: ClosureExprSyntax?
+) -> String? {
+    if arguments.contains(where: {$0.label?.text == "mainActorFactory" }) {
+        return "@MainActor"
+    }
     guard let signature = trailingClosure?.signature else { return nil }
     for att in signature.attributes {
-        if att.description.trimmingCharacters(in: .whitespaces) == "@MainActor" {
+        guard case let .attribute(attributeSyntax) = att else {
+            continue
+        }
+        guard let attributeName = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self)?.name.text else {
+            continue
+        }
+
+        if attributeName.trimmingCharacters(in: .whitespaces) == "MainActor" {
             return "@MainActor"
         }
     }
