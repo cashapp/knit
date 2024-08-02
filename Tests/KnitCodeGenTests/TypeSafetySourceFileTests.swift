@@ -157,6 +157,21 @@ final class TypeSafetySourceFileTests: XCTestCase {
         )
     }
 
+    func testRegistrationWithSPI() {
+        let registration = Registration(service: "A", accessLevel: .public, spi: "Testing")
+        XCTAssertEqual(
+            try TypeSafetySourceFile.makeResolver(
+                registration: registration,
+                enumName: nil
+            ).formatted().description,
+            """
+            @_spi(Testing) public func callAsFunction(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+                knitUnwrap(resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
+            """
+        )
+    }
+
     func testArgumentNames() {
         let registration1 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String?")])
         XCTAssertEqual(

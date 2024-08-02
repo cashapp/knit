@@ -56,8 +56,11 @@ public enum TypeSafetySourceFile {
         getterType: GetterConfig = .callAsFunction
     ) throws -> DeclSyntaxProtocol {
         var modifier = ""
+        if let spi = registration.spi {
+            modifier += "@_spi(\(spi)) "
+        }
         if let concurrencyModifier = registration.concurrencyModifier {
-            modifier = "\(concurrencyModifier) "
+            modifier += "\(concurrencyModifier) "
         }
         modifier += registration.accessLevel == .public ? "public " : ""
         let nameInput = enumName.map { "name: \($0)" }
