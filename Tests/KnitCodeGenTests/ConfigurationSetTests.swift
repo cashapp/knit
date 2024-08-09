@@ -79,6 +79,7 @@ final class ConfigurationSetTests: XCTestCase {
             @testable import Module1
             import XCTest
             final class Module1RegistrationTests: XCTestCase {
+                @MainActor
                 func testRegistrations() {
                     // In the test target for your module, please provide a static method that creates a
                     // ModuleAssembler instance for testing.
@@ -89,6 +90,7 @@ final class ConfigurationSetTests: XCTestCase {
                 }
             }
             final class Module2RegistrationTests: XCTestCase {
+                @MainActor
                 func testRegistrations() {
                     // In the test target for your module, please provide a static method that creates a
                     // ModuleAssembler instance for testing.
@@ -233,6 +235,7 @@ final class ConfigurationSetTests: XCTestCase {
             additionalTests[0].formatted().description,
             """
             final class Module2RegistrationTests: XCTestCase {
+                @MainActor
                 func testRegistrations() {
                     // In the test target for your module, please provide a static method that creates a
                     // ModuleAssembler instance for testing.

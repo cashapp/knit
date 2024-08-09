@@ -31,6 +31,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let expected = #"""
         final class MyModuleRegistrationTests: XCTestCase {
+            @MainActor
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
@@ -88,6 +89,7 @@ final class UnitTestSourceFileTests: XCTestCase {
         @testable import My
         import XCTest
         final class MyRegistrationTests: XCTestCase {
+            @MainActor
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
@@ -103,6 +105,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             let serviceAString: String
         }
         final class MyAppRegistrationTests: XCTestCase {
+            @MainActor
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
@@ -148,6 +151,7 @@ final class UnitTestSourceFileTests: XCTestCase {
         @testable import Module
         import XCTest
         final class ModuleAbstractRegistrationTests: XCTestCase {
+            @MainActor
             func testRegistrations() {
                 // The ModuleAbstractAssembly is an abstract-only assembly
                 // so no registration tests are needed
@@ -171,6 +175,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let expected = #"""
         final class MyModuleRegistrationTests: XCTestCase {
+            @MainActor
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
@@ -198,6 +203,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let expected = #"""
         final class MyModuleRegistrationTests: XCTestCase {
+            @MainActor
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.
@@ -226,6 +232,7 @@ final class UnitTestSourceFileTests: XCTestCase {
 
         let expected = #"""
         final class MyModuleRegistrationTests: XCTestCase {
+            @MainActor
             func testRegistrations() {
                 // In the test target for your module, please provide a static method that creates a
                 // ModuleAssembler instance for testing.

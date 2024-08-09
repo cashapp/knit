@@ -26,7 +26,10 @@ public enum UnitTestSourceFile {
         return try SourceFileSyntax() {
             try ClassDeclSyntax("final class \(raw: configuration.assemblyShortName)RegistrationTests: XCTestCase") {
 
-                try FunctionDeclSyntax("func testRegistrations()") {
+                try FunctionDeclSyntax("""
+                    @MainActor
+                    func testRegistrations()
+                """) {
 
                     DeclSyntax("""
                         // In the test target for your module, please provide a static method that creates a

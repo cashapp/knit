@@ -92,6 +92,7 @@ public extension Configuration {
             // otherwise unit test jobs will fail if they don't find any test cases in a test target
             return .init(stringLiteral: """
             final class \(self.assemblyShortName)RegistrationTests: XCTestCase {
+                @MainActor
                 func testRegistrations() {
                     // The \(self.assemblyName) is an abstract-only assembly
                     // so no registration tests are needed
