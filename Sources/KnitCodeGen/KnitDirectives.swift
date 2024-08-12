@@ -124,7 +124,7 @@ extension KnitDirectives {
             switch self {
             case let .unexpectedToken(token):
                 return "Unexpected knit comment rule \(token)"
-            case let .duplicateSPI(name):
+            case .duplicateSPI:
                 return "Duplicate @_spi annotations are not supported"
             }
         }
