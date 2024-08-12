@@ -183,7 +183,8 @@ private func makeRegistrationFor(
         arguments: registrationArguments,
         concurrencyModifier: concurrencyModifier,
         getterConfig: getterConfig,
-        functionName: functionName
+        functionName: functionName,
+        spi: directives.spi ?? defaultDirectives.spi
     )
 }
 

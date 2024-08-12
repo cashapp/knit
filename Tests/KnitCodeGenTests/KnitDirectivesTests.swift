@@ -91,6 +91,16 @@ final class KnitDirectivesTests: XCTestCase {
         )
     }
 
+    func testSPI() {
+        XCTAssertEqual(
+            try parse("// @knit @_spi(Testing)"),
+            .init(accessLevel: nil, spi: "Testing")
+        )
+
+        // Only 1 SPI is supported, the second will cause the parsing to throw
+        XCTAssertThrowsError(try parse("// @knit @_spi(First) @_spi(Second)"))
+    }
+
     func testModuleName() {
         XCTAssertEqual(
             try parse("// @knit module-name(\"Test\")"),

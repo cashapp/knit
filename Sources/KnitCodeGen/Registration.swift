@@ -26,6 +26,9 @@ public struct Registration: Equatable, Codable {
     /// The Swinject function that was used to register this factory
     public let functionName: FunctionName
 
+    /// System Programming Interface annotation that should be applied to the registration
+    public var spi: String?
+
     public init(
         service: String,
         name: String? = nil,
@@ -33,7 +36,8 @@ public struct Registration: Equatable, Codable {
         arguments: [Argument] = [],
         concurrencyModifier: String? = nil,
         getterConfig: Set<GetterConfig> = GetterConfig.default,
-        functionName: FunctionName = .register
+        functionName: FunctionName = .register,
+        spi: String? = nil
     ) {
         self.service = service
         self.name = name
@@ -42,6 +46,7 @@ public struct Registration: Equatable, Codable {
         self.arguments = arguments
         self.getterConfig = getterConfig
         self.functionName = functionName
+        self.spi = spi
     }
 
     /// This registration is forwarded to another service entry.
@@ -51,7 +56,7 @@ public struct Registration: Equatable, Codable {
 
     private enum CodingKeys: CodingKey {
         // ifConfigCondition is not encoded since ExprSyntax does not conform to codable
-        case service, name, accessLevel, arguments, getterConfig, functionName, concurrencyModifier
+        case service, name, accessLevel, arguments, getterConfig, functionName, concurrencyModifier, spi
     }
 
 }

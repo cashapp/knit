@@ -9,15 +9,18 @@ public struct KnitDirectives: Codable, Equatable {
     var accessLevel: AccessLevel?
     var getterConfig: Set<GetterConfig>
     var moduleName: String?
+    var spi: String?
 
     public init(
         accessLevel: AccessLevel? = nil,
         getterConfig: Set<GetterConfig> = [],
-        moduleName: String? = nil
+        moduleName: String? = nil,
+        spi: String? = nil
     ) {
         self.accessLevel = accessLevel
         self.getterConfig = getterConfig
         self.moduleName = moduleName
+        self.spi = spi
     }
 
     private static let directiveMarker = "@knit"
@@ -56,6 +59,12 @@ public struct KnitDirectives: Codable, Equatable {
             for getter in parsed.getterConfig {
                 result.getterConfig.insert(getter)
             }
+            if let spi = parsed.spi {
+                if result.spi != nil {
+                    throw Error.duplicateSPI(name: spi)
+                }
+                result.spi = spi
+            }
         }
 
         return result
@@ -85,6 +94,14 @@ public struct KnitDirectives: Codable, Equatable {
                 return KnitDirectives(moduleName: name)
             }
         }
+        if let spiMatch = spiRegex.firstMatch(in: token, range: NSMakeRange(0, token.count)) {
+            if spiMatch.numberOfRanges >= 2, spiMatch.range(at: 1).location != NSNotFound {
+                var range = spiMatch.range(at: 1)
+                range = NSRange(location: range.location + 1, length: range.length - 2)
+                let spi = (token as NSString).substring(with: range)
+                return KnitDirectives(spi: spi)
+            }
+        }
 
         throw Error.unexpectedToken(token: token)
     }
@@ -95,16 +112,20 @@ public struct KnitDirectives: Codable, Equatable {
 
     private static let getterNamedRegex = try! NSRegularExpression(pattern: "getter-named(\\(\"\\w*\"\\))?")
     private static let moduleNameRegex = try! NSRegularExpression(pattern: "module-name(\\(\"\\w*\"\\))")
+    private static let spiRegex = try!  NSRegularExpression(pattern: "@_spi(\\(\\w*\\))")
 }
 
 extension KnitDirectives {
     enum Error: LocalizedError {
         case unexpectedToken(token: String)
+        case duplicateSPI(name: String)
 
         var errorDescription: String? {
             switch self {
             case let .unexpectedToken(token):
                 return "Unexpected knit comment rule \(token)"
+            case let .duplicateSPI(name):
+                return "Duplicate @_spi annotations are not supported"
             }
         }
     }
