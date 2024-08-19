@@ -10,12 +10,9 @@ let package = Package(
         .iOS(.v15),
     ],
     products: [
-        .library(name: "Knit", targets: ["Knit"]),
-        .executable(name: "knit-cli", targets: ["KnitCommand"])
+        .library(name: "Knit", targets: ["Knit"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "510.0.2"),
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.4.0"),
         .package(url: "https://github.com/Swinject/Swinject.git", from: "2.9.1"),
         .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.9.1"),
     ],
@@ -28,32 +25,10 @@ let package = Package(
             ],
             exclude: ["ServiceCollection/Container+ServiceCollection.erb"]
         ),
-        .executableTarget(
-            name: "KnitCommand",
-            dependencies: [
-                .product(name: "SwiftSyntax", package: "swift-syntax"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .target(name: "KnitCodeGen"),
-            ]
-        ),
-        .target(
-            name: "KnitCodeGen",
-            dependencies: [
-                .product(name: "SwiftSyntax", package: "swift-syntax"),
-                .product(name: "SwiftParser", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
-            ]
-        ),
         .testTarget(
             name: "KnitTests",
             dependencies: [
                 "Knit",
-            ]
-        ),
-        .testTarget(
-            name: "KnitCodeGenTests",
-            dependencies: [
-                "KnitCodeGen",
             ]
         ),
     ]

@@ -10,7 +10,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-knit:
 
     runs-on: macos-latest
 
@@ -19,7 +19,23 @@ jobs:
     - uses: swift-actions/setup-swift@v2.1.0
       with:
         swift-version: "5.10"
-    - name: Build
+    - name: Build Knit
       run: swift build -v
-    - name: Run tests
+    - name: Run Knit tests
       run: swift test -v
+
+  build-knit-cli:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4.1.7
+    - uses: swift-actions/setup-swift@v2.1.0
+      with:
+        swift-version: "5.10"
+    - name: Build Knit CLI
+      run:
+        swift build -v --package-path CLI
+    - name: Run Knit CLI tests
+      run:
+        swift test -v --package-path CLI
