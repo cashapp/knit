@@ -48,7 +48,7 @@ struct GenCommand: ParsableCommand {
     var unitTestOutputPath: String?
 
     @Option(help: """
-                  Path to the file location in the current module where the KnitModule defintion should be written.
+                  Path to the file location in the current module where the KnitModule definition should be written.
                   For example: `${PODS_TARGET_SRCROOT}/Sources/Generated/KnitDITypeSafety.swift`
                   """)
     var knitModuleOutputPath: String?

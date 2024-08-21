@@ -1,4 +1,0 @@
-#!/bin/sh
-cd ../CLI
-swift build --arch x86_64 --arch arm64 --product knit-cli
-mv .build/apple/Products/Debug/knit-cli ../Example/

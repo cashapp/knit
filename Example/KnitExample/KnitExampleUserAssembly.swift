@@ -7,7 +7,11 @@ import Knit
 
 // @knit internal
 /// An assembly expected to be registered at the user level rather than at the app level
-final class KnitExampleUserAssembly: Assembly {
+final class KnitExampleUserAssembly: ModuleAssembly {
+
+    typealias TargetResolver = Resolver
+
+    static var dependencies: [any ModuleAssembly.Type] { [] }
 
     func assemble(container: Container) {
         container.autoregister(UserService.self, initializer: UserService.init)
