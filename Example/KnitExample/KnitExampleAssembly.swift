@@ -6,7 +6,11 @@ import Foundation
 import Knit
 
 // @knit internal
-final class KnitExampleAssembly: Assembly {
+final class KnitExampleAssembly: ModuleAssembly {
+    
+    typealias TargetResolver = Resolver
+
+    static var dependencies: [any ModuleAssembly.Type] { [] }
 
     func assemble(container: Container) {
         container.addBehavior(ServiceCollector())
