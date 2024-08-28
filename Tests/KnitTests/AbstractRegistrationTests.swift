@@ -17,8 +17,8 @@ final class AbstractRegistrationTests: XCTestCase {
             XCTAssertEqual(
                 error.localizedDescription,
                 """
-                Unsatisfied abstract registration. Service: String, File: AbstractRegistrationTests.swift
-                Unsatisfied abstract registration. Service: String, File: AbstractRegistrationTests.swift, Name: test
+                Unsatisfied abstract registration. Service: String, File: KnitTests/AbstractRegistrationTests.swift
+                Unsatisfied abstract registration. Service: String, File: KnitTests/AbstractRegistrationTests.swift, Name: test
                 """
             )
         }
