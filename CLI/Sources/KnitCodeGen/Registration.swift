@@ -78,7 +78,10 @@ extension Registration {
         }
 
         public enum Identifier: Codable, Equatable {
+            /// Used for arguments defined in `.register` registrations.
             case fixed(String)
+
+            /// Used for arguments provided to `.autoregister` registrations, as those do not receive explicit identifiers.
             case computed
         }
 

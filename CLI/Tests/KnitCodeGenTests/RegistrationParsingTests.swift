@@ -450,6 +450,32 @@ final class RegistrationParsingTests: XCTestCase {
                 Registration(service: "A", arguments: [.init(identifier: "arg1", type: "() -> Void")]),
             ]
         )
+
+        try assertMultipleRegistrationsString(
+            """
+            container.register(A.self) { (resolver, arg1: @escaping @MainActor @Sendable (Bool) -> Void) in
+                A(arg: arg1)
+            }
+            """,
+            registrations: [
+                Registration(service: "A", arguments: [
+                    .init(identifier: "arg1", type: "@MainActor @Sendable (Bool) -> Void")
+                ]),
+            ]
+        )
+
+        try assertMultipleRegistrationsString(
+            """
+            container.register(A.self) { (resolver, arg1: @escaping @CustomGlobalActor () -> Void) in
+                A(arg: arg1)
+            }
+            """,
+            registrations: [
+                Registration(service: "A", arguments: [
+                    .init(identifier: "arg1", type: "@CustomGlobalActor () -> Void")
+                ]),
+            ]
+        )
     }
 
     func testArgumentMissingType() throws {
