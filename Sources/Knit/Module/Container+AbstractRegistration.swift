@@ -11,12 +11,9 @@ extension Container {
     public func registerAbstract<Service>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        file: StaticString = #file
+        file: String = #fileID
     ) {
-        // Simplify the name to support Xcode 14.2.
-        // Once 14.2 support is dropped and #file becomes shortened this can be removed
-        let shortFile = URL(fileURLWithPath: file.description).lastPathComponent
-        let registration = RealAbstractRegistration<Service>(name: name, file: shortFile)
+        let registration = RealAbstractRegistration<Service>(name: name, file: file)
         abstractRegistrations().abstractRegistrations.append(registration)
     }
 

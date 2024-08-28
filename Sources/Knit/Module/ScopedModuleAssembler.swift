@@ -25,7 +25,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil,
-        file: StaticString = #file,
+        file: StaticString = #fileID,
         line: UInt = #line
     ) {
         do {

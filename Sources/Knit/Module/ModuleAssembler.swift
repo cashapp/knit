@@ -40,7 +40,7 @@ public final class ModuleAssembler {
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         postAssemble: ((Container) -> Void)? = nil,
-        file: StaticString = #file,
+        file: StaticString = #fileID,
         line: UInt = #line
     ) {
         // Hold an optional reference to be used by error handling later
