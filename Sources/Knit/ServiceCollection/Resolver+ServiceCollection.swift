@@ -21,6 +21,7 @@ extension Resolver {
     /// - Parameter serviceType: The service types to resolve.
     /// - Returns: A ``ServiceCollection`` containing all registered services,
     ///            or an empty collection if no services were registered.
+    @MainActor
     public func resolveCollection<Service>(_ serviceType: Service.Type) -> ServiceCollection<Service> {
         resolve(ServiceCollection<Service>.self) ?? .init(parent: nil, entries: [])
     }

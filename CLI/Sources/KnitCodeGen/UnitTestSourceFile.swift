@@ -138,6 +138,7 @@ public enum UnitTestSourceFile {
 
     private static func makeCollectionAssert() throws -> FunctionDeclSyntax {
         let string: SyntaxNodeString = #"""
+        @MainActor
         func assertCollectionResolves<T>(
             _ type: T.Type,
             count expectedCount: Int,

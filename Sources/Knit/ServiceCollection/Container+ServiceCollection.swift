@@ -32,9 +32,17 @@ extension Container {
     @discardableResult
     public func registerIntoCollection<Service>(
         _ service: Service.Type,
-        factory: @escaping (Resolver) -> Service
+        factory: @escaping @MainActor (Resolver) -> Service
     ) -> ServiceEntry<Service> {
-        self.register(service, name: makeUniqueCollectionRegistrationName(), factory: factory)
+        self.register(
+            service,
+            name: makeUniqueCollectionRegistrationName(),
+            factory: { resolver in
+                MainActor.assumeIsolated {
+                    return factory(resolver)
+                }
+            }
+        )
     }
 
     /// Registers a service factory into a collection.

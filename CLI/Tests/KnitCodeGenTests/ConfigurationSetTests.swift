@@ -140,6 +140,7 @@ final class ConfigurationSetTests: XCTestCase {
                         line: line
                     )
                 }
+                @MainActor
                 func assertCollectionResolves<T>(
                     _ type: T.Type,
                     count expectedCount: Int,
