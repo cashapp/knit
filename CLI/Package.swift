@@ -4,13 +4,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "Knit CLI",
+    name: "Knit-CLI",
     platforms: [
         .macOS(.v14),
     ],
     products: [
         .executable(name: "knit-cli", targets: ["KnitCommand"]),
-        .plugin(name: "KnitBuildPlugin", targets: ["KnitBuildPlugin"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", from: "510.0.2"),
@@ -23,13 +22,6 @@ let package = Package(
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .target(name: "KnitCodeGen"),
-            ]
-        ),
-        .plugin(
-            name: "KnitBuildPlugin",
-            capability: .buildTool,
-            dependencies: [
-                .target(name: "KnitCommand"),
             ]
         ),
         .target(

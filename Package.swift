@@ -10,11 +10,13 @@ let package = Package(
         .iOS(.v15),
     ],
     products: [
-        .library(name: "Knit", targets: ["Knit"])
+        .library(name: "Knit", targets: ["Knit"]),
+        .plugin(name: "KnitBuildPlugin", targets: ["KnitBuildPlugin"]),
     ],
     dependencies: [
         .package(url: "https://github.com/Swinject/Swinject.git", from: "2.9.1"),
         .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.9.1"),
+        .package(name: "Knit-CLI", path: "CLI/"),
     ],
     targets: [
         .target(
@@ -29,6 +31,13 @@ let package = Package(
             name: "KnitTests",
             dependencies: [
                 "Knit",
+            ]
+        ),
+        .plugin(
+            name: "KnitBuildPlugin",
+            capability: .buildTool,
+            dependencies: [
+                .product(name: "knit-cli", package: "Knit-CLI"),
             ]
         ),
     ]

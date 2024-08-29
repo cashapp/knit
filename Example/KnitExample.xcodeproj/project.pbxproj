@@ -129,7 +129,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				2CEFF6392C75A71C0069B6D6 /* PBXTargetDependency */,
+				2C1CC8BA2C76939F00B1CD49 /* PBXTargetDependency */,
 			);
 			name = KnitExample;
 			packageProductDependencies = (
@@ -150,7 +150,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				2CEFF6602C75C23C0069B6D6 /* PBXTargetDependency */,
+				2C1CC8BC2C7693A400B1CD49 /* PBXTargetDependency */,
 				C44755122A3FEA120072333A /* PBXTargetDependency */,
 			);
 			name = KnitExampleTests;
@@ -189,8 +189,7 @@
 			);
 			mainGroup = C43334E62A3FDD43003BA9E3;
 			packageReferences = (
-				2C360AE82B4E1A2B00C88B99 /* XCLocalSwiftPackageReference ".." */,
-				2CEFF6372C75A70E0069B6D6 /* XCLocalSwiftPackageReference "../CLI" */,
+				2C1CC8B62C7692F000B1CD49 /* XCLocalSwiftPackageReference "../../knit" */,
 			);
 			productRefGroup = C43334F02A3FDD43003BA9E3 /* Products */;
 			projectDirPath = "";
@@ -244,13 +243,13 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		2CEFF6392C75A71C0069B6D6 /* PBXTargetDependency */ = {
+		2C1CC8BA2C76939F00B1CD49 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			productRef = 2CEFF6382C75A71C0069B6D6 /* KnitBuildPlugin */;
+			productRef = 2C1CC8B92C76939F00B1CD49 /* KnitBuildPlugin */;
 		};
-		2CEFF6602C75C23C0069B6D6 /* PBXTargetDependency */ = {
+		2C1CC8BC2C7693A400B1CD49 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			productRef = 2CEFF65F2C75C23C0069B6D6 /* KnitBuildPlugin */;
+			productRef = 2C1CC8BB2C7693A400B1CD49 /* KnitBuildPlugin */;
 		};
 		C44755122A3FEA120072333A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -386,6 +385,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"KnitExample/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -415,6 +415,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"KnitExample/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -505,30 +506,26 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		2C360AE82B4E1A2B00C88B99 /* XCLocalSwiftPackageReference ".." */ = {
+		2C1CC8B62C7692F000B1CD49 /* XCLocalSwiftPackageReference "../../knit" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ..;
-		};
-		2CEFF6372C75A70E0069B6D6 /* XCLocalSwiftPackageReference "../CLI" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../CLI;
+			relativePath = ../../knit;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2C1CC8B92C76939F00B1CD49 /* KnitBuildPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2C1CC8B62C7692F000B1CD49 /* XCLocalSwiftPackageReference "../../knit" */;
+			productName = "plugin:KnitBuildPlugin";
+		};
+		2C1CC8BB2C7693A400B1CD49 /* KnitBuildPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2C1CC8B62C7692F000B1CD49 /* XCLocalSwiftPackageReference "../../knit" */;
+			productName = "plugin:KnitBuildPlugin";
+		};
 		2C360AE92B4E1A2C00C88B99 /* Knit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Knit;
-		};
-		2CEFF6382C75A71C0069B6D6 /* KnitBuildPlugin */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2CEFF6372C75A70E0069B6D6 /* XCLocalSwiftPackageReference "../CLI" */;
-			productName = "plugin:KnitBuildPlugin";
-		};
-		2CEFF65F2C75C23C0069B6D6 /* KnitBuildPlugin */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2CEFF6372C75A70E0069B6D6 /* XCLocalSwiftPackageReference "../CLI" */;
-			productName = "plugin:KnitBuildPlugin";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
