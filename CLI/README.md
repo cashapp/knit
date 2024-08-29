@@ -4,6 +4,11 @@ The Knit CLI is responsible for parsing Assembly files and producing type safety
 The `knit-cli` executable is the primary interface for this parsing and file generation.
 An Xcode Build Plugin is also provided to integrate with Xcode projects that use SPM Package Dependencies.
 
+## Releases
+
+Each Github release has a zip file that includes a precompiled executable of the Knit CLI,
+along with source files.
+
 ## Xcode Build Plugin
 
 For projects that do not have complex or custom build configurations, you can use the vended build plugin.
