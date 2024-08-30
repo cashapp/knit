@@ -43,7 +43,12 @@ final class KnitExampleAssembly: ModuleAssembly {
             }
         )
 
-        container.autoregisterIntoCollection(ExampleService.self, initializer: ExampleService.init)
+        container.registerIntoCollection(
+            ExampleService.self,
+            factory: { _ in
+                ExampleService()
+            }
+        )
 
         container.registerIntoCollection(
             MainActorService.self,
