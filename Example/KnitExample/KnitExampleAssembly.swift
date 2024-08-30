@@ -36,7 +36,21 @@ final class KnitExampleAssembly: ModuleAssembly {
             ClosureService(closure: arg1)
         }
 
+        container.register(
+            MainActorService.self,
+            mainActorFactory: { _ in
+                MainActorService()
+            }
+        )
+
         container.autoregisterIntoCollection(ExampleService.self, initializer: ExampleService.init)
+
+        container.registerIntoCollection(
+            MainActorService.self,
+            factory: { _ in
+                MainActorService()
+            }
+        )
 
         #if DEBUG
         container.autoregister(DebugService.self, initializer: DebugService.init)
@@ -81,3 +95,10 @@ final class ClosureService {
 }
 
 struct DebugService { }
+
+@MainActor
+final class MainActorService {
+    init() { }
+
+    var title: String { "Example String" }
+}
