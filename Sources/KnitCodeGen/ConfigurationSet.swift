@@ -145,3 +145,72 @@ public extension ConfigurationSet {
                 """
 
 }
+
+// MARK: - Validation
+
+/// Validate that there are not duplicate registrations _within_ this ConfigurationSet
+/// which represents a single module.
+/// Note that this will not find duplicate registrations across modules.
+extension ConfigurationSet {
+
+    private struct Key: Hashable {
+        let service: String
+        let name: String?
+        let arguments: [String]
+    }
+
+    public func validateNoDuplicateRegistrations() throws {
+        var registrationSetPerTargetResolver = [String: Set<Key>]()
+
+        try assemblies
+            // Get all registrations across all assemblies
+            .forEach { assembly in
+                let targetResolver = assembly.targetResolver
+
+                // First make sure there is a Set assigned for this assembly's TargetResolver
+                if registrationSetPerTargetResolver[targetResolver] == nil {
+                    registrationSetPerTargetResolver[targetResolver] = Set()
+                }
+
+                try assembly.registrations.forEach { registration in
+                    let key = Key(
+                        service: registration.service,
+                        name: registration.name,
+                        arguments: registration.arguments.map { $0.type }
+                    )
+
+                    guard let registrationSet = registrationSetPerTargetResolver[targetResolver],
+                          registrationSet.contains(key) == false else {
+                        throw ConfigurationSetParsingError.detectedDuplicateRegistration(
+                            service: key.service,
+                            name: key.name,
+                            arguments: key.arguments
+                        )
+                    }
+
+                    var set = registrationSetPerTargetResolver[targetResolver]!
+                    set.insert(key)
+                    registrationSetPerTargetResolver[targetResolver] = set
+                }
+            }
+    }
+
+}
+
+enum ConfigurationSetParsingError: LocalizedError {
+
+    case detectedDuplicateRegistration(service: String, name: String?, arguments: [String])
+
+    var errorDescription: String? {
+        switch self {
+        case .detectedDuplicateRegistration(let service, let name, let arguments):
+            return """
+                    Detected a duplicated registration:
+                    Service type: \(service)
+                    Name (optional): \(name ?? "`nil`")
+                    Arguments: \(arguments)
+                    """
+        }
+    }
+
+}
