@@ -24,7 +24,8 @@ let package = Package(
             dependencies: [
                 .product(name: "Swinject", package: "Swinject"),
                 .product(name: "SwinjectAutoregistration", package: "SwinjectAutoregistration"),
-            ]
+            ],
+            exclude: ["ServiceCollection/Container+ServiceCollection.erb"]
         ),
         .testTarget(
             name: "KnitTests",
