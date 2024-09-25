@@ -103,8 +103,9 @@ public enum TypeSafetySourceFile {
             return (nil, nil)
         }
         let prefix = registration.arguments.count == 1 ? "argument:" : "arguments:"
-        let input = registration.namedArguments().map { "\($0.resolvedIdentifier()): \($0.functionType)" }.joined(separator: ", ")
-        let usages = registration.namedArguments().map { $0.resolvedIdentifier() }.joined(separator: ", ")
+        let identifiedArguments = registration.uniquelyIdentifiedArguments()
+        let input = identifiedArguments.map { "\($0.resolvedIdentifier()): \($0.type)" }.joined(separator: ", ")
+        let usages = identifiedArguments.map { $0.resolvedIdentifier() }.joined(separator: ", ")
         return (input, "\(prefix) \(usages)")
     }
 
@@ -163,18 +164,27 @@ public enum TypeSafetySourceFile {
 
 extension Registration {
 
-    /// Generate names for each argument based on the type
-    func namedArguments() -> [Argument] {
+    /// Regenerate identifiers for the arguments array with uniqueness.
+    /// If multiple arguments have the same resolved identifier, an index will be appended to the identifier to make it unique.
+    func uniquelyIdentifiedArguments() -> [Argument] {
         var result: [Registration.Argument] = []
-        for argument in arguments {
+        for (offset, argument) in arguments.enumerated() {
             let indexID: String
+            // Check for any collisions across all arguments
             if (arguments.filter { $0.resolvedIdentifier() == argument.resolvedIdentifier() }).count > 1 {
-                indexID = (result.filter { $0.type == argument.type }.count + 1).description
+                // To find the index of this argument's identifier, only look at the sub array of arguments
+                // that came before the current argument.
+                // Also we are using the original arguments array, not the result array which has modified identifiers
+                // that will no longer match.
+                let subArrayArguments = arguments[0..<offset]
+                indexID = (subArrayArguments.filter { $0.resolvedIdentifier() == argument.resolvedIdentifier() }.count + 1).description
             } else {
+                // No collisions
                 indexID = ""
             }
-            let name = argument.resolvedIdentifier() + indexID
-            result.append(Argument(identifier: name, type: argument.type))
+            // Append an index number (might be empty) to the identifier
+            let identifier = argument.resolvedIdentifier() + indexID
+            result.append(Argument(identifier: identifier, type: argument.type))
         }
         return result
     }
@@ -192,8 +202,4 @@ extension Registration.Argument {
         }
     }
 
-    // The type to be used in functions. Closures are always expected to be escaping
-    var functionType: String {
-        return TypeNamer.isClosure(type: type) ? "@escaping \(type)" : type
-    }
 }

@@ -20,7 +20,10 @@ final class TypeSafetySourceFileTests: XCTestCase {
                     .init(service: "ServiceB", name: "otherName"),
                     .init(service: "ServiceC", name: nil, accessLevel: .hidden), // No resolver is created
                     .init(service: "ServiceD", name: nil, accessLevel: .public, getterConfig: GetterConfig.both, functionName: .implements),
-                    .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [.init(type: "() -> Void")]),
+                    .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [
+                        .init(type: "@escaping () -> Void"),
+                        .init(type: "@escaping @Sendable (Bool) -> Void")
+                    ]),
                     .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
                     .init(service: "(String, Int?)", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
                 ],
@@ -40,8 +43,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
             public func serviceD(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceD {
                 knitUnwrap(resolve(ServiceD.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
-            public func serviceE(closure: @escaping () -> Void, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceE {
-                knitUnwrap(resolve(ServiceE.self, argument: closure), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            public func serviceE(closure1: @escaping () -> Void, closure2: @escaping @Sendable (Bool) -> Void, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceE {
+                knitUnwrap(resolve(ServiceE.self, arguments: closure1, closure2), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             public func serviceF(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceF {
                 knitUnwrap(resolve(ServiceF.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
@@ -172,35 +175,65 @@ final class TypeSafetySourceFileTests: XCTestCase {
         )
     }
 
-    func testArgumentNames() {
-        let registration1 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String?")])
+    func testArgumentIdentifiers() {
+        let registration1 = Registration(service: "A", arguments: [.init(type: "String?")])
         XCTAssertEqual(
-            registration1.namedArguments().map { $0.resolvedIdentifier() },
+            registration1.uniquelyIdentifiedArguments().map { $0.resolvedIdentifier() },
             ["string"]
         )
 
-        let registration2 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Service.Argument")])
+        let registration2 = Registration(service: "A", arguments: [.init(type: "Service.Argument")])
         XCTAssertEqual(
-            registration2.namedArguments().map { $0.resolvedIdentifier() },
+            registration2.uniquelyIdentifiedArguments().map { $0.resolvedIdentifier() },
             ["argument"]
         )
 
-        let registration3 = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Result<String, Error>")])
+        let registration3 = Registration(service: "A", arguments: [.init(type: "Result<String, Error>")])
         XCTAssertEqual(
-            registration3.namedArguments().map { $0.resolvedIdentifier() },
+            registration3.uniquelyIdentifiedArguments().map { $0.resolvedIdentifier() },
             ["result"]
         )
 
         let registration4 = Registration(
             service: "A",
-            accessLevel: .public,
             arguments: [.init(type: "[Result<ServerResponse<Any>, Swift.Error>]")]
         )
         XCTAssertEqual(
-            registration4.namedArguments().map { $0.resolvedIdentifier() },
+            registration4.uniquelyIdentifiedArguments().map { $0.resolvedIdentifier() },
             ["result"]
         )
 
+        // Argument identifier uniqueness
+        let registration5 = Registration(
+            service: "A",
+            arguments: [
+                // First integer
+                .init(type: "Int"),
+                // Only one instance of String, no uniqueness needed
+                .init(type: "String"),
+                // First closure
+                .init(type: "@escaping () -> Void"),
+                // Second integer
+                .init(type: "Int"),
+                // Second closure
+                // Note the type is different to the first closure but the resolved identifier will be the same
+                // (i.e. "closure") so uniqueness will need to be added to avoid collision.
+                .init(type: "@escaping @MainActor (Bool) -> String"),
+                // Third integer
+                .init(type: "Int")
+            ]
+        )
+        XCTAssertEqual(
+            registration5.uniquelyIdentifiedArguments().map { $0.resolvedIdentifier() },
+            [
+                "int1",
+                "string",
+                "closure1",
+                "int2",
+                "closure2",
+                "int3"
+            ]
+        )
     }
 
     func test_fakeAssembly_defaultOverride_generation() throws {

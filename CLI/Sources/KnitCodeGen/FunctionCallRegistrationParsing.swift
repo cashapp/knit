@@ -310,21 +310,6 @@ private func getArgumentType(arg: LabeledExprSyntax) -> String? {
 }
 
 private func getArgumentType(arg: ClosureParameterSyntax) -> String? {
-    if arg.type?.is(AttributedTypeSyntax.self) == true {
-        let type = arg.type!.as(AttributedTypeSyntax.self)!
-
-        // Filter out the `@escaping` attribute. Other type attributes should remain in place.
-        let attributes = type.attributes.filter { element in
-            if case .attribute(let attribute) = element {
-                let name = attribute.attributeName.as(IdentifierTypeSyntax.self)?.name.text
-                return name != "escaping"
-            }
-            return true
-        }
-        return type
-            .with(\.attributes, attributes) // Replace attributes with filtered list
-            .description.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
     return arg.type?.description.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
