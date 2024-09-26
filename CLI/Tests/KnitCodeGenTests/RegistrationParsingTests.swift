@@ -447,7 +447,7 @@ final class RegistrationParsingTests: XCTestCase {
             }
             """,
             registrations: [
-                Registration(service: "A", arguments: [.init(identifier: "arg1", type: "() -> Void")]),
+                Registration(service: "A", arguments: [.init(identifier: "arg1", type: "@escaping () -> Void")]),
             ]
         )
 
@@ -459,7 +459,7 @@ final class RegistrationParsingTests: XCTestCase {
             """,
             registrations: [
                 Registration(service: "A", arguments: [
-                    .init(identifier: "arg1", type: "@MainActor @Sendable (Bool) -> Void")
+                    .init(identifier: "arg1", type: "@escaping @MainActor @Sendable (Bool) -> Void")
                 ]),
             ]
         )
@@ -472,7 +472,7 @@ final class RegistrationParsingTests: XCTestCase {
             """,
             registrations: [
                 Registration(service: "A", arguments: [
-                    .init(identifier: "arg1", type: "@CustomGlobalActor () -> Void")
+                    .init(identifier: "arg1", type: "@escaping @CustomGlobalActor () -> Void")
                 ]),
             ]
         )

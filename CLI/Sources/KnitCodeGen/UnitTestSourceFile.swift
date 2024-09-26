@@ -210,7 +210,7 @@ public enum UnitTestSourceFile {
 
     /// Generate code for a struct that contains all of the parameters used to resolve services
     static func makeArgumentStruct(registrations: [Registration], assemblyName: String) throws -> StructDeclSyntax {
-        let fields = registrations.flatMap { $0.serviceNamedArguments() }
+        let fields = registrations.flatMap { $0.serviceIdentifiedArguments() }
         var seen: Set<String> = []
         // Make sure duplicate parameters don't get created
         let uniqueFields = fields.filter {
@@ -234,7 +234,7 @@ public enum UnitTestSourceFile {
             fatalError("Should only be called for registrations with arguments")
         }
         let prefix = registration.arguments.count == 1 ? "argument:" : "arguments:"
-        let params = registration.serviceNamedArguments().map { "args.\($0.resolvedIdentifier())" }.joined(separator: ", ")
+        let params = registration.serviceIdentifiedArguments().map { "args.\($0.resolvedIdentifier())" }.joined(separator: ", ")
         return "\(prefix) \(params)"
     }
 
@@ -242,12 +242,16 @@ public enum UnitTestSourceFile {
 
 private extension Registration {
 
-    /// Argument names prefixed with the service name. Provides additional collision safety.
-    func serviceNamedArguments() -> [Argument] {
-        return namedArguments().map { arg in
+    /// Argument identifiers prefixed with the service name. Provides additional collision safety.
+    func serviceIdentifiedArguments() -> [Argument] {
+        return uniquelyIdentifiedArguments().map { arg in
             let serviceName = self.service.prefix(1).lowercased() + self.service.dropFirst()
             let capitalizedName = arg.resolvedIdentifier().prefix(1).uppercased() + arg.resolvedIdentifier().dropFirst()
-            return Argument(identifier: serviceName + capitalizedName, type: arg.type)
+            // When generating the test arguments struct, the `@escaping` attribute should always be removed from the
+            // argument type, as assigning a closure type to a property is inherently escaping
+            // and will result in a compilation error.
+            let type = arg.type.replacingOccurrences(of: "@escaping ", with: "")
+            return Argument(identifier: serviceName + capitalizedName, type: type)
         }
     }
 
