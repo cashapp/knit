@@ -2,7 +2,7 @@
 
 * Swinject provides the concept of an [Assembly](https://github.com/Swinject/Swinject/blob/master/Documentation/Assembler.md) which is responsible for registering a subset of the app services so that when all Assemblies are registered together via an Assembler all services are available.
 
-`ModuleAssembly` extend the Assembly concept and define relationships between modules.
+`ModuleAssembly` extends the Assembly concept to define relationships between modules.
 When services are assembled using `ModuleAssembler` it must be able to resolve the entire tree of modules as for each service we do not know which other services it may require. By enforcing that all child modules are also registered we can guarantee that all expected services have been registered.
 
 ## AutoInitModuleAssembly
@@ -20,5 +20,3 @@ Overrides do not need to be in the same codebase as the original. The usual expe
 ## DefaultModuleAssemblyOverride
 
 Using `replaces` provides the power to swap DI module implementations but requires explicit setup. A base assembly that implements `DefaultModuleAssemblyOverride` can automatically choose the override when default overrides are enabled in the `ModuleAssembler`. This defaults to true for unit testing and false for normal app runs.
-
-

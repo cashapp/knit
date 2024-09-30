@@ -33,7 +33,7 @@ public final class ModuleAssembler {
             If the closure throws an error for any of the assemblies then a fatal error will occur.
         - postAssemble: Hook after all assemblies are registered to make changes to the container.
      */
-    public convenience init(
+    @MainActor public convenience init(
         parent: ModuleAssembler? = nil,
         _ modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
@@ -66,7 +66,7 @@ public final class ModuleAssembler {
     }
 
     // Internal required init that throws rather than fatal errors
-    required init(
+    @MainActor required init(
         parent: ModuleAssembler? = nil,
         _modules modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
@@ -93,8 +93,9 @@ public final class ModuleAssembler {
         let dependencyTree = builder.dependencyTree
         self._container.register(DependencyTree.self) { _ in dependencyTree }
 
-        let assembler = Assembler(container: self._container)
-        assembler.apply(assemblies: builder.assemblies)
+        for assembly in builder.assemblies {
+            assembly.assemble(container: self._container)
+        }
         postAssemble?(_container)
 
         if overrideBehavior.useAbstractPlaceholders {

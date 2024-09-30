@@ -5,13 +5,15 @@
 import Foundation
 import Swinject
 
-public protocol ModuleAssembly: Assembly {
+public protocol ModuleAssembly {
 
     associatedtype TargetResolver
 
     static var resolverType: Self.TargetResolver.Type { get }
 
     static var dependencies: [any ModuleAssembly.Type] { get }
+
+    @MainActor func assemble(container: Container)
 
     /// A ModuleAssembly can replace any number of other module assemblies.
     /// If this assembly replaces another it is expected to provide all registrations from the replaced assemblies.

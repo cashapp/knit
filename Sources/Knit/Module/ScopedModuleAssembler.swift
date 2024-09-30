@@ -19,6 +19,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         return internalAssembler._container
     }
 
+    @MainActor
     public convenience init(
         parent: ModuleAssembler? = nil,
         _ modules: [any ModuleAssembly],
@@ -46,6 +47,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
     }
 
     // Internal required init that throws rather than fatal errors
+    @MainActor
     required init(
         parent: ModuleAssembler? = nil,
         _modules modules: [any ModuleAssembly],
