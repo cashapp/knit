@@ -145,3 +145,63 @@ public extension ConfigurationSet {
                 """
 
 }
+
+// MARK: - Validation
+
+/// Validate that there are not duplicate registrations _within_ this ConfigurationSet
+/// which represents a single module.
+/// Note that this will not find duplicate registrations across modules.
+extension ConfigurationSet {
+
+    private struct Key: Hashable {
+        let service: String
+        let name: String?
+        let arguments: [String]
+    }
+
+    public func validateNoDuplicateRegistrations() throws {
+        var registrationSet = Set<Key>()
+
+        try assemblies
+            // Get all registrations across all assemblies
+            .flatMap { assembly in
+                assembly.registrations
+            }
+            .forEach { registration in
+                let key = Key(
+                    service: registration.service,
+                    name: registration.name,
+                    arguments: registration.arguments.map { $0.type }
+                )
+
+                guard !registrationSet.contains(key) else {
+                    throw ConfigurationSetParsingError.detectedDuplicateRegistration(
+                        service: key.service,
+                        name: key.name,
+                        arguments: key.arguments
+                    )
+                }
+
+                registrationSet.insert(key)
+            }
+    }
+
+}
+
+enum ConfigurationSetParsingError: LocalizedError {
+
+    case detectedDuplicateRegistration(service: String, name: String?, arguments: [String])
+
+    var errorDescription: String? {
+        switch self {
+        case .detectedDuplicateRegistration(let service, let name, let arguments):
+            return """
+                    Detected a duplicated registration:
+                    Service type: \(service)
+                    Name (optional): \(name ?? "`nil`")
+                    Arguments: \(arguments)
+                    """
+        }
+    }
+
+}

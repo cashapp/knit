@@ -89,6 +89,9 @@ struct GenCommand: ParsableCommand {
                 externalTestingAssemblies: expandedTestingPaths,
                 moduleDependencies: dependencyModuleNames
             )
+
+            try parsedConfig.validateNoDuplicateRegistrations()
+
             if let jsonDataOutputPath {
                 let data = try JSONEncoder().encode(parsedConfig.allAssemblies)
                 try data.write(to: URL(fileURLWithPath: jsonDataOutputPath))
