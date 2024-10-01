@@ -102,7 +102,7 @@ extension XcodePluginContext {
 
         return .buildCommand(
             displayName: "Knit Plugin: Generate Knit files based on config \(configFilePath.description)",
-            executable: try self.tool(named: "knit-cli").path,
+            executable: try self.tool(named: "KnitCommand").path,
             arguments: arguments,
             inputFiles: assemblyInputPaths,
             outputFiles: [typeSafetyOutputPath, unitTestOutputPath].compactMap { $0 }

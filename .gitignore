@@ -7,8 +7,3 @@ DerivedData/
 .swiftpm/config/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
-
-#CLI Package
-CLI/.build
-CLI/.swiftpm/config/registries.json
-CLI/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata

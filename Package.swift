@@ -12,11 +12,13 @@ let package = Package(
     products: [
         .library(name: "Knit", targets: ["Knit"]),
         .plugin(name: "KnitBuildPlugin", targets: ["KnitBuildPlugin"]),
+        .executable(name: "knit-cli", targets: ["KnitCommand"]),
     ],
     dependencies: [
         .package(url: "https://github.com/Swinject/Swinject.git", from: "2.9.1"),
         .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.9.1"),
-        .package(name: "Knit-CLI", path: "CLI/"),
+        .package(url: "https://github.com/apple/swift-syntax.git", from: "510.0.2"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.4.0"),
     ],
     targets: [
         .target(
@@ -30,14 +32,38 @@ let package = Package(
         .testTarget(
             name: "KnitTests",
             dependencies: [
-                "Knit",
+                .target(name: "Knit"),
             ]
         ),
         .plugin(
             name: "KnitBuildPlugin",
             capability: .buildTool,
             dependencies: [
-                .product(name: "knit-cli", package: "Knit-CLI"),
+                .target(name: "KnitCommand"),
+            ]
+        ),
+
+        // MARK: - CLI
+        .executableTarget(
+            name: "KnitCommand",
+            dependencies: [
+                .product(name: "SwiftSyntax", package: "swift-syntax"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .target(name: "KnitCodeGen"),
+            ]
+        ),
+        .target(
+            name: "KnitCodeGen",
+            dependencies: [
+                .product(name: "SwiftSyntax", package: "swift-syntax"),
+                .product(name: "SwiftParser", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
+            ]
+        ),
+        .testTarget(
+            name: "KnitCodeGenTests",
+            dependencies: [
+                "KnitCodeGen",
             ]
         ),
     ]
