@@ -8,6 +8,7 @@ import XCTest
 
 final class SynchronizationTests: XCTestCase {
 
+    @MainActor
     func testMultiThreadResolving() async throws {
         // Use a parent/child relationship to test synchronization between containers
         let parent = ModuleAssembler([Assembly1()])
@@ -28,6 +29,7 @@ final class SynchronizationTests: XCTestCase {
         XCTAssertEqual(result.0.service1.id, result.1.service1.id)
     }
 
+    @MainActor
     func testMultiThreadingScopedAssembler() async throws {
         let assembler = ScopedModuleAssembler<TestScopedResolver>([Assembly2()])
 

@@ -7,11 +7,13 @@ import XCTest
 
 final class ModuleAssemblerTests: XCTestCase {
 
+    @MainActor
     func test_auto_assembler() {
         let resolver = ModuleAssembler([Assembly1()]).resolver
         XCTAssertNotNil(resolver.resolve(Service1.self))
     }
 
+    @MainActor
     func test_non_auto_assembler() {
         let resolver = ModuleAssembler([
             Assembly3(),
@@ -21,6 +23,7 @@ final class ModuleAssemblerTests: XCTestCase {
         XCTAssertNotNil(resolver.resolve(Service3.self))
     }
 
+    @MainActor
     func test_registered_modules() {
         let assembler = ModuleAssembler([Assembly1()])
         XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly1.self}))
@@ -28,6 +31,7 @@ final class ModuleAssemblerTests: XCTestCase {
         XCTAssertFalse(assembler.registeredModules.contains(where: {$0 == Assembly3.self}))
     }
 
+    @MainActor
     func test_parent_assembler() {
         // Put some modules in the parent and some in the child.
         let parent = ModuleAssembler([Assembly1()])
@@ -42,6 +46,7 @@ final class ModuleAssemblerTests: XCTestCase {
         XCTAssertNil(parent.resolver.resolve(Service3.self))
     }
 
+    @MainActor
     func test_abstractAssemblyValidation() {
         XCTAssertThrowsError(
             try ModuleAssembler(
@@ -60,6 +65,7 @@ final class ModuleAssemblerTests: XCTestCase {
         )
     }
 
+    @MainActor
     func test_abstractAssemblyPlaceholders() throws {
         // No error is thrown as the graph is using abstract placeholders
         _ = try ModuleAssembler(

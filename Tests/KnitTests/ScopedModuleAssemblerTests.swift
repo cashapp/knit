@@ -8,12 +8,14 @@ import XCTest
 
 final class ScopedModuleAssemblerTests: XCTestCase {
 
+    @MainActor
     func testScoping() throws {
         // Allows modules at the same level to be registered
         let assembler = try ScopedModuleAssembler<TestResolver>(_modules: [Assembly1()])
         XCTAssertEqual(assembler.internalAssembler.registeredModules.count, 1)
     }
 
+    @MainActor
     func testParentExcluded() throws {
         let parent = try ScopedModuleAssembler<TestResolver>(_modules: [Assembly1()])
         let assembler = try ScopedModuleAssembler<OutsideResolver>(
@@ -23,6 +25,7 @@ final class ScopedModuleAssemblerTests: XCTestCase {
         XCTAssertEqual(assembler.internalAssembler.registeredModules.count, 1)
     }
 
+    @MainActor
     func testPostAssemble() throws {
         let assembler = try ScopedModuleAssembler<TestResolver>(_modules: [Assembly1()]) { container in
             container.register(String.self) { _ in "string" }
@@ -30,6 +33,7 @@ final class ScopedModuleAssemblerTests: XCTestCase {
         XCTAssertEqual(assembler.resolver.resolve(String.self), "string")
     }
 
+    @MainActor
     func testOutOfScopeAssemblyThrows() {
         XCTAssertThrowsError(
             try ScopedModuleAssembler<TestResolver>(
@@ -49,6 +53,7 @@ final class ScopedModuleAssemblerTests: XCTestCase {
         )
     }
 
+    @MainActor
     func testIncorrectInputScope() throws {
         let parent = try ScopedModuleAssembler<TestResolver>(_modules: [Assembly1()])
         // Even though Assembly1 is already registered, because it was explicitly provided the validation should fail

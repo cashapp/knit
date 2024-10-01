@@ -7,6 +7,7 @@ import XCTest
 
 final class ModuleCycleTests: XCTestCase {
 
+    @MainActor
     func test_cycleResolution() {
         let assembler = ModuleAssembler([Assembly1()])
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
@@ -25,6 +26,7 @@ final class ModuleCycleTests: XCTestCase {
         )
     }
 
+    @MainActor
     func test_sourceCycle() {
         let assembler = ModuleAssembler([Assembly5()])
         XCTAssertEqual(

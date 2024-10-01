@@ -35,16 +35,19 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         )
     }
 
+    @MainActor
     func test_serviceRegisteredWithoutFakes() {
         let resolver = ModuleAssembler([Assembly2()]).resolver
         XCTAssertTrue(resolver.resolve(Service2Protocol.self) is Service2)
     }
 
+    @MainActor
     func test_servicesRegisteredWithFakes() {
         let resolver = ModuleAssembler([Assembly2(), Assembly2Fake()]).resolver
         XCTAssertTrue(resolver.resolve(Service2Protocol.self) is Service2Fake)
     }
 
+    @MainActor
     func test_assemblerWithDefaultOverrides() {
         let assembler = ModuleAssembler([Assembly2()], overrideBehavior: .useDefaultOverrides)
         XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly1Fake.self}))
@@ -53,6 +56,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
     }
 
+    @MainActor
     func test_noDefaultOverrideForInputModules() {
         let assembler = ModuleAssembler([Assembly1()], overrideBehavior: .useDefaultOverrides)
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
@@ -60,18 +64,21 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         XCTAssertFalse(assembler.isRegistered(Assembly1Fake.self))
     }
 
+    @MainActor
     func test_explicitInputOverride() {
         let assembler = ModuleAssembler([Assembly1(), Assembly1Fake()], overrideBehavior: .useDefaultOverrides)
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
         XCTAssertTrue(assembler.isRegistered(Assembly1Fake.self))
     }
 
+    @MainActor
     func test_assemblerWithoutDefaultOverrides() {
         let assembler = ModuleAssembler([Assembly2()], overrideBehavior: .disableDefaultOverrides)
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
         XCTAssertFalse(assembler.isRegistered(Assembly1Fake.self))
     }
 
+    @MainActor
     func test_assemblerWithFakes() {
         let assembler = ModuleAssembler([Assembly2Fake()])
         XCTAssertFalse(assembler.registeredModules.contains(where: {$0 == Assembly2.self}))
@@ -79,6 +86,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         XCTAssertTrue(assembler.isRegistered(Assembly2Fake.self))
     }
 
+    @MainActor
     func test_parentFakes() {
         let parent = ModuleAssembler([Assembly1Fake()])
         let child = ModuleAssembler(parent: parent, [Assembly2()])
@@ -86,6 +94,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         XCTAssertTrue(child.isRegistered(Assembly1Fake.self))
     }
 
+    @MainActor
     func test_autoFake() {
         let assembler = ModuleAssembler([Assembly5()])
         XCTAssertTrue(assembler.isRegistered(Assembly4.self))
@@ -93,6 +102,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         XCTAssertTrue(assembler.isRegistered(Assembly5.self))
     }
 
+    @MainActor
     func test_overrideDefaultOverride() {
         let assembler = ModuleAssembler(
             [Assembly4(), Assembly4Fake2()],
@@ -111,6 +121,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         XCTAssertTrue(builder.assemblies.first is NonAutoOverride)
     }
 
+    @MainActor
     func test_parentNonAutoOverride() {
         let parent = ModuleAssembler([NonAutoOverride()])
         let child = ModuleAssembler(parent: parent, [Assembly1()], overrideBehavior: .disableDefaultOverrides)
@@ -125,6 +136,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         )
     }
 
+    @MainActor
     func test_multipleOverrides() {
         let assembler = ModuleAssembler(
             [MultipleDependencyAssembly(), MultipleOverrideAssembly()],
