@@ -18,9 +18,9 @@ final class DependencyBuilderTests: XCTestCase {
         XCTAssertEqual(
             builder.dependencyTree.debugDescription,
             """
-            Assembly3
             Assembly1
               - Assembly2
+            Assembly3
             """
         )
 
@@ -71,9 +71,9 @@ final class DependencyBuilderTests: XCTestCase {
         XCTAssertEqual(
             builder.dependencyTree.debugDescription,
             """
+            Assembly1
             Assembly4
               - Assembly2
-            Assembly1
             """
         )
     }
