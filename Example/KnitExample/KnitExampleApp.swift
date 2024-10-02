@@ -8,7 +8,12 @@ import Knit
 @main
 struct KnitExampleApp: App {
 
-    let resolver = ModuleAssembler([KnitExampleAssembly()]).resolver
+    let resolver: Resolver
+
+    @MainActor
+    init() {
+        resolver = ModuleAssembler([KnitExampleAssembly()]).resolver
+    }
 
     var body: some Scene {
         WindowGroup {
