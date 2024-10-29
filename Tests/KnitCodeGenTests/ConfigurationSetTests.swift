@@ -253,6 +253,94 @@ final class ConfigurationSetTests: XCTestCase {
 
     }
 
+    func testValidateDuplicates() {
+
+        var configSet = Factory.makeConfigSet(
+            duplicateService: "DuplicateService",
+            serviceName: nil,
+            serviceArguments: []
+        )
+
+        XCTAssertThrowsError(
+            try configSet.validateNoDuplicateRegistrations(),
+            "Should throw error for duplicated registration",
+            { error in
+                if case let ConfigurationSetParsingError.detectedDuplicateRegistration(service: service, name: name, arguments: arguments) = error {
+                    XCTAssertEqual(service, "DuplicateService")
+                    XCTAssertNil(name)
+                    XCTAssertEqual(arguments, [])
+                } else {
+                    XCTFail("Incorrect error")
+                }
+            }
+        )
+
+        // Test with a service name
+        configSet = Factory.makeConfigSet(
+            duplicateService: "DuplicateNamedService",
+            serviceName: "aName",
+            serviceArguments: []
+        )
+
+        XCTAssertThrowsError(
+            try configSet.validateNoDuplicateRegistrations(),
+            "Should throw error for duplicated registration",
+            { error in
+                if case let ConfigurationSetParsingError.detectedDuplicateRegistration(service: service, name: name, arguments: arguments) = error {
+                    XCTAssertEqual(service, "DuplicateNamedService")
+                    XCTAssertEqual(name, "aName")
+                    XCTAssertEqual(arguments, [])
+                } else {
+                    XCTFail("Incorrect error")
+                }
+            }
+        )
+
+        // Test with service argument
+        configSet = Factory.makeConfigSet(
+            duplicateService: "DuplicateServiceArguments",
+            serviceName: nil,
+            serviceArguments: ["Argument"]
+        )
+
+        XCTAssertThrowsError(
+            try configSet.validateNoDuplicateRegistrations(),
+            "Should throw error for duplicated registration",
+            { error in
+                if case let ConfigurationSetParsingError.detectedDuplicateRegistration(service: service, name: name, arguments: arguments) = error {
+                    XCTAssertEqual(service, "DuplicateServiceArguments")
+                    XCTAssertNil(name)
+                    XCTAssertEqual(arguments, ["Argument"])
+                } else {
+                    XCTFail("Incorrect error")
+                }
+            }
+        )
+
+        // No duplicates
+        configSet = ConfigurationSet(
+            assemblies: [
+                .init(assemblyName: "TestAssembly", moduleName: "TestModule", registrations: [Registration(service: "Service")], targetResolver: "TestResolver")
+            ],
+            externalTestingAssemblies: [],
+            moduleDependencies: []
+        )
+        XCTAssertNoThrow(try configSet.validateNoDuplicateRegistrations())
+    }
+
+    func testValidateDuplicates_multipleTargetResolvers() {
+        // Registrations should only be compared to other registrations for the same TargetResolver
+        // It is allowed to make the same registration on two different TargetResolvers
+
+        let configSet = Factory.makeConfigSetAcrossTwoTargetResolvers(
+            duplicateService: "DuplicateService",
+            serviceName: nil,
+            serviceArguments: []
+        )
+
+        XCTAssertNoThrow(try configSet.validateNoDuplicateRegistrations())
+    }
+
 }
 
 private enum Factory {
@@ -297,4 +385,93 @@ private enum Factory {
         ],
         targetResolver: "Resolver"
     )
+
+    static func makeConfigSet(
+        duplicateService: String,
+        serviceName: String?,
+        serviceArguments: [String]
+    ) -> ConfigurationSet {
+        let config1 = Configuration(
+            assemblyName: "Assembly1",
+            moduleName: "Module1",
+            registrations: [
+                Factory.makeRegistration(
+                    duplicateService: duplicateService,
+                    duplicateServiceName: serviceName,
+                    duplicateArguments: serviceArguments
+                )
+            ],
+            targetResolver: "TestResolver"
+        )
+        let config2 = Configuration(
+            assemblyName: "Assembly2",
+            moduleName: "Module2",
+            registrations: [
+                Factory.makeRegistration(
+                    duplicateService: duplicateService,
+                    duplicateServiceName: serviceName,
+                    duplicateArguments: serviceArguments
+                )
+            ],
+            targetResolver: "TestResolver"
+        )
+        return ConfigurationSet(
+            assemblies: [
+                config1,
+                config2,
+            ], externalTestingAssemblies: [],
+            moduleDependencies: []
+        )
+    }
+
+    static func makeConfigSetAcrossTwoTargetResolvers(
+        duplicateService: String,
+        serviceName: String?,
+        serviceArguments: [String]
+    ) -> ConfigurationSet {
+        let config1 = Configuration(
+            assemblyName: "Assembly1",
+            moduleName: "Module1",
+            registrations: [
+                Factory.makeRegistration(
+                    duplicateService: duplicateService,
+                    duplicateServiceName: serviceName,
+                    duplicateArguments: serviceArguments
+                )
+            ],
+            targetResolver: "TestResolver"
+        )
+        let config2 = Configuration(
+            assemblyName: "Assembly2",
+            moduleName: "Module2",
+            registrations: [
+                Factory.makeRegistration(
+                    duplicateService: duplicateService,
+                    duplicateServiceName: serviceName,
+                    duplicateArguments: serviceArguments
+                )
+            ],
+            targetResolver: "OtherTestResolver"
+        )
+        return ConfigurationSet(
+            assemblies: [
+                config1,
+                config2,
+            ], externalTestingAssemblies: [],
+            moduleDependencies: []
+        )
+    }
+
+    static func makeRegistration(
+        duplicateService: String,
+        duplicateServiceName: String?,
+        duplicateArguments: [String]
+    ) -> Registration {
+        Registration(
+            service: duplicateService,
+            name: duplicateServiceName,
+            arguments: duplicateArguments.map { .init(type: $0) }
+        )
+    }
+
 }
