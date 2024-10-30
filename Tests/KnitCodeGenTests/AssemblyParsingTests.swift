@@ -377,18 +377,6 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(config.targetResolver, "TestResolver")
     }
 
-    func testCustomResolverWhenDisabled() throws {
-        let sourceFile: SourceFileSyntax = """
-            class MyAssembly: Assembly {
-                typealias TargetResolver = TestResolver
-            }
-        """
-
-        let config = try assertParsesSyntaxTree(sourceFile, useTargetResolver: false)
-        XCTAssertEqual(config.assemblyName, "MyAssembly")
-        XCTAssertEqual(config.targetResolver, "Resolver")
-    }
-
     func testIfDefElseFailure() throws {
         let sourceFile: SourceFileSyntax = """
             class ExampleAssembly: Assembly {
@@ -499,7 +487,7 @@ final class AssemblyParsingTests: XCTestCase {
         """
         var errorsToPrint = [Error]()
 
-        let parser = try AssemblyParser(defaultTargetResolver: "Resolver", useTargetResolver: true)
+        let parser = try AssemblyParser(defaultTargetResolver: "Resolver")
 
         let configurations = try parser.parseSyntaxTree(
             sourceFile,
@@ -529,7 +517,7 @@ final class AssemblyParsingTests: XCTestCase {
         """
         var errorsToPrint = [Error]()
 
-        let parser = try AssemblyParser(defaultTargetResolver: "Resolver", useTargetResolver: true)
+        let parser = try AssemblyParser(defaultTargetResolver: "Resolver")
 
         let configurations = try parser.parseSyntaxTree(
             sourceFile,
@@ -808,13 +796,12 @@ final class AssemblyParsingTests: XCTestCase {
 private func assertParsesSyntaxTree(
     _ sourceFile: SourceFileSyntax,
     assertErrorsToPrint assertErrorsCallback: (([Error]) throws -> Void)? = nil,
-    useTargetResolver: Bool = true,
     file: StaticString = #filePath,
     line: UInt = #line
 ) throws -> Configuration {
     var errorsToPrint = [Error]()
 
-    let parser = try AssemblyParser(defaultTargetResolver: "Resolver", useTargetResolver: useTargetResolver)
+    let parser = try AssemblyParser(defaultTargetResolver: "Resolver")
 
     let configuration = try parser.parseSyntaxTree(
         sourceFile,
