@@ -58,10 +58,6 @@ struct GenCommand: ParsableCommand {
                   """)
     var jsonDataOutputPath: String?
 
-    // This flag was added to allow backwards compatibility. This may prove to be unnecessary.
-    @Flag(help: "When parsing assembly files, generate type safe methods against the target resolver")
-    var useTargetResolver: Bool = false
-
     @Option(help: "Default type to extend when generating Resolver type safety methods")
     var defaultExtensionTargetResolver = "Resolver"
 
@@ -82,8 +78,8 @@ struct GenCommand: ParsableCommand {
 
             let assemblyParser = try AssemblyParser(
                 defaultTargetResolver: defaultExtensionTargetResolver,
-                useTargetResolver: useTargetResolver,
-                moduleNameRegex: moduleNameRegex)
+                moduleNameRegex: moduleNameRegex
+            )
             parsedConfig = try assemblyParser.parseAssemblies(
                 at: expandedAssemblyPaths,
                 externalTestingAssemblies: expandedTestingPaths,

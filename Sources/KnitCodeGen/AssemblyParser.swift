@@ -9,16 +9,13 @@ import SwiftParser
 public struct AssemblyParser {
 
     private let defaultTargetResolver: String
-    private let useTargetResolver: Bool
     private let nameExtractor: ModuleNameExtractor
 
     public init(
         defaultTargetResolver: String = "Resolver",
-        useTargetResolver: Bool = false,
         moduleNameRegex: String? = nil
     ) throws {
         self.defaultTargetResolver = defaultTargetResolver
-        self.useTargetResolver = useTargetResolver
         self.nameExtractor = try ModuleNameExtractor(moduleNamePattern: moduleNameRegex)
     }
 
@@ -30,15 +27,13 @@ public struct AssemblyParser {
         let configs = try paths.flatMap { path in
             return try parse(
                 path: path,
-                defaultTargetResolver: defaultTargetResolver,
-                useTargetResolver: useTargetResolver
+                defaultTargetResolver: defaultTargetResolver
             )
         }
         let additionalConfigs = try externalTestingAssemblies.flatMap { path in
             return try parse(
                 path: path,
-                defaultTargetResolver: defaultTargetResolver,
-                useTargetResolver: useTargetResolver
+                defaultTargetResolver: defaultTargetResolver
             )
         }
 
@@ -49,7 +44,7 @@ public struct AssemblyParser {
         )
     }
 
-    private func parse(path: String, defaultTargetResolver: String, useTargetResolver: Bool) throws -> [Configuration] {
+    private func parse(path: String, defaultTargetResolver: String) throws -> [Configuration] {
         let url = URL(fileURLWithPath: path, isDirectory: false)
         var errorsToPrint = [Error]()
 
@@ -119,12 +114,7 @@ public struct AssemblyParser {
         }
         let moduleName = classDeclVisitor.directives.moduleName ?? extractedModuleName ?? classDeclVisitor.moduleName
 
-        let targetResolver: String
-        if useTargetResolver {
-            targetResolver = classDeclVisitor.targetResolver ?? defaultTargetResolver
-        } else {
-            targetResolver = defaultTargetResolver
-        }
+        let targetResolver: String = classDeclVisitor.targetResolver ?? defaultTargetResolver
 
         guard let assemblyType = classDeclVisitor.assemblyType else {
             throw AssemblyParsingError.missingAssemblyType
