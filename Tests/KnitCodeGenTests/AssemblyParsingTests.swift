@@ -111,7 +111,7 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testAssemblyModuleName() throws {
         let sourceFile: SourceFileSyntax = """
-            class FooTestAssembly: Assembly {
+            class FooTestAssembly: ModuleAssembly {
                 typealias TargetResolver = TestResolver
 
                 func assemble(container: Container) {
@@ -122,7 +122,7 @@ final class AssemblyParsingTests: XCTestCase {
 
         let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.assemblyName, "FooTestAssembly")
-        XCTAssertEqual(config.assemblyType, .baseAssembly)
+        XCTAssertEqual(config.assemblyType, .moduleAssembly)
     }
 
     func testAssemblyStructModuleName() throws {
@@ -164,26 +164,6 @@ final class AssemblyParsingTests: XCTestCase {
         let sourceFilesAndExpected: [(SourceFileSyntax, Configuration.AssemblyType)] = [
             (
                 """
-                class TestAssembly: Assembly {
-                    typealias TargetResolver = TestResolver
-                    func assemble(container: Container) {}
-                }
-                """,
-                .baseAssembly
-            ),
-
-            (
-                """
-                class TestAssembly: Swinject.Assembly {
-                    typealias TargetResolver = TestResolver
-                    func assemble(container: Container) {}
-                }
-                """,
-                .baseAssembly
-            ),
-
-            (
-                """
                 class TestAssembly: ModuleAssembly {
                     typealias TargetResolver = TestResolver
                     func assemble(container: Container) {}
@@ -223,6 +203,26 @@ final class AssemblyParsingTests: XCTestCase {
             )
         }
 
+    }
+
+    func testMissingAssemblyType() throws {
+        // Use the Swinject `Assembly` type (which is no longer supported)
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: Assembly {
+                typealias TargetResolver = TestResolver
+            }
+            """
+
+        XCTAssertThrowsError(
+            try assertParsesSyntaxTree(sourceFile),
+            "Show throw error that Assembly type is missing",
+            { error in
+                guard case AssemblyParsingError.missingAssemblyType = error else {
+                    XCTFail("Incorrect error type")
+                    return
+                }
+            }
+        )
     }
 
     func testKnitDirectives() throws {
@@ -394,7 +394,7 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testTargetResolver() throws {
         let sourceFile: SourceFileSyntax = """
-            class MyAssembly: Assembly {
+            class MyAssembly: ModuleAssembly {
                 typealias TargetResolver = TestResolver
             }
         """
@@ -550,7 +550,7 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testMultipleConfigurations() throws {
         let sourceFile: SourceFileSyntax = """
-            class MyAssembly: Assembly {
+            class MyAssembly: ModuleAssembly {
                 typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     container.register(A.self) { }
@@ -580,7 +580,7 @@ final class AssemblyParsingTests: XCTestCase {
         let config2 = configurations[1]
         XCTAssertEqual(config1.assemblyName, "MyAssembly")
         XCTAssertEqual(config1.targetResolver, "TestResolver")
-        XCTAssertEqual(config1.assemblyType, .baseAssembly)
+        XCTAssertEqual(config1.assemblyType, .moduleAssembly)
 
         XCTAssertEqual(config2.assemblyName, "MySecondAssembly")
         XCTAssertEqual(config2.targetResolver, "AppResolver")
