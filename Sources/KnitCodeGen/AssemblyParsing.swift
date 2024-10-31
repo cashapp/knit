@@ -287,6 +287,7 @@ extension NamedDeclSyntax {
 enum AssemblyParsingError: Error {
     case fileReadError(Error, path: String)
     case missingAssemblyType
+    case missingTargetResolver
     case parsingError
     case noAssembliesFound(String)
     case moduleNameMismatch
@@ -306,6 +307,8 @@ extension AssemblyParsingError: LocalizedError {
             return "There were one or more errors parsing the assembly file"
         case .missingAssemblyType:
             return "Assembly files must inherit from an *Assembly type"
+        case .missingTargetResolver:
+            return "ModuleAssembly is required to declare a TargetResolver"
         case let .noAssembliesFound(path):
             return "The given file path did not contain any valid assemblies: \(path)"
         case .moduleNameMismatch:
