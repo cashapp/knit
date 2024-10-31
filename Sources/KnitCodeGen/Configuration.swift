@@ -14,11 +14,13 @@ public struct Configuration: Encodable {
 
     public enum AssemblyType: String, Encodable {
         /// `Swinject.Assembly`
-        case baseAssembly = "Assembly"
         case moduleAssembly = "ModuleAssembly"
         case autoInitAssembly = "AutoInitModuleAssembly"
         case abstractAssembly = "AbstractAssembly"
         case fakeAssembly = "FakeAssembly"
+
+        /// The suffix shared by all assembly types.
+        static let suffix = "Assembly"
     }
     public var assemblyType: AssemblyType
 
@@ -33,7 +35,7 @@ public struct Configuration: Encodable {
         assemblyName: String,
         moduleName: String,
         directives: KnitDirectives = .init(),
-        assemblyType: AssemblyType = .baseAssembly,
+        assemblyType: AssemblyType = .moduleAssembly,
         registrations: [Registration],
         registrationsIntoCollections: [RegistrationIntoCollection] = [],
         imports: [ModuleImport] = [],

@@ -84,7 +84,7 @@ class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
             }
         }
         let assemblyType = inheritedTypes?
-            .first { $0.hasSuffix(Configuration.AssemblyType.baseAssembly.rawValue) }
+            .first { $0.hasSuffix(Configuration.AssemblyType.suffix) }
             .flatMap { Configuration.AssemblyType(rawValue: $0) }
 
         let classDeclVisitor = ClassDeclVisitor(
