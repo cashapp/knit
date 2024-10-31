@@ -13,7 +13,9 @@ final class AssemblyParsingTests: XCTestCase {
         let sourceFile: SourceFileSyntax = """
             import A
             import B // Comment after import should be stripped
-            class FooTestAssembly: ModuleAssembly { }
+            class FooTestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+            }
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
@@ -35,7 +37,9 @@ final class AssemblyParsingTests: XCTestCase {
             import A
             #endif
             import B // Comment after import should be stripped
-            class FooTestAssembly: Assembly { }
+            class FooTestAssembly: ModuleAssembly { 
+                typealias TargetResolver = TestResolver
+            }
             """
         
 
@@ -56,7 +60,9 @@ final class AssemblyParsingTests: XCTestCase {
             #else
             import B
             #endif
-            class FooTestAssembly: Assembly { }
+            class FooTestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+            }
             """
 
         _ = try assertParsesSyntaxTree(sourceFile, assertErrorsToPrint: { errors in
@@ -67,7 +73,9 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testElseInOtherStatements() throws {
         let sourceFile: SourceFileSyntax = """
-            class FooTestAssembly: Assembly { }
+            class FooTestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+            }
 
             func randomFunction() -> Bool {
                 #if DEBUG
@@ -87,7 +95,9 @@ final class AssemblyParsingTests: XCTestCase {
         // Unclear if this is a use case we care about, but we will retain attributes before the import statement
         let sourceFile: SourceFileSyntax = """
             @testable import A
-            class FooTestAssembly: Assembly { }
+            class FooTestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+            }
             """
 
         let config = try assertParsesSyntaxTree(sourceFile)
@@ -102,6 +112,8 @@ final class AssemblyParsingTests: XCTestCase {
     func testAssemblyModuleName() throws {
         let sourceFile: SourceFileSyntax = """
             class FooTestAssembly: Assembly {
+                typealias TargetResolver = TestResolver
+
                 func assemble(container: Container) {
                     container.register(A.self) { }
                 }
@@ -115,7 +127,9 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testAssemblyStructModuleName() throws {
         let sourceFile: SourceFileSyntax = """
-            struct FooTestAssembly: Assembly {
+            struct FooTestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+
                 func assemble(container: Container) {
                     container.register(A.self) { }
                 }
@@ -128,7 +142,9 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testAssemblyRegistrations() throws {
         let sourceFile: SourceFileSyntax = """
-            class TestAssembly: Assembly {
+            class TestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+
                 func assemble(container: Container) {
                     container.register(A.self) { }
                 }
@@ -149,6 +165,7 @@ final class AssemblyParsingTests: XCTestCase {
             (
                 """
                 class TestAssembly: Assembly {
+                    typealias TargetResolver = TestResolver
                     func assemble(container: Container) {}
                 }
                 """,
@@ -158,6 +175,7 @@ final class AssemblyParsingTests: XCTestCase {
             (
                 """
                 class TestAssembly: Swinject.Assembly {
+                    typealias TargetResolver = TestResolver
                     func assemble(container: Container) {}
                 }
                 """,
@@ -167,6 +185,7 @@ final class AssemblyParsingTests: XCTestCase {
             (
                 """
                 class TestAssembly: ModuleAssembly {
+                    typealias TargetResolver = TestResolver
                     func assemble(container: Container) {}
                 }
                 """,
@@ -176,6 +195,7 @@ final class AssemblyParsingTests: XCTestCase {
             (
                 """
                 class TestAssembly: AutoInitModuleAssembly {
+                    typealias TargetResolver = TestResolver
                     func assemble(container: Container) {}
                 }
                 """,
@@ -185,6 +205,7 @@ final class AssemblyParsingTests: XCTestCase {
             (
                 """
                 class TestAssembly: AbstractAssembly {
+                    typealias TargetResolver = TestResolver
                     func assemble(container: Container) {}
                 }
                 """,
@@ -207,7 +228,8 @@ final class AssemblyParsingTests: XCTestCase {
     func testKnitDirectives() throws {
         let sourceFile: SourceFileSyntax = """
             // @knit public getter-named
-            class TestAssembly: Assembly {
+            class TestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     container.register(A.self) { }
                     // @knit internal getter-callAsFunction
@@ -228,14 +250,16 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testOnlyFirstOfMultipleAssemblies() throws {
         let sourceFile: SourceFileSyntax = """
-                class KeyValueStoreAssembly: Assembly {
+                class KeyValueStoreAssembly: ModuleAssembly {
+                    typealias TargetResolver = TestResolver
                     func assemble(container: Container) {
                         container.register(KeyValueStore.self) { }
                     }
                 }
 
                 // @knit ignore
-                class InMemoryKeyValueStoreAssembly: Assembly {
+                class InMemoryKeyValueStoreAssembly: ModuleAssembly {
+                    typealias TargetResolver = TestResolver
                     func assemble(container: Container) {
                         container.register(Override.self) { }
                     }
@@ -254,7 +278,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testAdditionalFunctions() throws {
         let sourceFile: SourceFileSyntax = """
-                class ExampleAssembly: Assembly {
+                class ExampleAssembly: ModuleAssembly {
+                    typealias TargetResolver = TestResolver
                     func assemble(container: Container) {
                         partialAssemble(container: container)
                         Self.fulfillAbstractRegistrations(container: container)
@@ -283,7 +308,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testAdditionalFunctionsInComputedPropertyAreNotParsed() throws {
         let sourceFile: SourceFileSyntax = """
-                class ExampleAssembly: Assembly {
+                class ExampleAssembly: ModuleAssembly {
+                    typealias TargetResolver = TestResolver
                     func assemble(container: Container) {
                         container.register(MyService.self) { }
                     }
@@ -295,7 +321,7 @@ final class AssemblyParsingTests: XCTestCase {
 
         let config = try assertParsesSyntaxTree(sourceFile)
         XCTAssertEqual(config.assemblyName, "ExampleAssembly")
-        XCTAssertEqual(config.targetResolver, "Resolver")
+        XCTAssertEqual(config.targetResolver, "TestResolver")
         XCTAssertEqual(
             config.registrations,
             [
@@ -344,7 +370,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testRegistrationParsingErrorToPrint() throws {
         let sourceFile: SourceFileSyntax = """
-            class MyAssembly: Assembly {
+            class MyAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     container.register(A.self) { resolver, arg1 in A(arg: arg1) }
                 }
@@ -365,7 +392,7 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
-    func testCustomResolver() throws {
+    func testTargetResolver() throws {
         let sourceFile: SourceFileSyntax = """
             class MyAssembly: Assembly {
                 typealias TargetResolver = TestResolver
@@ -377,9 +404,29 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(config.targetResolver, "TestResolver")
     }
 
+    func testMissingTargetResolver() throws {
+        let sourceFile: SourceFileSyntax = """
+            class MyAssembly: ModuleAssembly {
+                // typealias TargetResolver = TestResolver
+            }
+        """
+
+        XCTAssertThrowsError(
+            try assertParsesSyntaxTree(sourceFile),
+            "Should throw error for missing TargetResolver declaration",
+            { error in
+                guard case AssemblyParsingError.missingTargetResolver = error else {
+                    XCTFail("Incorrect error case")
+                    return
+                }
+            }
+        )
+    }
+
     func testIfDefElseFailure() throws {
         let sourceFile: SourceFileSyntax = """
-            class ExampleAssembly: Assembly {
+            class ExampleAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     #if SOME_FLAG
                     container.autoregister(B.self, initializer: B.init)
@@ -405,7 +452,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testIfDefParsing() throws {
         let sourceFile: SourceFileSyntax = """
-            class ExampleAssembly: Assembly {
+            class ExampleAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     #if SOME_FLAG
                     container.autoregister(A.self, initializer: A.init)
@@ -435,7 +483,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testIfSimulatorParsing() throws {
         let sourceFile: SourceFileSyntax = """
-            class ExampleAssembly: Assembly {
+            class ExampleAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     #if targetEnvironment(simulator)
                     container.autoregister(A.self, initializer: A.init)
@@ -454,7 +503,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testNestedIfConfig() throws {
         let sourceFile: SourceFileSyntax = """
-            class ExampleAssembly: Assembly {
+            class ExampleAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     #if DEBUG
                     #if FEATURE
@@ -487,7 +537,7 @@ final class AssemblyParsingTests: XCTestCase {
         """
         var errorsToPrint = [Error]()
 
-        let parser = try AssemblyParser(defaultTargetResolver: "Resolver")
+        let parser = try AssemblyParser()
 
         let configurations = try parser.parseSyntaxTree(
             sourceFile,
@@ -517,7 +567,7 @@ final class AssemblyParsingTests: XCTestCase {
         """
         var errorsToPrint = [Error]()
 
-        let parser = try AssemblyParser(defaultTargetResolver: "Resolver")
+        let parser = try AssemblyParser()
 
         let configurations = try parser.parseSyntaxTree(
             sourceFile,
@@ -539,7 +589,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testIgnoredRegistration() throws {
         let sourceFile: SourceFileSyntax = """
-            class MyAssembly: Assembly {
+            class MyAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     // @knit ignore
                     container.register(A.self) { }
@@ -554,7 +605,8 @@ final class AssemblyParsingTests: XCTestCase {
     func testCustomModuleName() throws {
         let sourceFile: SourceFileSyntax = """
             // @knit module-name("Custom")
-            class MyAssembly: Assembly {
+            class MyAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
             }
         """
 
@@ -566,7 +618,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testModuleNameRegex() throws {
         let sourceFile: SourceFileSyntax = """
-            class MyAssembly: Assembly {
+            class MyAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
             }
         """
 
@@ -595,6 +648,7 @@ final class AssemblyParsingTests: XCTestCase {
     func testAbstractAssemblyWithNonAbstractRegistrations() throws {
         let sourceFile: SourceFileSyntax = """
             class MyAbstractAssembly: AbstractAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     container.register(A.self) { }
                 }
@@ -615,7 +669,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testAssemblyReplaces() throws {
         let sourceFile: SourceFileSyntax = """
-            class TestAssembly: Assembly {
+            class TestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     container.register(A.self) { }
                 }
@@ -631,7 +686,8 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testReplacesAsLet() throws {
         let sourceFile: SourceFileSyntax = """
-            class TestAssembly: Assembly {
+            class TestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     container.register(A.self) { }
                 }
@@ -645,7 +701,8 @@ final class AssemblyParsingTests: XCTestCase {
     
     func testInvalidReplaces() throws {
         let sourceFile: SourceFileSyntax = """
-            class TestAssembly: Assembly {
+            class TestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 static lazy var replaces: [any ModuleAssembly.Type] = {
                 []
             }()
@@ -666,6 +723,7 @@ final class AssemblyParsingTests: XCTestCase {
     func testFakeAssembly() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: FakeAssembly {
+                typealias TargetResolver = TestResolver
                 typealias ReplacedAssembly = RealAssembly
             }
             """
@@ -679,6 +737,7 @@ final class AssemblyParsingTests: XCTestCase {
     func testFakeAssemblyCustomReplaces() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: FakeAssembly {
+                typealias TargetResolver = TestResolver
                 typealias ReplacedAssembly = RealAssembly
                 static var replaces: [any ModuleAssembly.Type] { [
                     RealAssembly.self,
@@ -698,6 +757,7 @@ final class AssemblyParsingTests: XCTestCase {
     func testFakeAssemblyCustomReplaces_missingReplacedAssembly() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: FakeAssembly {
+                typealias TargetResolver = TestResolver
                 typealias ReplacedAssembly = RealAssembly
                 static var replaces: [any ModuleAssembly.Type] { [
                     AdditionalAssembly.self
@@ -725,6 +785,7 @@ final class AssemblyParsingTests: XCTestCase {
     func testFakeAssemblyCustomReplaces_redundantStaticReplaces() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: FakeAssembly {
+                typealias TargetResolver = TestResolver
                 typealias ReplacedAssembly = RealAssembly
 
                 // Redundant declaration, should be removed
@@ -754,7 +815,8 @@ final class AssemblyParsingTests: XCTestCase {
         /// If someone happens to declare a `typealias ReplacedAssembly` but the assembly is *not*
         /// a `FakeAssembly`, then it will not get the default extension to provide the `ReplacedAssembly`
         let sourceFile: SourceFileSyntax = """
-            class TestAssembly: Assembly {
+            class TestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
                 typealias ReplacedAssembly = RealAssembly
 
                 func assemble(container: Container) {
@@ -774,7 +836,7 @@ final class AssemblyParsingTests: XCTestCase {
     func testFakeAssembly_missingReplacedAssemblyTypealias() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: FakeAssembly {
-
+                typealias TargetResolver = TestResolver
             }
             """
 
@@ -801,7 +863,7 @@ private func assertParsesSyntaxTree(
 ) throws -> Configuration {
     var errorsToPrint = [Error]()
 
-    let parser = try AssemblyParser(defaultTargetResolver: "Resolver")
+    let parser = try AssemblyParser()
 
     let configuration = try parser.parseSyntaxTree(
         sourceFile,

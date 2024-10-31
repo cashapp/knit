@@ -8,14 +8,11 @@ import SwiftParser
 
 public struct AssemblyParser {
 
-    private let defaultTargetResolver: String
     private let nameExtractor: ModuleNameExtractor
 
     public init(
-        defaultTargetResolver: String = "Resolver",
         moduleNameRegex: String? = nil
     ) throws {
-        self.defaultTargetResolver = defaultTargetResolver
         self.nameExtractor = try ModuleNameExtractor(moduleNamePattern: moduleNameRegex)
     }
 
@@ -25,16 +22,10 @@ public struct AssemblyParser {
         moduleDependencies: [String]
     ) throws -> ConfigurationSet {
         let configs = try paths.flatMap { path in
-            return try parse(
-                path: path,
-                defaultTargetResolver: defaultTargetResolver
-            )
+            return try parse(path: path)
         }
         let additionalConfigs = try externalTestingAssemblies.flatMap { path in
-            return try parse(
-                path: path,
-                defaultTargetResolver: defaultTargetResolver
-            )
+            return try parse(path: path)
         }
 
         return ConfigurationSet(
@@ -44,7 +35,7 @@ public struct AssemblyParser {
         )
     }
 
-    private func parse(path: String, defaultTargetResolver: String) throws -> [Configuration] {
+    private func parse(path: String) throws -> [Configuration] {
         let url = URL(fileURLWithPath: path, isDirectory: false)
         var errorsToPrint = [Error]()
 
@@ -114,7 +105,9 @@ public struct AssemblyParser {
         }
         let moduleName = classDeclVisitor.directives.moduleName ?? extractedModuleName ?? classDeclVisitor.moduleName
 
-        let targetResolver: String = classDeclVisitor.targetResolver ?? defaultTargetResolver
+        guard let targetResolver = classDeclVisitor.targetResolver else {
+            throw AssemblyParsingError.missingTargetResolver
+        }
 
         guard let assemblyType = classDeclVisitor.assemblyType else {
             throw AssemblyParsingError.missingAssemblyType
