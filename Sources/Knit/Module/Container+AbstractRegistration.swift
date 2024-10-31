@@ -8,6 +8,7 @@ extension Container {
 
     /// Register that a service is expected to exist but no implementation is currently available
     /// The concrete implementation must be registered or the dependency graph is considered invalid
+    /// We don't currently support abstract registrations with arguments
     public func registerAbstract<Service>(
         _ serviceType: Service.Type,
         name: String? = nil,

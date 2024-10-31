@@ -6,6 +6,4 @@ An example Xcode project that uses Knit.
 
 1. Open the `KnitExample.xcodeproj` project
 
-For normal apps, the project should use the pre-complied executable binaries that are 
-included in the GitHub release zips (per release version).
-(You are also free to download any of the released binary executables and place it in the Example directory to use it.)
+The project is configured to use the Xcode Build Plugin vended by the SPM package.
