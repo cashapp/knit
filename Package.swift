@@ -66,5 +66,9 @@ let package = Package(
                 "KnitCodeGen",
             ]
         ),
+    ],
+    swiftLanguageVersions: [
+        // When this SPM package is imported by a Swift 6 toolchain it should still be used in the v5 language mode
+        .v5,
     ]
 )

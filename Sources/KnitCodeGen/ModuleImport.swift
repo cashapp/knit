@@ -3,9 +3,9 @@
 //
 
 import Foundation
-import SwiftSyntax
+@preconcurrency import SwiftSyntax
 
-public struct ModuleImport {
+public struct ModuleImport: Sendable {
     let decl: ImportDeclSyntax
     let ifConfigCondition: ExprSyntax?
     let name: String

@@ -4,7 +4,7 @@
 
 /// Represents a single concrete factory registered into a collection
 /// A separate instance will be created for each call to `{auto}registerIntoCollection`
-public struct RegistrationIntoCollection: Equatable {
+public struct RegistrationIntoCollection: Equatable, Sendable {
 
     public var service: String
 

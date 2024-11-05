@@ -5,7 +5,7 @@
 import Foundation
 import SwiftSyntax
 
-public struct KnitDirectives: Codable, Equatable {
+public struct KnitDirectives: Codable, Equatable, Sendable {
     var accessLevel: AccessLevel?
     var getterConfig: Set<GetterConfig>
     var moduleName: String?
@@ -131,16 +131,16 @@ extension KnitDirectives {
     }
 }
 
-public enum GetterConfig: Codable, Equatable, Hashable {
+public enum GetterConfig: Codable, Equatable, Hashable, Sendable {
     /// Only the `callAsFunction()` accessor is generated.
     case callAsFunction
     /// Only the identified getter is generated.
     case identifiedGetter(_ name: String?)
 
     /// Centralized control of the default behavior.
-    public static var `default`: Set<GetterConfig> = [.identifiedGetter(nil)]
+    public static let `default`: Set<GetterConfig> = [.identifiedGetter(nil)]
 
-    public static var both: Set<GetterConfig> = [.callAsFunction, .identifiedGetter(nil)]
+    public static let both: Set<GetterConfig> = [.callAsFunction, .identifiedGetter(nil)]
 
     public var isNamed: Bool {
         switch self {
@@ -150,12 +150,12 @@ public enum GetterConfig: Codable, Equatable, Hashable {
     }
 }
 
-public enum AccessLevel: String, CaseIterable, Codable {
+public enum AccessLevel: String, CaseIterable, Codable, Sendable {
     case `public`
     case `internal`
     case hidden
     case ignore
 
     /// Centralized control of the default behavior.
-    public static var `default`: AccessLevel = .internal
+    public static let `default`: AccessLevel = .internal
 }

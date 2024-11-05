@@ -2,9 +2,9 @@
 // Copyright © Block, Inc. All rights reserved.
 //
 
-import SwiftSyntax
+@preconcurrency import SwiftSyntax
 
-public struct Registration: Equatable, Codable {
+public struct Registration: Equatable, Codable, Sendable {
 
     public var service: String
 
@@ -63,7 +63,7 @@ public struct Registration: Equatable, Codable {
 
 extension Registration {
 
-    public struct Argument: Equatable, Codable {
+    public struct Argument: Equatable, Codable, Sendable {
 
         let identifier: Identifier
         let type: String
@@ -77,7 +77,7 @@ extension Registration {
             self.type = type
         }
 
-        public enum Identifier: Codable, Equatable {
+        public enum Identifier: Codable, Equatable, Sendable {
             /// Used for arguments defined in `.register` registrations.
             case fixed(String)
 
@@ -87,7 +87,7 @@ extension Registration {
 
     }
 
-    public enum FunctionName: String, Codable {
+    public enum FunctionName: String, Codable, Sendable {
         case register
         case autoregister
         case registerAbstract

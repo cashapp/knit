@@ -5,14 +5,14 @@
 import Foundation
 import SwiftSyntax
 
-public struct Configuration: Encodable {
+public struct Configuration: Encodable, Sendable {
 
     /// Name of the module for this configuration.
     public var assemblyName: String
     public let moduleName: String
     public var directives: KnitDirectives
 
-    public enum AssemblyType: String, Encodable {
+    public enum AssemblyType: String, Encodable, Sendable {
         /// `Swinject.Assembly`
         case moduleAssembly = "ModuleAssembly"
         case autoInitAssembly = "AutoInitModuleAssembly"
