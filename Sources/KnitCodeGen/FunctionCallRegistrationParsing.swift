@@ -3,7 +3,7 @@
 //
 
 import Foundation
-@preconcurrency import SwiftSyntax
+import SwiftSyntax
 
 struct CalledMethod {
 

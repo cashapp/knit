@@ -16,7 +16,7 @@ jobs:
         with:
           swift-version: "5.10"
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.1.7
       - name: Create Release
         run: |
           set -euo pipefail

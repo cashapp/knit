@@ -10,12 +10,12 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-knit-swift-5:
+  build-knit:
 
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v4.2.2
+    - uses: actions/checkout@v4.1.7
     - uses: swift-actions/setup-swift@v2.1.0
       with:
         swift-version: "5.10"
@@ -23,19 +23,3 @@ jobs:
       run: swift build -v
     - name: Run Knit tests
       run: swift test -v
-
-# Enable below when issue is resolved: https://github.com/swift-actions/setup-swift/issues/683
-
-#  build-knit-swift-6:
-#
-#    runs-on: macos-latest
-#
-#    steps:
-#    - uses: actions/checkout@v4.2.2
-#    - uses: swift-actions/setup-swift@v2.1.0
-#      with:
-#        swift-version: "6.0"
-#    - name: Build Knit
-#      run: swift build -v
-#    - name: Run Knit tests
-#      run: swift test -v

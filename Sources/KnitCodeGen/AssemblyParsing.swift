@@ -3,8 +3,8 @@
 //
 
 import Foundation
-@preconcurrency import SwiftSyntax
-@preconcurrency import SwiftParser
+import SwiftSyntax
+import SwiftParser
 
 class AssemblyFileVisitor: SyntaxVisitor, IfConfigVisitor {
 
