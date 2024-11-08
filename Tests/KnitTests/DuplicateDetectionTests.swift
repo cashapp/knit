@@ -114,6 +114,24 @@ final class DuplicateDetectionTests: XCTestCase {
         XCTAssertEqual(reportedDuplicates.count, 0)
     }
 
+    func testTypeForwarding() throws {
+        // A forwarded type (`.implements()`) should not cause a duplicate registration
+        let duplicateDetection = DuplicateDetection()
+        let container = Container(behaviors: [duplicateDetection])
+
+        XCTAssertEqual(duplicateDetection.detectedKeys.count, 0)
+        container.register(String.self, factory: { _ in "string"} )
+            .implements((any StringProtocol).self)
+        XCTAssertEqual(duplicateDetection.detectedKeys.count, 0)
+
+        // Registering `Substring` does not cause a duplicate
+        let substringEntry = container.register(Substring.self, factory: { _ in "substring"} )
+        XCTAssertEqual(duplicateDetection.detectedKeys.count, 0)
+        // However forwarding to the same type twice still results in a duplicate
+        substringEntry.implements((any StringProtocol).self)
+        XCTAssertEqual(duplicateDetection.detectedKeys.count, 1)
+    }
+
     func testCustomStringDescription() throws {
         assertCustomStringDescription(key: DuplicateDetection.Key(
             serviceType: String.self,

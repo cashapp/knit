@@ -42,8 +42,9 @@ extension DuplicateDetection: Behavior {
         toService entry: ServiceEntry<Service>,
         withName name: String?
     ) {
+        // Make sure to use `didRegisterType type: Type.Type` rather than `Service`
         let key = Key(
-            serviceType: Service.self,
+            serviceType: type,
             argumentsType: entry.argumentsType,
             name: name
         )
