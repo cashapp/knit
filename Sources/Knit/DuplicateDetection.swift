@@ -8,7 +8,11 @@ public final class DuplicateDetection {
 
     /// If a duplicate registration is detected, the `Key` describing that registration will be provided to this closure.
     /// The closure can be called multiple times, once for each duplicate found.
-    public var duplicateWasDetected: (Key) -> Void
+    public var duplicateWasDetected: ((Key) -> Void)?
+
+    /// An array of all the keys for duplicate registrations detected by this Behavior.
+    /// The array is updated before the `duplicateWasDetected` closure is invoked so will always contain all detected duplicates up to that point.
+    public private(set) var detectedKeys = [Key]()
 
     /// Describes a single registration key.
     /// If a duplicate is detected this key will be provided to the `duplicateWasDetected` closure.
@@ -21,7 +25,7 @@ public final class DuplicateDetection {
     var existingRegistrations = Set<Key>()
 
     public init(
-        duplicateWasDetected: @escaping (Key) -> Void
+        duplicateWasDetected: ((Key) -> Void)? = nil
     ) {
         self.duplicateWasDetected = duplicateWasDetected
     }
@@ -49,7 +53,8 @@ extension DuplicateDetection: Behavior {
 
         if preInsertCount == existingRegistrations.count {
             // The registration count did not increment, so the current service entry was a duplicate of an existing entry
-            duplicateWasDetected(key)
+            detectedKeys.append(key)
+            duplicateWasDetected?(key)
         }
     }
 
@@ -87,5 +92,25 @@ extension DuplicateDetection.Key: CustomStringConvertible {
         """
     }
     
+
+}
+
+// MARK: -
+
+extension Array where Element == DuplicateDetection.Key {
+
+    public var duplicatesDescription: String {
+        guard count > 0 else {
+            return "No duplicates in array"
+        }
+
+        let keyDescriptions = reduce("") { partialResult, key in
+            partialResult + "\(key)\n\n"
+        }
+        return """
+            Duplicate registrations were detected (count: \(count):
+            \(keyDescriptions)
+            """
+    }
 
 }
