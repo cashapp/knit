@@ -4,6 +4,7 @@
 
 import Foundation
 @testable import Knit
+@testable import Swinject
 import XCTest
 
 final class ScopedModuleAssemblerTests: XCTestCase {
@@ -76,6 +77,30 @@ final class ScopedModuleAssemblerTests: XCTestCase {
         )
     }
 
+    @MainActor
+    func test_integration_initializerBehaviorsPassedToInternalContainer() throws {
+        // This is a bit of an integration test to ensure that behaviors passed to the ScopedModuleAssembler initializer
+        // are passed through correctly to the backing Container instance.
+
+        let testBehavior = TestBehavior()
+        let scopedModuleAssembler = ScopedModuleAssembler<TestResolver>(
+            [],
+            behaviors: [testBehavior]
+        )
+        let container = scopedModuleAssembler._container
+        // ModuleAssembler automatically adds behaviors for ServiceCollector and AbstractRegistrationContainer
+        // so first filter those out
+        let foundBehaviors = container.behaviors.filter { behavior in
+            let behaviorType = type(of: behavior)
+            return behaviorType != ServiceCollector.self &&
+                behaviorType != Container.AbstractRegistrationContainer.self
+        }
+        // There should only be one behavior left
+        XCTAssertEqual(foundBehaviors.count, 1)
+        let containerBehavior = try XCTUnwrap(foundBehaviors.first as? AnyObject)
+        XCTAssert(containerBehavior === testBehavior)
+    }
+
 }
 
 private struct Assembly1: AutoInitModuleAssembly {
@@ -95,4 +120,17 @@ private struct Assembly3: AutoInitModuleAssembly {
     typealias TargetResolver = OutsideResolver
     static var dependencies: [any ModuleAssembly.Type] { [Assembly1.self] }
     func assemble(container: Container) { }
+}
+
+private final class TestBehavior: Behavior {
+
+    func container<Type, Service>(
+        _ container: Container,
+        didRegisterType type: Type.Type,
+        toService entry: Swinject.ServiceEntry<Service>,
+        withName name: String?
+    ) {
+        // No op
+    }
+
 }
