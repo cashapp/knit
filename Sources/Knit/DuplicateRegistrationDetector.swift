@@ -4,7 +4,7 @@
 
 import Swinject
 
-public final class DuplicateDetection {
+public final class DuplicateRegistrationDetector {
 
     /// If a duplicate registration is detected, the `Key` describing that registration will be provided to this closure.
     /// The closure can be called multiple times, once for each duplicate found.
@@ -34,7 +34,7 @@ public final class DuplicateDetection {
 
 // MARK: -
 
-extension DuplicateDetection: Behavior {
+extension DuplicateRegistrationDetector: Behavior {
 
     public func container<Type, Service>(
         _ container: Container,
@@ -63,7 +63,7 @@ extension DuplicateDetection: Behavior {
 
 // MARK: -
 
-extension DuplicateDetection.Key: Hashable, Equatable {
+extension DuplicateRegistrationDetector.Key: Hashable, Equatable {
 
     public func hash(into hasher: inout Hasher) {
         ObjectIdentifier(serviceType).hash(into: &hasher)
@@ -81,7 +81,7 @@ extension DuplicateDetection.Key: Hashable, Equatable {
 
 // MARK: -
 
-extension DuplicateDetection.Key: CustomStringConvertible {
+extension DuplicateRegistrationDetector.Key: CustomStringConvertible {
 
     // Provide a more structured string description of the key, useful for logging error messages
     public var description: String {
@@ -98,7 +98,7 @@ extension DuplicateDetection.Key: CustomStringConvertible {
 
 // MARK: -
 
-extension Array where Element == DuplicateDetection.Key {
+extension Array where Element == DuplicateRegistrationDetector.Key {
 
     public var duplicatesDescription: String {
         guard count > 0 else {
