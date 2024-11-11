@@ -5,15 +5,15 @@
 @testable import Knit
 import XCTest
 
-final class DuplicateDetectionTests: XCTestCase {
+final class DuplicateRegistrationDetectorTests: XCTestCase {
 
     func testBasicDetection() throws {
-        var reportedDuplicates = [DuplicateDetection.Key]()
-        let duplicateDetection = DuplicateDetection(duplicateWasDetected: { key in
+        var reportedDuplicates = [DuplicateRegistrationDetector.Key]()
+        let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
         let container = Container(
-            behaviors: [duplicateDetection]
+            behaviors: [duplicateRegistrationDetector]
         )
 
         XCTAssertEqual(reportedDuplicates.count, 0)
@@ -32,12 +32,12 @@ final class DuplicateDetectionTests: XCTestCase {
     }
 
     func testNames() throws {
-        var reportedDuplicates = [DuplicateDetection.Key]()
-        let duplicateDetection = DuplicateDetection(duplicateWasDetected: { key in
+        var reportedDuplicates = [DuplicateRegistrationDetector.Key]()
+        let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
         let container = Container(
-            behaviors: [duplicateDetection]
+            behaviors: [duplicateRegistrationDetector]
         )
 
         XCTAssertEqual(reportedDuplicates.count, 0)
@@ -55,12 +55,12 @@ final class DuplicateDetectionTests: XCTestCase {
     }
 
     func testArguments() throws {
-        var reportedDuplicates = [DuplicateDetection.Key]()
-        let duplicateDetection = DuplicateDetection(duplicateWasDetected: { key in
+        var reportedDuplicates = [DuplicateRegistrationDetector.Key]()
+        let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
         let container = Container(
-            behaviors: [duplicateDetection]
+            behaviors: [duplicateRegistrationDetector]
         )
 
         XCTAssertEqual(reportedDuplicates.count, 0)
@@ -78,12 +78,12 @@ final class DuplicateDetectionTests: XCTestCase {
     }
 
     func testNoDuplicates() throws {
-        var reportedDuplicates = [DuplicateDetection.Key]()
-        let duplicateDetection = DuplicateDetection(duplicateWasDetected: { key in
+        var reportedDuplicates = [DuplicateRegistrationDetector.Key]()
+        let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
         let container = Container(
-            behaviors: [duplicateDetection]
+            behaviors: [duplicateRegistrationDetector]
         )
 
         container.register(String.self, factory: { _ in "" })
@@ -96,17 +96,17 @@ final class DuplicateDetectionTests: XCTestCase {
         // A parent container is allowed to contain the same registration key as a child container
         // This is not a duplicate but a "shadow" registration
 
-        var reportedDuplicates = [DuplicateDetection.Key]()
+        var reportedDuplicates = [DuplicateRegistrationDetector.Key]()
 
-        let parentDuplicateDetection = DuplicateDetection(duplicateWasDetected: { key in
+        let parentDuplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let parentContainer = Container(behaviors: [parentDuplicateDetection])
+        let parentContainer = Container(behaviors: [parentDuplicateRegistrationDetector])
 
-        let childDuplicateDetection = DuplicateDetection(duplicateWasDetected: { key in
+        let childDuplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let childContainer = Container(parent: parentContainer, behaviors: [childDuplicateDetection])
+        let childContainer = Container(parent: parentContainer, behaviors: [childDuplicateRegistrationDetector])
 
         parentContainer.register(String.self, factory: { _ in "parent" })
         childContainer.register(String.self, factory: { _ in "child" })
@@ -116,24 +116,24 @@ final class DuplicateDetectionTests: XCTestCase {
 
     func testTypeForwarding() throws {
         // A forwarded type (`.implements()`) should not cause a duplicate registration
-        let duplicateDetection = DuplicateDetection()
-        let container = Container(behaviors: [duplicateDetection])
+        let duplicateRegistrationDetector = DuplicateRegistrationDetector()
+        let container = Container(behaviors: [duplicateRegistrationDetector])
 
-        XCTAssertEqual(duplicateDetection.detectedKeys.count, 0)
+        XCTAssertEqual(duplicateRegistrationDetector.detectedKeys.count, 0)
         container.register(String.self, factory: { _ in "string"} )
             .implements((any StringProtocol).self)
-        XCTAssertEqual(duplicateDetection.detectedKeys.count, 0)
+        XCTAssertEqual(duplicateRegistrationDetector.detectedKeys.count, 0)
 
         // Registering `Substring` does not cause a duplicate
         let substringEntry = container.register(Substring.self, factory: { _ in "substring"} )
-        XCTAssertEqual(duplicateDetection.detectedKeys.count, 0)
+        XCTAssertEqual(duplicateRegistrationDetector.detectedKeys.count, 0)
         // However forwarding to the same type twice still results in a duplicate
         substringEntry.implements((any StringProtocol).self)
-        XCTAssertEqual(duplicateDetection.detectedKeys.count, 1)
+        XCTAssertEqual(duplicateRegistrationDetector.detectedKeys.count, 1)
     }
 
     func testCustomStringDescription() throws {
-        assertCustomStringDescription(key: DuplicateDetection.Key(
+        assertCustomStringDescription(key: DuplicateRegistrationDetector.Key(
             serviceType: String.self,
             argumentsType: ((Resolver)).self,
             name: nil
@@ -146,7 +146,7 @@ final class DuplicateDetectionTests: XCTestCase {
             """
         )
 
-        assertCustomStringDescription(key: DuplicateDetection.Key(
+        assertCustomStringDescription(key: DuplicateRegistrationDetector.Key(
             serviceType: Int.self,
             argumentsType: (Resolver, Bool).self,
             name: nil
@@ -159,7 +159,7 @@ final class DuplicateDetectionTests: XCTestCase {
             """
         )
 
-        assertCustomStringDescription(key: DuplicateDetection.Key(
+        assertCustomStringDescription(key: DuplicateRegistrationDetector.Key(
             serviceType: String.self,
             argumentsType: ((Resolver)).self,
             name: "namedRegistration"
@@ -178,7 +178,7 @@ final class DuplicateDetectionTests: XCTestCase {
 // MARK: -
 
 private func assertCustomStringDescription(
-    key: DuplicateDetection.Key,
+    key: DuplicateRegistrationDetector.Key,
     expectedDescription: String,
     file: StaticString = #filePath,
     line: UInt = #line
