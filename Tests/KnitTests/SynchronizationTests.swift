@@ -15,15 +15,15 @@ final class SynchronizationTests: XCTestCase {
         let assembler = ModuleAssembler(parent: parent, [Assembly2()])
 
         // Resolve the same service in 2 separate tasks
-        async let task1 = try Task {
+        async let task1 = Task {
             return assembler.resolver.resolve(Service2.self)!
         }.result.get()
 
-        async let task2 = try Task {
+        async let task2 = Task {
             return assembler.resolver.resolve(Service2.self)!
         }.result.get()
 
-        let result = try await (task1, task2)
+        let result = await (task1, task2)
 
         // Make sure that the weak services correctly return the same value
         XCTAssertEqual(result.0.service1.id, result.1.service1.id)
@@ -34,15 +34,15 @@ final class SynchronizationTests: XCTestCase {
         let assembler = ScopedModuleAssembler<TestScopedResolver>([Assembly2()])
 
         // Resolve the same service in 2 separate tasks
-        async let task1 = try Task {
+        async let task1 = Task {
             return assembler.resolver.resolve(Service2.self)!
         }.result.get()
 
-        async let task2 = try Task {
+        async let task2 = Task {
             return assembler.resolver.resolve(Service2.self)!
         }.result.get()
 
-        let result = try await (task1, task2)
+        let result = await (task1, task2)
 
         // Make sure that the weak services correctly return the same value
         XCTAssertEqual(result.0.service1.id, result.1.service1.id)
