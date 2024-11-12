@@ -8,7 +8,7 @@ extension Container {
 
     /// Register that a service is expected to exist but no implementation is currently available
     /// The concrete implementation must be registered or the dependency graph is considered invalid
-    /// We don't currently support abstract registrations with arguments
+    /// - NOTE: We don't currently support abstract registrations with arguments
     public func registerAbstract<Service>(
         _ serviceType: Service.Type,
         name: String? = nil,
@@ -47,7 +47,7 @@ internal protocol AbstractRegistration {
     var name: String? { get }
     var key: RegistrationKey { get }
 
-    /// Register a placeholder registration to fill the unfullfilled abstract registration
+    /// Register a placeholder registration to fill the unfulfilled abstract registration
     /// This placeholder cannot be resolved
     func registerPlaceholder(
         container: Container,
@@ -85,7 +85,7 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
         dependencyTree: DependencyTree
     ) {
         let message = errorFormatter.format(error: self.error, dependencyTree: dependencyTree)
-        container.register(ServiceType.self) { _ in
+        container.register(ServiceType.self, name: name) { _ in
             fatalError("Attempt to resolve unfulfilled abstract registration.\n\(message)")
         }
     }

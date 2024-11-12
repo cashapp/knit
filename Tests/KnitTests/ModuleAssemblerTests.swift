@@ -3,6 +3,7 @@
 //
 
 @testable import Knit
+@testable import Swinject
 import XCTest
 
 final class ModuleAssemblerTests: XCTestCase {
@@ -59,8 +60,15 @@ final class ModuleAssemblerTests: XCTestCase {
                     XCTFail("Incorrect error type \(error)")
                     return
                 }
-                XCTAssertEqual(abstractRegistrationErrors.errors.count, 1)
+                XCTAssertEqual(abstractRegistrationErrors.errors.count, 2)
+
+                // Abstract registration one
                 XCTAssertEqual(abstractRegistrationErrors.errors.first?.serviceType, "Assembly5Protocol")
+                XCTAssertNil(abstractRegistrationErrors.errors.first?.name)
+
+                // Abstract registration two
+                XCTAssertEqual(abstractRegistrationErrors.errors.last?.serviceType, "Assembly5Protocol")
+                XCTAssertEqual(abstractRegistrationErrors.errors.last?.name, "testName")
             }
         )
     }
@@ -68,10 +76,33 @@ final class ModuleAssemblerTests: XCTestCase {
     @MainActor
     func test_abstractAssemblyPlaceholders() throws {
         // No error is thrown as the graph is using abstract placeholders
-        _ = try ModuleAssembler(
+        let assembler = try ModuleAssembler(
             _modules: [ Assembly4() ],
             overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: true)
         )
+
+        var services = assembler._container.services.filter { (key, value) in
+            // Filter out registrations for `AbstractRegistrationContainer` and `DependencyTree`
+            return key.serviceType != Container.AbstractRegistrationContainer.self &&
+            key.serviceType != DependencyTree.self
+        }
+        XCTAssertEqual(services.count, 2)
+        
+        XCTAssertNotNil(services.removeValue(forKey: .init(
+            serviceType: Assembly5Protocol.self,
+            argumentsType: (Resolver).self,
+            name: nil
+        )), "Service entry for Assembly5Protocol without name should exist")
+        XCTAssertEqual(services.count, 1)
+
+        XCTAssertNotNil(services.removeValue(forKey: .init(
+            serviceType: Assembly5Protocol.self,
+            argumentsType: (Resolver).self,
+            name: "testName"
+        )), "Service entry for Assembly5Protocol with name should exist")
+        
+        // No more registrations left
+        XCTAssertEqual(services.count, 0)
     }
 
 }
@@ -150,6 +181,7 @@ private struct AbstractAssembly5: AbstractAssembly {
 
     func assemble(container: Swinject.Container) {
         container.registerAbstract(Assembly5Protocol.self)
+        container.registerAbstract(Assembly5Protocol.self, name: "testName")
     }
 
 }
