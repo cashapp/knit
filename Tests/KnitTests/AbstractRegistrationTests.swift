@@ -73,6 +73,16 @@ final class AbstractRegistrationTests: XCTestCase {
         )
     }
 
+    @MainActor
+    func testOptionalAbstractRegistrations() {
+        let assembler = ModuleAssembler([Assembly3()])
+        let string = assembler.resolver.resolve(String?.self) ?? nil
+        XCTAssertNil(string)
+
+        let int = assembler.resolver.resolve(Optional<Int>.self) ?? nil
+        XCTAssertNil(int)
+    }
+
 }
 
 private struct Assembly1: AutoInitModuleAssembly {
@@ -84,5 +94,13 @@ private struct Assembly2: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
     func assemble(container: Container) {
         container.registerAbstract(String.self)
+    }
+}
+
+private struct Assembly3: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] { [] }
+    func assemble(container: Container) {
+        container.registerAbstract(Optional<String>.self)
+        container.registerAbstract(Int?.self)
     }
 }
