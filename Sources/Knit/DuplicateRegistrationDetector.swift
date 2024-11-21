@@ -22,7 +22,9 @@ public final class DuplicateRegistrationDetector {
         public let name: String?
     }
 
-    var existingRegistrations = Set<Key>()
+    /// Set of all registration Keys that have been detected so far.
+    /// Useful to check that the count of this set is non-zero to confirm the Detector was set up correctly.
+    public private(set) var existingRegistrations = Set<Key>()
 
     public init(
         duplicateWasDetected: ((Key) -> Void)? = nil
