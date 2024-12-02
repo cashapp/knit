@@ -12,7 +12,7 @@ let package = Package(
     products: [
         .library(name: "Knit", targets: ["Knit"]),
         .plugin(name: "KnitBuildPlugin", targets: ["KnitBuildPlugin"]),
-        .executable(name: "knit-cli", targets: ["KnitCommand"]),
+        .executable(name: "knit-cli", targets: ["knit-cli"]),
     ],
     dependencies: [
         .package(url: "https://github.com/Swinject/Swinject.git", from: "2.9.1"),
@@ -39,13 +39,13 @@ let package = Package(
             name: "KnitBuildPlugin",
             capability: .buildTool,
             dependencies: [
-                .target(name: "KnitCommand"),
+                .target(name: "knit-cli"),
             ]
         ),
 
         // MARK: - CLI
         .executableTarget(
-            name: "KnitCommand",
+            name: "knit-cli",
             dependencies: [
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
