@@ -91,6 +91,10 @@ extension FunctionCallExprSyntax {
             return ([], [])
         }
 
+        if primaryRegistration.hasRedundantGetter {
+            throw RegistrationParsingError.redundantGetter(syntax: self)
+        }
+
         let implementsCalledMethods = calledMethods.filter { method in
             method.calledExpression.declName.baseName.text == Registration.FunctionName.implements.rawValue
         }
@@ -109,6 +113,9 @@ extension FunctionCallExprSyntax {
                 leadingTrivia: leadingTrivia,
                 functionName: .implements
             ) {
+                if forwardedRegistration.hasRedundantGetter {
+                    throw RegistrationParsingError.redundantGetter(syntax: implementsCalledMethod.calledExpression)
+                }
                 forwardedRegistrations.append(forwardedRegistration)
             }
         }
@@ -331,6 +338,7 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
     case invalidIfConfig(syntax: SyntaxProtocol, text: String)
     case nestedIfConfig(syntax: SyntaxProtocol)
     case nonAbstract(syntax: SyntaxProtocol)
+    case redundantGetter(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
@@ -348,6 +356,8 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             return "Nested #if statements are not supported"
         case .nonAbstract:
             return "AbstractAssemblys may only contain Abstract registrations"
+        case .redundantGetter:
+            return "getter-named matches the default accessor name and can be removed"
         }
     }
 
@@ -359,7 +369,8 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             let .unwrappedClosureParams(syntax),
             let .invalidIfConfig(syntax, _),
             let .nestedIfConfig(syntax),
-            let .nonAbstract(syntax):
+            let .nonAbstract(syntax),
+            let .redundantGetter(syntax):
             return syntax
         }
     }
