@@ -18,6 +18,20 @@ extension Container {
         abstractRegistrations().abstractRegistrations.append(registration)
     }
 
+    /// Register that a service is expected to exist but no implementation is currently available
+    /// The concrete implementation must be registered or the dependency graph is considered invalid
+    /// - NOTE: We don't currently support abstract registrations with arguments
+    /// As this is an `Optional` Service type this allows special handling of the abstract registration for test environments:
+    /// If during testing and no concrete registration is available, then `nil` will be resolved automatically.
+    public func registerAbstract<Service>(
+        _ serviceType: Optional<Service>.Type,
+        name: String? = nil,
+        file: String = #fileID
+    ) {
+        let registration = OptionalAbstractRegistration<Service>(name: name, file: file)
+        abstractRegistrations().abstractRegistrations.append(registration)
+    }
+
     // Must be called before using `registerAbstract`
     func registerAbstractContainer() -> AbstractRegistrationContainer {
         let registrations = AbstractRegistrationContainer()
@@ -87,6 +101,29 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
         let message = errorFormatter.format(error: self.error, dependencyTree: dependencyTree)
         container.register(ServiceType.self, name: name) { _ in
             fatalError("Attempt to resolve unfulfilled abstract registration.\n\(message)")
+        }
+    }
+}
+
+/// An abstract registration for an optional service
+fileprivate struct OptionalAbstractRegistration<ServiceType>: AbstractRegistration {
+    let name: String?
+    // Source file used for debugging. Not included in hash calculation or equality
+    let file: String
+
+    var serviceType: ServiceType.Type { ServiceType.self }
+
+    var key: RegistrationKey {
+        return .init(typeIdentifier: ObjectIdentifier(ServiceType.self), name: name)
+    }
+
+    func registerPlaceholder(
+        container: Container,
+        errorFormatter: ModuleAssemblerErrorFormatter,
+        dependencyTree: DependencyTree
+    ) {
+        container.register(Optional<ServiceType>.self, name: name) { _ in
+            return nil
         }
     }
 }
