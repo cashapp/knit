@@ -27,7 +27,7 @@ public enum TypeSafetySourceFile {
                     if registration.getterConfig.contains(.callAsFunction) {
                         try makeResolver(registration: registration, getterType: .callAsFunction)
                     }
-                    if let namedGetter = registration.getterConfig.first(where: { $0.isNamed }) {
+                    if let namedGetter = registration.namedGetterConfig {
                         try makeResolver(registration: registration, getterType: namedGetter)
                     }
                 }

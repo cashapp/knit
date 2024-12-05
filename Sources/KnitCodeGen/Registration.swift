@@ -59,6 +59,17 @@ public struct Registration: Equatable, Codable, Sendable {
         case service, name, accessLevel, arguments, getterConfig, functionName, concurrencyModifier, spi
     }
 
+    var namedGetterConfig: GetterConfig? {
+        getterConfig.first(where: { $0.isNamed })
+    }
+
+    var hasRedundantGetter: Bool {
+        guard let namedGetterConfig, case let GetterConfig.identifiedGetter(name) = namedGetterConfig else {
+            return false
+        }
+        return TypeNamer.computedIdentifierName(type: service) == name
+    }
+
 }
 
 extension Registration {
