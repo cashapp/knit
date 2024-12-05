@@ -19,7 +19,10 @@ extension Container {
     }
 
     /// Register that a service is expected to exist but no implementation is currently available
-    /// If no concrete registration is available then nil will be resolved
+    /// The concrete implementation must be registered or the dependency graph is considered invalid
+    /// - NOTE: We don't currently support abstract registrations with arguments
+    /// As this is an `Optional` Service type this allows special handling of the abstract registration for test environments:
+    /// If during testing and no concrete registration is available, then `nil` will be resolved automatically.
     public func registerAbstract<Service>(
         _ serviceType: Optional<Service>.Type,
         name: String? = nil,
