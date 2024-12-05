@@ -87,6 +87,17 @@ final class TypeNamerTests: XCTestCase {
         )
     }
 
+    func testPrefixedName() {
+        assertComputedIdentifier(
+            type: "UIApplication",
+            expectedIdentifier: "uiApplication"
+        )
+        assertComputedIdentifier(
+            type: "NSURLSession",
+            expectedIdentifier: "nsurlSession"
+        )
+    }
+
 }
 
 private func assertComputedIdentifier(
