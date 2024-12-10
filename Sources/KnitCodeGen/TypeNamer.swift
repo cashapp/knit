@@ -4,7 +4,7 @@
 
 import Foundation
 
-enum TypeNamer {
+public enum TypeNamer {
 
     /**
      Creates a name for a given Type signature.
@@ -12,7 +12,7 @@ enum TypeNamer {
 
      See TypeNamerTests unit tests for examples.
      */
-    static func computedIdentifierName(type: String) -> String {
+    public static func computedIdentifierName(type: String) -> String {
         let type = sanitizeType(type: type, keepGenerics: false)
         let lowercaseIndex = type.firstIndex { $0.isLowercase }
         if let lowercaseIndex {
@@ -24,8 +24,7 @@ enum TypeNamer {
     }
 
     /// Simplifies the type name and removes invalid characters
-
-    static func sanitizeType(type: String, keepGenerics: Bool) -> String {
+    public static func sanitizeType(type: String, keepGenerics: Bool) -> String {
         if isClosure(type: type) {
             // The naming doesn't work for function types, just return closure
             return "closure"
