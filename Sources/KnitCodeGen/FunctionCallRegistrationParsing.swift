@@ -218,7 +218,12 @@ private func getArguments(
     if let argumentParam = arguments.first(where: {$0.label?.text == "argument"}),
        let argumentType = getArgumentType(arg: argumentParam)
     {
-        return [.init(type: argumentType)]
+        if TypeNamer.isClosure(type: argumentType) {
+            // Make all auto register closures @escaping
+            return [.init(type: "@escaping \(argumentType)")]
+        } else {
+            return [.init(type: argumentType)]
+        }
     }
 
     // Autoregister can provide multiple arguments.
@@ -229,7 +234,11 @@ private func getArguments(
             guard let type = getArgumentType(arg: element) else {
                 return nil
             }
-            return .init(type: type)
+            if TypeNamer.isClosure(type: type) {
+                return .init(type: "@escaping \(type)")
+            } else {
+                return .init(type: type)
+            }
         }
     }
 
