@@ -436,7 +436,7 @@ final class RegistrationParsingTests: XCTestCase {
         try assertMultipleRegistrationsString(
             "container.autoregister(A.self, argument: (() -> Void).self, initializer: A.init)",
             registrations: [
-                Registration(service: "A", arguments: [.init(type: "(() -> Void)")], functionName: .autoregister),
+                Registration(service: "A", arguments: [.init(type: "@escaping (() -> Void)")], functionName: .autoregister),
             ]
         )
 
