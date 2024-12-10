@@ -1,6 +1,7 @@
 // swift-tools-version: 5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
+import CompilerPluginSupport
 import PackageDescription
 
 let package = Package(
@@ -11,6 +12,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Knit", targets: ["Knit"]),
+        .library(name: "KnitMacros", targets: ["KnitMacros"] ),
         .plugin(name: "KnitBuildPlugin", targets: ["KnitBuildPlugin"]),
         .executable(name: "knit-cli", targets: ["knit-cli"]),
     ],
@@ -88,6 +90,28 @@ let package = Package(
                 "KnitCodeGen",
             ]
         ),
+
+        // MARK: - Macro
+        .macro(
+            name: "KnitMacrosImplementations",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+                .target(name: "KnitCodeGen"),
+            ]
+        ),
+        .target(name: "KnitMacros", dependencies: ["KnitMacrosImplementations"]),
+        .testTarget(
+            name: "KnitMacrosTests",
+            dependencies: [
+                "KnitMacrosImplementations",
+                .target(name: "KnitMacros"),
+                .target(name: "KnitCodeGen"),
+                .target(name: "Swinject"),
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+            ]
+        ),
+
     ],
     swiftLanguageVersions: [
         // When this SPM package is imported by a Swift 6 toolchain it should still be used in the v5 language mode
