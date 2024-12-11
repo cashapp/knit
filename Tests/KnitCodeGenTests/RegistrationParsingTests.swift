@@ -124,7 +124,8 @@ final class RegistrationParsingTests: XCTestCase {
             """
             container.registerAbstract(AType.self)
             """,
-            serviceName: "AType"
+            serviceName: "AType",
+            concurrencyModifier: "@MainActor"
         )
 
         try assertRegistrationString(
@@ -132,7 +133,8 @@ final class RegistrationParsingTests: XCTestCase {
             container.registerAbstract(AType.self, name: "service")
             """,
             serviceName: "AType",
-            name: "service"
+            name: "service",
+            concurrencyModifier: "@MainActor"
         )
     }
 
@@ -616,7 +618,7 @@ final class RegistrationParsingTests: XCTestCase {
             container.registerAbstract(MyType.self)
             """,
             registrations: [
-                Registration(service: "MyType", functionName: .registerAbstract, spi: "Testing"),
+                Registration(service: "MyType", concurrencyModifier: "@MainActor", functionName: .registerAbstract, spi: "Testing"),
             ]
         )
     }
@@ -637,6 +639,7 @@ private func assertRegistrationString(
     accessLevel: AccessLevel = .internal,
     name: String? = nil,
     isForwarded: Bool = false,
+    concurrencyModifier: String? = nil,
     file: StaticString = #filePath, line: UInt = #line
 ) throws {
     let functionCall = try XCTUnwrap(FunctionCallExprSyntax("\(raw: string)" as ExprSyntax))
@@ -651,6 +654,7 @@ private func assertRegistrationString(
     XCTAssertEqual(registration?.accessLevel, accessLevel, file: file, line: line)
     XCTAssertEqual(registration?.name, name, file: file, line: line)
     XCTAssertEqual(registration?.isForwarded, isForwarded, file: file, line: line)
+    XCTAssertEqual(registration?.concurrencyModifier, concurrencyModifier, file: file, line: line)
 }
 
 /// Assert that multiple registrations exist within the string.

@@ -75,6 +75,7 @@ extension FunctionCallExprSyntax {
         )
 
         let concurrencyModifier = getConcurrencyModifier(
+            functionName: functionName,
             arguments: primaryRegisterMethod.arguments,
             trailingClosure: primaryRegisterMethod.trailingClosure
         )
@@ -282,9 +283,13 @@ private func getArguments(
 }
 
 private func getConcurrencyModifier(
+    functionName: Registration.FunctionName,
     arguments: LabeledExprListSyntax,
     trailingClosure: ClosureExprSyntax?
 ) -> String? {
+    if functionName == .registerAbstract {
+        return "@MainActor"
+    }
     if arguments.contains(where: {$0.label?.text == "mainActorFactory" }) {
         return "@MainActor"
     }
