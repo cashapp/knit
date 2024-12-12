@@ -14,10 +14,13 @@ enum TypeNamer {
      */
     static func computedIdentifierName(type: String) -> String {
         let type = sanitizeType(type: type, keepGenerics: false)
-        if type.uppercased() == type {
+        let lowercaseIndex = type.firstIndex { $0.isLowercase }
+        if let lowercaseIndex {
+            let chars = max(type.distance(from: type.startIndex, to: lowercaseIndex) - 1, 1)
+            return type.prefix(chars).lowercased() + type.dropFirst(chars)
+        } else {
             return type.lowercased()
         }
-        return type.prefix(1).lowercased() + type.dropFirst()
     }
 
     /// Simplifies the type name and removes invalid characters
