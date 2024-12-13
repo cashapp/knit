@@ -301,8 +301,18 @@ private func getConcurrencyModifier(
     arguments: LabeledExprListSyntax,
     trailingClosure: ClosureExprSyntax?
 ) -> String? {
+    // Detects concrete registrations that use the explicitly named closure argument
     if arguments.contains(where: {$0.label?.text == "mainActorFactory" }) {
         return "@MainActor"
+    }
+    // Detects abstract registrations
+    for arg in arguments {
+        guard arg.label?.text == "concurrency" else { continue }
+        // Corresponds to `(concurrency: .MainActor)`
+        // declName is what follows the period
+        if arg.expression.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "MainActor" {
+            return "@MainActor"
+        }
     }
     guard let signature = trailingClosure?.signature else { return nil }
     for att in signature.attributes {

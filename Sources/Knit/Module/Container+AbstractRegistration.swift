@@ -12,9 +12,10 @@ extension Container {
     public func registerAbstract<Service>(
         _ serviceType: Service.Type,
         name: String? = nil,
+        concurrency: ConcurrencyAttribute = .nonisolated,
         file: String = #fileID
     ) {
-        let registration = RealAbstractRegistration<Service>(name: name, file: file)
+        let registration = RealAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
         abstractRegistrations().abstractRegistrations.append(registration)
     }
 
@@ -26,9 +27,10 @@ extension Container {
     public func registerAbstract<Service>(
         _ serviceType: Optional<Service>.Type,
         name: String? = nil,
+        concurrency: ConcurrencyAttribute = .nonisolated,
         file: String = #fileID
     ) {
-        let registration = OptionalAbstractRegistration<Service>(name: name, file: file)
+        let registration = OptionalAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
         abstractRegistrations().abstractRegistrations.append(registration)
     }
 
@@ -50,6 +52,7 @@ extension Container {
 internal struct RegistrationKey: Hashable, Equatable {
     let typeIdentifier: ObjectIdentifier
     let name: String?
+    let concurrency: ConcurrencyAttribute
 }
 
 /// Protocol version to allow storing generic types an array
@@ -60,6 +63,7 @@ internal protocol AbstractRegistration {
     var file: String { get }
     var name: String? { get }
     var key: RegistrationKey { get }
+    var concurrency: ConcurrencyAttribute { get }
 
     /// Register a placeholder registration to fill the unfulfilled abstract registration
     /// This placeholder cannot be resolved
@@ -89,8 +93,14 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
 
     var serviceType: ServiceType.Type { ServiceType.self }
 
+    let concurrency: ConcurrencyAttribute
+
     var key: RegistrationKey {
-        return .init(typeIdentifier: ObjectIdentifier(ServiceType.self), name: name)
+        return .init(
+            typeIdentifier: ObjectIdentifier(ServiceType.self),
+            name: name,
+            concurrency: concurrency
+        )
     }
 
     func registerPlaceholder(
@@ -113,8 +123,10 @@ fileprivate struct OptionalAbstractRegistration<ServiceType>: AbstractRegistrati
 
     var serviceType: ServiceType.Type { ServiceType.self }
 
+    let concurrency: ConcurrencyAttribute
+
     var key: RegistrationKey {
-        return .init(typeIdentifier: ObjectIdentifier(ServiceType.self), name: name)
+        return .init(typeIdentifier: ObjectIdentifier(ServiceType.self), name: name, concurrency: concurrency)
     }
 
     func registerPlaceholder(
@@ -171,12 +183,23 @@ extension Container {
             toService entry: ServiceEntry<Service>,
             withName name: String?
         ) {
-            let id = RegistrationKey(typeIdentifier: ObjectIdentifier(Type.self), name: name)
+            let id = RegistrationKey(
+                typeIdentifier: ObjectIdentifier(Type.self),
+                name: name,
+                concurrency: .unknown
+            )
             concreteRegistrations.insert(id)
         }
 
         var unfulfilledRegistrations: [any AbstractRegistration] {
-            abstractRegistrations.filter { !concreteRegistrations.contains($0.key) }
+            abstractRegistrations.filter { abstractRegistration in
+                let abstractKey = abstractRegistration.key
+                return !concreteRegistrations.contains { concreteKey in
+                    // We need to ignore the concurrency attribute currently due to Swinject limitations
+                    concreteKey.typeIdentifier == abstractKey.typeIdentifier &&
+                        concreteKey.name == abstractKey.name
+                }
+            }
         }
 
         // Throws an error if any abstract registrations have not been implemented
