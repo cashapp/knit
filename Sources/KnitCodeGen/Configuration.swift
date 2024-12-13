@@ -13,7 +13,6 @@ public struct Configuration: Encodable, Sendable {
     public var directives: KnitDirectives
 
     public enum AssemblyType: String, Encodable, Sendable {
-        /// `Swinject.Assembly`
         case moduleAssembly = "ModuleAssembly"
         case autoInitAssembly = "AutoInitModuleAssembly"
         case abstractAssembly = "AbstractAssembly"
