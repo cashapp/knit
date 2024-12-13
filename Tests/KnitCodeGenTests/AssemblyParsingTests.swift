@@ -853,6 +853,53 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
+    func testRedundantGetterName() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+                typealias ReplacedAssembly = RealAssembly
+
+                func assemble(container: Container) {
+                    // @knit getter-named("a")
+                    container.register(A.self) { }
+                }
+            }
+            """
+
+        _ = try assertParsesSyntaxTree(sourceFile, assertErrorsToPrint: { errors in
+            XCTAssertEqual(errors.count, 1)
+            if case RegistrationParsingError.redundantGetter = errors[0] {
+                // Correct
+            } else {
+                XCTFail("Incorrect error case")
+            }
+        })
+    }
+
+    func testRedundantForwardedGetterName() throws {
+        let sourceFile: SourceFileSyntax = """
+            class TestAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+                typealias ReplacedAssembly = RealAssembly
+
+                func assemble(container: Container) {
+                    container.register(A.self) { }
+                        // @knit getter-named("b")
+                        .implements(B.self)
+                }
+            }
+            """
+
+        _ = try assertParsesSyntaxTree(sourceFile, assertErrorsToPrint: { errors in
+            XCTAssertEqual(errors.count, 1)
+            if case RegistrationParsingError.redundantGetter = errors[0] {
+                // Correct
+            } else {
+                XCTFail("Incorrect error case")
+            }
+        })
+    }
+
 }
 
 private func assertParsesSyntaxTree(
