@@ -114,7 +114,10 @@ extension FunctionCallExprSyntax {
                 functionName: .implements
             ) {
                 if forwardedRegistration.hasRedundantGetter {
-                    throw RegistrationParsingError.redundantGetter(syntax: implementsCalledMethod.calledExpression)
+                    throw RegistrationParsingError.redundantGetter(
+                        // Place the error on the `.implements` decl
+                        syntax: implementsCalledMethod.calledExpression.declName
+                    )
                 }
                 forwardedRegistrations.append(forwardedRegistration)
             }
