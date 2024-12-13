@@ -25,6 +25,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         _ modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
+        behaviors: [Behavior] = [],
         postAssemble: ((Container) -> Void)? = nil,
         file: StaticString = #fileID,
         line: UInt = #line
@@ -34,6 +35,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
                 parent: parent,
                 _modules: modules,
                 overrideBehavior: overrideBehavior,
+                behaviors: behaviors,
                 postAssemble: postAssemble
             )
         } catch {
@@ -53,6 +55,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
         _modules modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
+        behaviors: [Behavior] = [],
         postAssemble: ((Container) -> Void)? = nil
     ) throws {
         // For provided modules, fail early if they are scoped incorrectly
@@ -80,6 +83,7 @@ public final class ScopedModuleAssembler<ScopedResolver> {
                 }
             },
             errorFormatter: errorFormatter,
+            behaviors: behaviors,
             postAssemble: postAssemble
         )
     }
