@@ -12,6 +12,7 @@ final class AbstractRegistrationTests: XCTestCase {
         let abstractRegistrations = container.registerAbstractContainer()
         container.registerAbstract(String.self)
         container.registerAbstract(String.self, name: "test")
+        container.registerAbstract(Optional<Int>.self)
 
         XCTAssertThrowsError(try abstractRegistrations.validate()) { error in
             XCTAssertEqual(
@@ -19,6 +20,7 @@ final class AbstractRegistrationTests: XCTestCase {
                 """
                 Unsatisfied abstract registration. Service: String, File: KnitTests/AbstractRegistrationTests.swift
                 Unsatisfied abstract registration. Service: String, File: KnitTests/AbstractRegistrationTests.swift, Name: test
+                Unsatisfied abstract registration. Service: Optional<Int>, File: KnitTests/AbstractRegistrationTests.swift
                 """
             )
         }
@@ -29,8 +31,14 @@ final class AbstractRegistrationTests: XCTestCase {
         let abstractRegistrations = container.registerAbstractContainer()
         container.registerAbstract(String.self)
         container.register(String.self) { _ in "Test" }
+
+        // Abstract registrations of Optional types are handled differently so test that as well
+        container.registerAbstract(Optional<Int>.self)
+        container.register(Optional<Int>.self) { _ in 1 }
+
         XCTAssertNoThrow(try abstractRegistrations.validate())
         XCTAssertEqual(container.resolve(String.self), "Test")
+        XCTAssertEqual(container.resolve(Optional<Int>.self), 1)
     }
 
     func testNamedRegistrations() {

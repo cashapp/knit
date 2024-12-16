@@ -30,7 +30,7 @@ extension Container {
         concurrency: ConcurrencyAttribute = .nonisolated,
         file: String = #fileID
     ) {
-        let registration = OptionalAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
+        let registration = OptionalAbstractRegistration<Optional<Service>, Service>(name: name, file: file, concurrency: concurrency)
         abstractRegistrations().abstractRegistrations.append(registration)
     }
 
@@ -116,17 +116,25 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
 }
 
 /// An abstract registration for an optional service
-fileprivate struct OptionalAbstractRegistration<ServiceType>: AbstractRegistration {
+fileprivate struct OptionalAbstractRegistration<ServiceType, UnwrappedServiceType>: AbstractRegistration {
     let name: String?
     // Source file used for debugging. Not included in hash calculation or equality
     let file: String
 
+    /// The actual service type added for this registration (includes the Optional wrapper).
     var serviceType: ServiceType.Type { ServiceType.self }
+
+    /// The inner type of the Optional service type for the registration.
+    var unwrappedServiceType: UnwrappedServiceType.Type { UnwrappedServiceType.self }
 
     let concurrency: ConcurrencyAttribute
 
     var key: RegistrationKey {
-        return .init(typeIdentifier: ObjectIdentifier(ServiceType.self), name: name, concurrency: concurrency)
+        return .init(
+            typeIdentifier: ObjectIdentifier(ServiceType.self),
+            name: name,
+            concurrency: concurrency
+        )
     }
 
     func registerPlaceholder(
@@ -134,7 +142,7 @@ fileprivate struct OptionalAbstractRegistration<ServiceType>: AbstractRegistrati
         errorFormatter: ModuleAssemblerErrorFormatter,
         dependencyTree: DependencyTree
     ) {
-        container.register(Optional<ServiceType>.self, name: name) { _ in
+        container.register(Optional<UnwrappedServiceType>.self, name: name) { _ in
             return nil
         }
     }
