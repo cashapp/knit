@@ -59,7 +59,7 @@ internal struct RegistrationKey: Hashable, Equatable {
 internal protocol AbstractRegistration {
     associatedtype ServiceType
 
-    var serviceType: ServiceType.Type { get }
+    var serviceDescription: String { get }
     var file: String { get }
     var name: String? { get }
     var key: RegistrationKey { get }
@@ -78,7 +78,7 @@ extension AbstractRegistration {
     // Convert the key into an error
     var error: Container.AbstractRegistrationError {
         return Container.AbstractRegistrationError(
-            serviceType: "\(serviceType)",
+            serviceType: serviceDescription,
             file: file,
             name: name
         )
@@ -91,7 +91,7 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
     // Source file used for debugging. Not included in hash calculation or equality
     let file: String
 
-    var serviceType: ServiceType.Type { ServiceType.self }
+    var serviceDescription: String { String(describing: ServiceType.self) }
 
     let concurrency: ConcurrencyAttribute
 
@@ -116,17 +116,25 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
 }
 
 /// An abstract registration for an optional service
-fileprivate struct OptionalAbstractRegistration<ServiceType>: AbstractRegistration {
+/// The `UnwrappedServiceType` represents the inner type of the Optional service type for the registration.
+fileprivate struct OptionalAbstractRegistration<UnwrappedServiceType>: AbstractRegistration {
     let name: String?
     // Source file used for debugging. Not included in hash calculation or equality
     let file: String
 
-    var serviceType: ServiceType.Type { ServiceType.self }
+    /// The actual service type added for this registration (includes the Optional wrapper).
+    typealias ServiceType = Optional<UnwrappedServiceType>
+
+    var serviceDescription: String { String(describing: ServiceType.self) }
 
     let concurrency: ConcurrencyAttribute
 
     var key: RegistrationKey {
-        return .init(typeIdentifier: ObjectIdentifier(ServiceType.self), name: name, concurrency: concurrency)
+        return .init(
+            typeIdentifier: ObjectIdentifier(ServiceType.self),
+            name: name,
+            concurrency: concurrency
+        )
     }
 
     func registerPlaceholder(
@@ -134,7 +142,7 @@ fileprivate struct OptionalAbstractRegistration<ServiceType>: AbstractRegistrati
         errorFormatter: ModuleAssemblerErrorFormatter,
         dependencyTree: DependencyTree
     ) {
-        container.register(Optional<ServiceType>.self, name: name) { _ in
+        container.register(ServiceType.self, name: name) { _ in
             return nil
         }
     }
