@@ -30,7 +30,7 @@ extension Container {
         concurrency: ConcurrencyAttribute = .nonisolated,
         file: String = #fileID
     ) {
-        let registration = OptionalAbstractRegistration<Optional<Service>, Service>(name: name, file: file, concurrency: concurrency)
+        let registration = OptionalAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
         abstractRegistrations().abstractRegistrations.append(registration)
     }
 
@@ -59,7 +59,7 @@ internal struct RegistrationKey: Hashable, Equatable {
 internal protocol AbstractRegistration {
     associatedtype ServiceType
 
-    var serviceType: ServiceType.Type { get }
+    var serviceDescription: String { get }
     var file: String { get }
     var name: String? { get }
     var key: RegistrationKey { get }
@@ -78,7 +78,7 @@ extension AbstractRegistration {
     // Convert the key into an error
     var error: Container.AbstractRegistrationError {
         return Container.AbstractRegistrationError(
-            serviceType: "\(serviceType)",
+            serviceType: serviceDescription,
             file: file,
             name: name
         )
@@ -91,7 +91,7 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
     // Source file used for debugging. Not included in hash calculation or equality
     let file: String
 
-    var serviceType: ServiceType.Type { ServiceType.self }
+    var serviceDescription: String { String(describing: ServiceType.self) }
 
     let concurrency: ConcurrencyAttribute
 
@@ -116,16 +116,16 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
 }
 
 /// An abstract registration for an optional service
-fileprivate struct OptionalAbstractRegistration<ServiceType, UnwrappedServiceType>: AbstractRegistration {
+/// The `UnwrappedServiceType` represents the inner type of the Optional service type for the registration.
+fileprivate struct OptionalAbstractRegistration<UnwrappedServiceType>: AbstractRegistration {
     let name: String?
     // Source file used for debugging. Not included in hash calculation or equality
     let file: String
 
     /// The actual service type added for this registration (includes the Optional wrapper).
-    var serviceType: ServiceType.Type { ServiceType.self }
+    typealias ServiceType = Optional<UnwrappedServiceType>
 
-    /// The inner type of the Optional service type for the registration.
-    var unwrappedServiceType: UnwrappedServiceType.Type { UnwrappedServiceType.self }
+    var serviceDescription: String { String(describing: ServiceType.self) }
 
     let concurrency: ConcurrencyAttribute
 
@@ -142,7 +142,7 @@ fileprivate struct OptionalAbstractRegistration<ServiceType, UnwrappedServiceTyp
         errorFormatter: ModuleAssemblerErrorFormatter,
         dependencyTree: DependencyTree
     ) {
-        container.register(Optional<UnwrappedServiceType>.self, name: name) { _ in
+        container.register(ServiceType.self, name: name) { _ in
             return nil
         }
     }
