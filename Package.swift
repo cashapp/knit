@@ -15,8 +15,6 @@ let package = Package(
         .executable(name: "knit-cli", targets: ["knit-cli"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Swinject/Swinject.git", from: "2.9.1"),
-        .package(url: "https://github.com/Swinject/SwinjectAutoregistration.git", from: "2.9.1"),
         .package(url: "https://github.com/apple/swift-syntax.git", from: "510.0.2"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.4.0"),
     ],
@@ -24,8 +22,8 @@ let package = Package(
         .target(
             name: "Knit",
             dependencies: [
-                .product(name: "Swinject", package: "Swinject"),
-                .product(name: "SwinjectAutoregistration", package: "SwinjectAutoregistration"),
+                .target(name: "Swinject"),
+                .target(name: "SwinjectAutoregistration"),
             ],
             exclude: ["ServiceCollection/Container+ServiceCollection.erb"]
         ),
@@ -40,6 +38,30 @@ let package = Package(
             capability: .buildTool,
             dependencies: [
                 .target(name: "knit-cli"),
+            ]
+        ),
+
+        // MARK: - Swinject
+        .target(
+            name: "Swinject",
+            exclude: ["Container.Arguments.erb", "Resolver.erb", "ServiceEntry.TypeForwarding.erb"]
+        ),
+        .target(
+            name: "SwinjectAutoregistration",
+            dependencies: [
+                .target(name: "Swinject"),
+            ]
+        ),
+        .testTarget(
+            name: "SwinjectTests",
+            dependencies: [
+                .target(name: "Swinject"),
+            ]
+        ),
+        .testTarget(
+            name: "SwinjectAutoregistrationTests",
+            dependencies: [
+                .target(name: "SwinjectAutoregistration"),
             ]
         ),
 
