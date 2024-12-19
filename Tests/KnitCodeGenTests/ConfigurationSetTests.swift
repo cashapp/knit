@@ -22,7 +22,7 @@ final class ConfigurationSetTests: XCTestCase {
 
             import Dependency1
             import Dependency2
-            import Swinject
+            import Knit
 
             // The correct resolution of each of these types is enforced by a matching automated unit test
             // If a type registration is missing or broken then the automated tests will fail for that PR

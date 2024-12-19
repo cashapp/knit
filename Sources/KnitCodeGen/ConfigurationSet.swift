@@ -62,7 +62,7 @@ public extension ConfigurationSet {
 
     func makeTypeSafetySourceFile() throws -> String {
         var allImports = allImports
-        allImports.insert(.named("Swinject"))
+        allImports.insert(.named("Knit"))
         let header = HeaderSourceFile.make(imports: allImports.sorted, comment: Self.typeSafetyIntro)
         let body = try assemblies.map { try $0.makeTypeSafetySourceFile() }
         let sourceFiles = [header] + body

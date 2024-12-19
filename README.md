@@ -74,3 +74,7 @@ Located in the [Docs/Modules.md](Docs/Modules.md) file.
 ## Release Guide
 
 Located in the [Docs/Release.md](Docs/Release.md) file.
+
+## Swinject Dependencies
+
+Information about the copied dependencies is located in the [Docs/Swinject.md](Docs/Swinject.md) file.

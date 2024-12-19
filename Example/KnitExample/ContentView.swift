@@ -3,7 +3,6 @@
 //
 
 import Knit
-import Swinject
 import SwiftUI
 
 struct ContentView: View {
