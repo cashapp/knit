@@ -98,6 +98,18 @@ final class TypeNamerTests: XCTestCase {
         )
     }
 
+    func testAnyPrefix() {
+        assertComputedIdentifier(
+            type: "(any AppTransitionObservable)",
+            expectedIdentifier: "appTransitionObservable"
+        )
+
+        assertComputedIdentifier(
+            type: "any AppTransitionObservable",
+            expectedIdentifier: "appTransitionObservable"
+        )
+    }
+
 }
 
 private func assertComputedIdentifier(

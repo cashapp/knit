@@ -30,8 +30,10 @@ enum TypeNamer {
             // The naming doesn't work for function types, just return closure
             return "closure"
         }
+        // Drop any annotation
+        var type = type.replacingOccurrences(of: "any ", with: "")
         let removedCharacters = CharacterSet(charactersIn: "?[]():&, ")
-        var type = type.components(separatedBy: removedCharacters).joined(separator: "")
+        type = type.components(separatedBy: removedCharacters).joined(separator: "")
         let regex = try! NSRegularExpression(pattern: "<.*>")
         let nsString = type as NSString
         if let match = regex.firstMatch(in: type, range: .init(location: 0, length: type.count)) {
