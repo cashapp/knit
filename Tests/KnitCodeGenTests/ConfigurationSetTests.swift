@@ -32,6 +32,14 @@ final class ConfigurationSetTests: XCTestCase {
                     knitUnwrap(resolve(Service1.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
             }
+            extension Module1Assembly {
+                public static var _assemblyFlags: [ModuleAssemblyFlags] {
+                    []
+                }
+                public static func _autoInstantiate() -> (any ModuleAssembly)? {
+                    nil
+                }
+            }
             /// Generated from ``Module2Assembly``
             extension Resolver {
                 public func callAsFunction(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service2 {
@@ -41,10 +49,26 @@ final class ConfigurationSetTests: XCTestCase {
                     knitUnwrap(resolve(ArgumentService.self, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
             }
+            extension Module2Assembly {
+                public static var _assemblyFlags: [ModuleAssemblyFlags] {
+                    []
+                }
+                public static func _autoInstantiate() -> (any ModuleAssembly)? {
+                    nil
+                }
+            }
             /// Generated from ``Module3Assembly``
             extension Resolver {
                 public func service3(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service3 {
                     knitUnwrap(resolve(Service3.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                }
+            }
+            extension Module3Assembly {
+                public static var _assemblyFlags: [ModuleAssemblyFlags] {
+                    []
+                }
+                public static func _autoInstantiate() -> (any ModuleAssembly)? {
+                    nil
                 }
             }
             """
