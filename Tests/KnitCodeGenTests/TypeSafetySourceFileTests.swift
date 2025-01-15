@@ -62,6 +62,14 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 case otherName
             }
         }
+        extension ModuleAssembly {
+            public static var _assemblyFlags: [ModuleAssemblyFlags] {
+                []
+            }
+            public static func _autoInstantiate() -> (any ModuleAssembly)? {
+                nil
+            }
+        }
         """
 
         XCTAssertEqual(expected, result.formatted().description)
@@ -257,6 +265,14 @@ final class TypeSafetySourceFileTests: XCTestCase {
         extension RealAssembly: Knit.DefaultModuleAssemblyOverride {
             public typealias OverrideType = MyFakeAssembly
         }
+        extension MyFakeAssembly {
+            public static var _assemblyFlags: [ModuleAssemblyFlags] {
+                [.autoInit]
+            }
+            public static func _autoInstantiate() -> (any ModuleAssembly)? {
+                MyFakeAssembly()
+            }
+        }
         """
 
         XCTAssertEqual(expected, result.formatted().description)
@@ -289,6 +305,43 @@ final class TypeSafetySourceFileTests: XCTestCase {
         extension OtherRealAssembly: Knit.DefaultModuleAssemblyOverride {
             public typealias OverrideType = MyFakeAssembly
         }
+        extension MyFakeAssembly {
+            public static var _assemblyFlags: [ModuleAssemblyFlags] {
+                [.autoInit]
+            }
+            public static func _autoInstantiate() -> (any ModuleAssembly)? {
+                MyFakeAssembly()
+            }
+        }
+        """
+
+        XCTAssertEqual(expected, result.formatted().description)
+    }
+
+    func test_abstract_generation() throws {
+        let result = try TypeSafetySourceFile.make(
+            from: Configuration(
+                assemblyName: "SomeAbstractAssembly",
+                moduleName: "Module",
+                assemblyType: .abstractAssembly,
+                registrations: [],
+                replaces: [],
+                targetResolver: "AccountResolver"
+            )
+        )
+
+        let expected = """
+        /// Generated from ``SomeAbstractAssembly``
+        extension AccountResolver {
+        }
+        extension SomeAbstractAssembly {
+            public static var _assemblyFlags: [ModuleAssemblyFlags] {
+                [.autoInit, .abstract]
+            }
+            public static func _autoInstantiate() -> (any ModuleAssembly)? {
+                SomeAbstractAssembly()
+            }
+        }
         """
 
         XCTAssertEqual(expected, result.formatted().description)
@@ -310,6 +363,14 @@ final class TypeSafetySourceFileTests: XCTestCase {
         extension Resolver {
             @MainActor func serviceA(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceA {
                 knitUnwrap(resolve(ServiceA.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
+        }
+        extension MainActorAssembly {
+            public static var _assemblyFlags: [ModuleAssemblyFlags] {
+                []
+            }
+            public static func _autoInstantiate() -> (any ModuleAssembly)? {
+                nil
             }
         }
         """

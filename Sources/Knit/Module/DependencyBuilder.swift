@@ -58,14 +58,14 @@ final class DependencyBuilder {
             return existingType
         }
         if let overrideType = try defaultOverride(moduleType, fromInput: inputModule != nil),
-           let autoInit = overrideType as? any AutoInitModuleAssembly.Type {
-            return autoInit.init()
+           let created = overrideType._autoInstantiate() {
+            return created
         }
         if let inputModule {
             return inputModule
         }
-        if let autoInit = moduleType as? any AutoInitModuleAssembly.Type {
-            return autoInit.init()
+        if let created = moduleType._autoInstantiate() {
+            return created
         }
 
         throw DependencyBuilderError.moduleNotProvided(moduleType, dependencyTree.sourcePathString(moduleType: moduleType))
@@ -230,7 +230,8 @@ internal extension DependencyBuilder {
                 // Collect AbstractAssemblies as they should all be instantiated and added to the container.
                 // This needs to happen before the filter below as they are all expected to be implemented by other assemblies
                 // and will therefore be filtered out.
-                if ref.type is any AbstractAssembly.Type {
+
+                if ref.type._assemblyFlags.contains(.abstract) {
                     return true
                 }
 

@@ -24,6 +24,11 @@ public protocol ModuleAssembly {
     /// This can be overridden in apps with custom Resolver hierarchies
     static func scoped(_ dependencies: [any ModuleAssembly.Type]) -> [any ModuleAssembly.Type]
 
+    /// Hints about this assembly using by DependencyBuilder. Designed for internal use
+    static var _assemblyFlags: [ModuleAssemblyFlags] { get }
+
+    /// Creates an instance of this assembly if the assembly conforms to AutoInitModuleAssembly
+    static func _autoInstantiate() -> (any ModuleAssembly)?
 }
 
 public extension ModuleAssembly {
@@ -39,6 +44,24 @@ public extension ModuleAssembly {
             // Default the scoped implementation to match types directly
             return self.resolverType == $0.resolverType
         }
+    }
+
+    static var _assemblyFlags: [ModuleAssemblyFlags] {
+        var result: [ModuleAssemblyFlags] = []
+        if self is any AutoInitModuleAssembly.Type {
+            result.append(.autoInit)
+        }
+        if self is any AbstractAssembly.Type {
+            result.append(.abstract)
+        }
+        return result
+    }
+
+    static func _autoInstantiate() -> (any ModuleAssembly)? {
+        if let autoInit = self as? any AutoInitModuleAssembly.Type {
+            return autoInit.init()
+        }
+        return nil
     }
 }
 
@@ -96,4 +119,13 @@ public struct OverrideBehavior {
         // Will be true if XCTest.framework is included in the runtime.
         return NSClassFromString("XCTestCase") != nil
     }
+}
+
+public struct ModuleAssemblyFlags: OptionSet {
+    public let rawValue: UInt
+
+    public init(rawValue: UInt) { self.rawValue = rawValue }
+
+    public static let autoInit = ModuleAssemblyFlags(rawValue: 1 << 0)
+    public static let abstract = ModuleAssemblyFlags(rawValue: 1 << 1)
 }

@@ -46,6 +46,7 @@ public enum TypeSafetySourceFile {
             if let defaultOverrides = try makeDefaultOverrideExtensions(config: config) {
                 defaultOverrides
             }
+            try makePerformanceExtension(config: config)
         }
     }
 
@@ -157,6 +158,45 @@ public enum TypeSafetySourceFile {
              /// default overrides for all other types it replaces.
 
              """
+        )
+    }
+
+    private static func makePerformanceExtension(config: Configuration) throws -> ExtensionDeclSyntax {
+        let accessorBlock: AccessorBlockSyntax
+        let isAutoInit: Bool
+        if config.assemblyType == .abstractAssembly {
+            accessorBlock = AccessorBlockSyntax(
+                accessors: .getter(.init(stringLiteral: "[.autoInit, .abstract]"))
+            )
+            isAutoInit = true
+        } else if config.assemblyType == .autoInitAssembly || config.assemblyType == .fakeAssembly {
+            accessorBlock = AccessorBlockSyntax(
+                accessors: .getter(.init(stringLiteral: "[.autoInit]"))
+            )
+            isAutoInit = true
+        }
+        else {
+            accessorBlock = AccessorBlockSyntax(
+                accessors: .getter(.init(stringLiteral: "[]"))
+            )
+            isAutoInit = false
+        }
+
+        return try ExtensionDeclSyntax(
+            extendedType: TypeSyntax(stringLiteral: config.assemblyName),
+            memberBlockBuilder: {
+                VariableDeclSyntax.makeVar(
+                    keywords: [.public, .static],
+                    name: "_assemblyFlags",
+                    type: "[ModuleAssemblyFlags]",
+                    accessorBlock: accessorBlock
+                )
+                if isAutoInit {
+                    try FunctionDeclSyntax("public static func _autoInstantiate() -> (any ModuleAssembly)? { \(raw: config.assemblyName)() }")
+                } else {
+                    try FunctionDeclSyntax("public static func _autoInstantiate() -> (any ModuleAssembly)? { nil }")
+                }
+            }
         )
     }
 
