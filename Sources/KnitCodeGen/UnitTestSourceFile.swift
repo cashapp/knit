@@ -245,7 +245,8 @@ private extension Registration {
     /// Argument identifiers prefixed with the service name. Provides additional collision safety.
     func serviceIdentifiedArguments() -> [Argument] {
         return uniquelyIdentifiedArguments().map { arg in
-            let serviceName = self.service.prefix(1).lowercased() + self.service.dropFirst()
+            let sanitizedServiceName = TypeNamer.sanitizeType(type: service, keepGenerics: true)
+            let serviceName = sanitizedServiceName.prefix(1).lowercased() + sanitizedServiceName.dropFirst()
             let capitalizedName = arg.resolvedIdentifier().prefix(1).uppercased() + arg.resolvedIdentifier().dropFirst()
             // When generating the test arguments struct, the `@escaping` attribute should always be removed from the
             // argument type, as assigning a closure type to a property is inherently escaping

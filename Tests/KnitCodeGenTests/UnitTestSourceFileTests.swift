@@ -252,6 +252,8 @@ final class UnitTestSourceFileTests: XCTestCase {
             Registration(service: "B", accessLevel: .public, arguments: [.init(identifier: "field", type: "String"), .init(type: "String")]),
             Registration(service: "A", accessLevel: .public, arguments: [.init(type: "Int"), .init(type: "String")]),
             Registration(service: "C", accessLevel: .public, arguments: [.init(type: "@escaping () -> Void")]),
+            Registration(service: "D?", accessLevel: .public, arguments: [.init(type: "String")]),
+            Registration(service: "Optional<E>", accessLevel: .public, arguments: [.init(type: "String")]),
         ]
         let result = try UnitTestSourceFile.makeArgumentStruct(registrations: registrations, assemblyName: "MyModule")
 
@@ -264,6 +266,8 @@ final class UnitTestSourceFileTests: XCTestCase {
             let bString: String
             let aInt: Int
             let cClosure: () -> Void
+            let dString: String
+            let optional_EString: String
         }
         """
 
