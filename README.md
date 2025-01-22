@@ -63,7 +63,48 @@ The following commands are available:
 
 #### Default Setting
 
-By default Knit generates named getters for its type safety. 
+By default Knit generates named getters for its type safety.
+
+## Duplicate Registration Detection
+
+As an app scales, so do the number of DI registrations. It is important to detect duplicate registrations because by
+default Swinject will overwrite early registrations with any duplicates.
+While this capability is useful in test environments, at runtime it almost always indicates a programming/configuration
+error, which could lead to bugs.
+
+Knit includes two capabilities to detect duplicate registrations for additional DI graph safety:
+
+1. Compile-time detection within a single module.
+1. Runtime detection across an entire container's graph.
+
+### Compile-time Detection
+
+When Knit parses the assembly files within a single module it will automatically detect any duplicates
+found during parsing and immediately report an error with information about the duplicate.
+This is always on and automatic.
+
+### Runtime Detection
+
+Knit only parses the assemblies in a single module at a time so it is not able to detect duplicates across modules
+during parsing/compile time. 
+Instead Knit provides a `DuplicateRegistrationDetector` class, which is a Swinject Behavior.
+`DuplicateRegistrationDetector` allows for runtime detection of all registrations made to a single Container (DI graph),
+regardless of which modules those registrations came from. 
+This adds safety from duplicate registrations to your whole DI graph.
+
+An instance of DuplicateRegistrationDetector should be added to the Container to make use of this feature. Configuration steps:
+
+1. Create an instance of `DuplicateRegistrationDetector`.
+1. Provide that instance to your Container (ScopedModuleAssembler/ModuleAssembler/Assembler also allow behaviors to be
+    passed into their initializers).
+1. Perform the registration phase of your Container setup. If you are using ScopedModuleAssembler/ModuleAssembler then the registration phase will be complete after the initialer returns.
+1. Check the `detectedKeys` property of your `DuplicateRegistrationDetector` instance for duplicates.
+
+Note that there are also helpers on `DuplicateRegistrationDetector.Key` and `Array<DuplicateRegistrationDetector.Key>`
+to help with creating reports/error messages that are easier to read.
+
+`DuplicateRegistrationDetector` also provides a `duplicateWasDetected` closure hook if you would like to be informed of each
+duplicate at the moment that duplicate is registered.
 
 ---
 

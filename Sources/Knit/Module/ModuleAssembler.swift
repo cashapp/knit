@@ -72,6 +72,7 @@ public final class ModuleAssembler {
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
+        behaviors: [Behavior] = [],
         postAssemble: ((Container) -> Void)? = nil
     ) throws {
         self.builder = try DependencyBuilder(
@@ -84,7 +85,10 @@ public final class ModuleAssembler {
         )
 
         self.parent = parent
-        self._container = Container(parent: parent?._container)
+        self._container = Container(
+            parent: parent?._container,
+            behaviors: behaviors
+        )
         self.serviceCollector = .init(parent: parent?.serviceCollector)
         self._container.addBehavior(serviceCollector)
         let abstractRegistrations = self._container.registerAbstractContainer()
