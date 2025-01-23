@@ -32,12 +32,13 @@ enum TypeNamer {
         }
         // Drop any annotation
         var type = type.replacingOccurrences(of: "any ", with: "")
-        let removedCharacters = CharacterSet(charactersIn: "?[]():&, ")
+        let removedCharacters = CharacterSet(charactersIn: "?[]():& ")
         type = type.components(separatedBy: removedCharacters).joined(separator: "")
         let regex = try! NSRegularExpression(pattern: "<.*>")
         let nsString = type as NSString
         if let match = regex.firstMatch(in: type, range: .init(location: 0, length: type.count)) {
             let range = match.range
+            let mainType = nsString.replacingCharacters(in: match.range, with: "")
             if keepGenerics {
                 var genericName = nsString.substring(
                     with: .init(location: range.location + 1, length: range.length - 2)
@@ -47,17 +48,37 @@ enum TypeNamer {
                     .replacingOccurrences(of: ",", with: "_")
                     .replacingOccurrences(of: " ", with: "")
                 type = nsString.replacingCharacters(in: match.range, with: "_\(genericName)")
+            } else if let suffix = Self.suffixedGenericTypes.first(where: { mainType.hasSuffix($0)} ) {
+                let genericName = nsString.substring(
+                    with: .init(location: range.location + 1, length: range.length - 2)
+                )
+                if let mainGeneric = genericName.components(separatedBy: .init(charactersIn: ",")).first {
+                    type = mainGeneric + suffix
+                } else {
+                    type = mainType
+                }
             } else {
-                type = nsString.replacingCharacters(in: match.range, with: "")
+                type = mainType
             }
+        } else {
+            type = type.components(separatedBy: .init(charactersIn: ",")).joined(separator: "")
         }
-        if let dotIndex = type.firstIndex(of: ".") {
+        if let dotIndex = type.lastIndex(of: ".") {
             let nameStart = type.index(after: dotIndex)
-            type = String(type[nameStart...])
+            let lastType = String(type[nameStart...])
+            // Types with a Factory subtype should keep the subject of the factory
+            if lastType == "Factory" {
+                let components = type.components(separatedBy: .init(charactersIn: "."))
+                type = components.suffix(2).joined(separator: "")
+            } else {
+                type = lastType
+            }
         }
 
         return type
     }
+
+    private static let suffixedGenericTypes = ["Publisher", "Subject", "Provider"]
 
     static func isClosure(type: String) -> Bool {
         return type.contains("->")
