@@ -51,9 +51,16 @@ enum TypeNamer {
                 type = nsString.replacingCharacters(in: match.range, with: "")
             }
         }
-        if let dotIndex = type.firstIndex(of: ".") {
+        if let dotIndex = type.lastIndex(of: ".") {
             let nameStart = type.index(after: dotIndex)
-            type = String(type[nameStart...])
+            let lastType = String(type[nameStart...])
+            // Types with a Factory subtype should keep the subject of the factory
+            if lastType == "Factory" {
+                let components = type.components(separatedBy: .init(charactersIn: "."))
+                type = components.suffix(2).joined(separator: "")
+            } else {
+                type = lastType
+            }
         }
 
         return type

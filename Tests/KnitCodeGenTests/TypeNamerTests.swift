@@ -110,6 +110,23 @@ final class TypeNamerTests: XCTestCase {
         )
     }
 
+    func testFactoryRule() {
+        assertComputedIdentifier(
+            type: "MyClass.Factory",
+            expectedIdentifier: "myClassFactory"
+        )
+
+        assertComputedIdentifier(
+            type: "Module.MyClass.Factory",
+            expectedIdentifier: "myClassFactory"
+        )
+
+        assertComputedIdentifier(
+            type: "Factory",
+            expectedIdentifier: "factory"
+        )
+    }
+
 }
 
 private func assertComputedIdentifier(
