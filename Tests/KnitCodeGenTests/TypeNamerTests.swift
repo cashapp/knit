@@ -78,7 +78,7 @@ final class TypeNamerTests: XCTestCase {
 
         XCTAssertEqual(
             TypeNamer.sanitizeType(type: "Result<String, Error>", keepGenerics: true),
-            "Result_StringError"
+            "Result_String_Error"
         )
 
         XCTAssertEqual(
@@ -124,6 +124,28 @@ final class TypeNamerTests: XCTestCase {
         assertComputedIdentifier(
             type: "Factory",
             expectedIdentifier: "factory"
+        )
+    }
+
+    func testSuffixRule() {
+        assertComputedIdentifier(
+            type: "AnyPublisher<String>",
+            expectedIdentifier: "stringPublisher"
+        )
+
+        assertComputedIdentifier(
+            type: "AnyPublisher<MyType?, Never>",
+            expectedIdentifier: "myTypePublisher"
+        )
+
+        assertComputedIdentifier(
+            type: "CurrentValueSubject<String>",
+            expectedIdentifier: "stringSubject"
+        )
+
+        assertComputedIdentifier(
+            type: "ValueProvider<Int>",
+            expectedIdentifier: "intProvider"
         )
     }
 
