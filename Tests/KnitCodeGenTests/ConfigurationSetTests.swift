@@ -365,6 +365,42 @@ final class ConfigurationSetTests: XCTestCase {
         XCTAssertNoThrow(try configSet.validateNoDuplicateRegistrations())
     }
 
+    func testPerformanceGenDisabled() {
+        let config = Configuration(
+            assemblyName: "CustomAssembly",
+            moduleName: "Custom",
+            directives: .init(disablePerformanceGen: true),
+            registrations: [
+                .init(service: "Service1", accessLevel: .internal)
+            ],
+            targetResolver: "Resolver"
+        )
+        let configSet = ConfigurationSet(
+            assemblies: [config],
+            externalTestingAssemblies: [],
+            moduleDependencies: []
+        )
+
+        XCTAssertEqual(
+            try configSet.makeTypeSafetySourceFile(),
+            """
+            // Generated using Knit
+            // Do not edit directly!
+
+            import Knit
+
+            // The correct resolution of each of these types is enforced by a matching automated unit test
+            // If a type registration is missing or broken then the automated tests will fail for that PR
+            /// Generated from ``CustomAssembly``
+            extension Resolver {
+                func service1(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service1 {
+                    knitUnwrap(resolve(Service1.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                }
+            }
+            """
+        )
+    }
+
 }
 
 private enum Factory {

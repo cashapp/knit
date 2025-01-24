@@ -11,13 +11,18 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
     var moduleName: String?
     var spi: String?
 
+    /// When true the code gen will not create the additional methods to improve assembler performance
+    var disablePerformanceGen: Bool
+
     public init(
         accessLevel: AccessLevel? = nil,
+        disablePerformanceGen: Bool = false,
         getterConfig: Set<GetterConfig> = [],
         moduleName: String? = nil,
         spi: String? = nil
     ) {
         self.accessLevel = accessLevel
+        self.disablePerformanceGen = disablePerformanceGen
         self.getterConfig = getterConfig
         self.moduleName = moduleName
         self.spi = spi
@@ -56,6 +61,9 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
             if let name = parsed.moduleName {
                 result.moduleName = name
             }
+            if parsed.disablePerformanceGen {
+                result.disablePerformanceGen = true
+            }
             for getter in parsed.getterConfig {
                 result.getterConfig.insert(getter)
             }
@@ -76,6 +84,9 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
         }
         if token == "getter-callAsFunction" {
             return KnitDirectives(getterConfig: [.callAsFunction])
+        }
+        if token == "disable-performance-gen" {
+            return KnitDirectives(disablePerformanceGen: true)
         }
         if let nameMatch = getterNamedRegex.firstMatch(in: token, range: NSMakeRange(0, token.count)) {
             if nameMatch.numberOfRanges >= 2, nameMatch.range(at: 1).location != NSNotFound {
