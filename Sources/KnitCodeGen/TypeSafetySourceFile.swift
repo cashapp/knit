@@ -46,7 +46,9 @@ public enum TypeSafetySourceFile {
             if let defaultOverrides = try makeDefaultOverrideExtensions(config: config) {
                 defaultOverrides
             }
-            try makePerformanceExtension(config: config)
+            if !config.directives.disablePerformanceGen {
+                try makePerformanceExtension(config: config)
+            }
         }
     }
 

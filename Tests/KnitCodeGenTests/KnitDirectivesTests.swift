@@ -121,6 +121,13 @@ final class KnitDirectivesTests: XCTestCase {
         XCTAssertThrowsError(try parse("// @knit module-name()"))
     }
 
+    func testPerformanceGen() {
+        XCTAssertEqual(
+            try parse("// @knit disable-performance-gen"),
+            .init(disablePerformanceGen: true)
+        )
+    }
+
     private func parse(_ comment: String) throws -> KnitDirectives {
         let trivia = Trivia(pieces: [.lineComment(comment)])
         return try KnitDirectives.parse(leadingTrivia: trivia)
