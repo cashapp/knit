@@ -1,7 +1,4 @@
 //
-//  Container.Arguments.swift
-//  Swinject
-//
 //  Created by Yoichi Tagaya on 8/18/15.
 //  Copyright © 2015 Swinject Contributors. All rights reserved.
 //
@@ -11,7 +8,7 @@
 //
 // Container.Arguments.swift is generated from Container.Arguments.erb by ERB.
 // Do NOT modify Container.Arguments.swift directly.
-// Instead, modify Container.Arguments.erb and run `script/gencode` at the project root directory to generate the code.
+// Instead, modify Container.Arguments.erb and run `Scripts/gencode` at the project root directory to generate the code.
 //
 
 <% arg_count = 9 %>
@@ -19,6 +16,7 @@
 import Foundation
 
 // MARK: - Registration with Arguments
+
 extension Container {
 <% (1..arg_count).each do |i| %>
 <%   arg_types = (1..i).map { |n| "Arg#{n}" }.join(", ") %>
@@ -39,8 +37,8 @@ extension Container {
     public func register<Service, <%= arg_types %>>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        factory: @escaping (Resolver, <%= arg_types %>) -> Service) -> ServiceEntry<Service>
-    {
+        factory: @escaping (Resolver, <%= arg_types %>) -> Service
+    ) -> ServiceEntry<Service> {
         return _register(serviceType, factory: factory, name: name)
     }
 
@@ -48,6 +46,7 @@ extension Container {
 }
 
 // MARK: - Resolver with Arguments
+
 extension Container {
 <% (1..arg_count).each do |i| %>
 <%   arg_types = (1..i).map { |n| "Arg#{n}" }.join(", ") %>
