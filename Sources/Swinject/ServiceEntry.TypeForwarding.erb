@@ -1,9 +1,6 @@
 //
-//  ServiceEntry.TypeForwarding.swift
-//  Swinject-iOS
-//
 //  Created by Jakub Vaňo on 16/02/2018.
-//  Copyright © 2018 Swinject Contributors. All rights reserved.
+//  Copyright © 2019 Swinject Contributors. All rights reserved.
 //
 
 //
@@ -11,7 +8,7 @@
 //
 // ServiceEntry.TypeForwarding.swift is generated from ServiceEntry.TypeForwarding.erb by ERB.
 // Do NOT modify ServiceEntry.TypeForwarding.swift directly.
-// Instead, modify ServiceEntry.TypeForwarding.erb and run `script/gencode` at the project root directory to generate the code.
+// Instead, modify ServiceEntry.TypeForwarding.erb and run `Scripts/gencode` at the project root directory to generate the code.
 //
 
 <% type_count = 9 %>
@@ -40,8 +37,8 @@ extension ServiceEntry {
     @discardableResult
     public func implements<<%= types %>>(<%= params %>) -> ServiceEntry<Service> {
         return self<% (1..i).each do |k| %>.implements(type<%= k %>)<% end %>
-        
+
     }
-    
+
 <% end %>
 }
