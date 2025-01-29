@@ -13,12 +13,14 @@ public protocol _Resolver {
     /// - Parameter name: The registration name.
     /// - Parameter option: A service key option for an extension/plugin.
     /// - Parameter invoker: A closure to execute service resolution.
+    ///     The primary responsibility of the invoker is to close over the values
+    ///     of any arguments passed in during the resolve call.
     ///
     /// - Returns: The resolved service type instance, or nil if no service is found.
     // swiftlint:disable:next identifier_name
     func _resolve<Service, Arguments>(
         name: String?,
         option: ServiceKeyOption?,
-        invoker: @escaping ((Arguments) -> Any) -> Any
+        invoker: @escaping (Resolver, (Arguments) -> Any) -> Any
     ) -> Service?
 }

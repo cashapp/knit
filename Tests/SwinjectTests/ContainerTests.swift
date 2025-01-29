@@ -90,6 +90,39 @@ class ContainerTests: XCTestCase {
         XCTAssertNil(weakCat)
     }
 
+    func testShadowedRegistration_owningContainerHierarchyAccess() {
+        let parent = Container()
+        let child = Container(parent: parent)
+
+        parent.register(Animal.self, factory: { _ in Dog()})
+        child.register(Animal.self, factory: { _ in Cat()})
+
+        // Parent registration should not be able to see into any child registrations
+        parent.register(Animal.self, name: "Spot", factory: { resolver in
+            resolver.resolve(Animal.self)!
+        })
+
+        XCTAssert(child.resolve(Animal.self, name: "Spot") is Dog)
+        XCTAssert(parent.resolve(Animal.self, name: "Spot") is Dog)
+    }
+
+    func testShadowedRegistration_owningContainerHierarchyAccess_inObjectScopeContainer() {
+        let parent = Container()
+        let child = Container(parent: parent)
+
+        parent.register(Animal.self, factory: { _ in Dog()})
+        child.register(Animal.self, factory: { _ in Cat()})
+
+        // Parent registration should not be able to see into any child registrations
+        parent.register(Animal.self, name: "Spot", factory: { resolver in
+            resolver.resolve(Animal.self)!
+        })
+        .inObjectScope(.container)
+
+        XCTAssert(child.resolve(Animal.self, name: "Spot") is Dog)
+        XCTAssert(parent.resolve(Animal.self, name: "Spot") is Dog)
+    }
+
     #if !SWIFT_PACKAGE
     func testContainerDoesNotTerminateGraphPrematurely() {
         let parent = Container()
