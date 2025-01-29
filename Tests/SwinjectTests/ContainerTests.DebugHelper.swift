@@ -17,7 +17,7 @@ class ContainerTests_DebugHelper: XCTestCase {
     func testContainerShouldCallDebugHelperWithFailingServiceAndKey() {
         let container = Container(debugHelper: spy)
 
-        _ = container._resolve(name: "name") { (_: (Int) -> Any) in 1 as Double } as Double?
+        _ = container._resolve(name: "name") { (_: Resolver, _: (Int) -> Any) in 1 as Double } as Double?
 
         XCTAssertEqual("\(spy.serviceType)", "Double")
         XCTAssertEqual(spy.key, ServiceKey(

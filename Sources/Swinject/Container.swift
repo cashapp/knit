@@ -230,11 +230,13 @@ public final class Container {
 // MARK: - _Resolver
 
 extension Container: _Resolver {
+
+    /// See documentation on `_Resolver` protocol where this method is declared.
     // swiftlint:disable:next identifier_name
     public func _resolve<Service, Arguments>(
         name: String?,
         option: ServiceKeyOption? = nil,
-        invoker: @escaping ((Arguments) -> Any) -> Any
+        invoker: @escaping (Resolver, (Arguments) -> Any) -> Any
     ) -> Service? {
         // No need to use weak self since the resolution will be executed before
         // this function exits.
@@ -246,8 +248,8 @@ extension Container: _Resolver {
                 return currentObjectGraph as? Service
             }
 
-            if let entry = getEntry(for: key) {
-                resolvedInstance = resolve(entry: entry, invoker: invoker)
+            if let (entry, resolver) = getEntry(for: key) {
+                resolvedInstance = resolve(entry: entry, invoker: invoker, resolver: resolver)
             }
 
             if resolvedInstance == nil {
@@ -269,7 +271,7 @@ extension Container: _Resolver {
     fileprivate func resolveAsWrapper<Wrapper, Arguments>(
         name: String?,
         option: ServiceKeyOption?,
-        invoker: @escaping ((Arguments) -> Any) -> Any
+        invoker: @escaping (Resolver, (Arguments) -> Any) -> Any
     ) -> Wrapper? {
         guard let wrapper = Wrapper.self as? InstanceWrapper.Type else { return nil }
 
@@ -277,7 +279,7 @@ extension Container: _Resolver {
             serviceType: wrapper.wrappedType, argumentsType: Arguments.self, name: name, option: option
         )
 
-        if let entry = getEntry(for: key) {
+        if let (entry, resolver) = getEntry(for: key) {
             let factory = { [weak self] (graphIdentifier: GraphIdentifier?) -> Any? in
                 self?.syncIfEnabled { [weak self] () -> Any? in
                     guard let self else { return nil }
@@ -286,7 +288,7 @@ extension Container: _Resolver {
                     if let graphIdentifier = graphIdentifier {
                         self.restoreObjectGraph(graphIdentifier)
                     }
-                    return self.resolve(entry: entry, invoker: invoker) as Any?
+                    return self.resolve(entry: entry, invoker: invoker, resolver: resolver) as Any?
                 }
             }
             return wrapper.init(inContainer: self, withInstanceFactory: factory) as? Wrapper
@@ -352,20 +354,32 @@ extension Container: Resolver {
     /// - Returns: The resolved service type instance, or nil if no registration for the service type and name
     ///            is found in the ``Container``.
     public func resolve<Service>(_: Service.Type, name: String?) -> Service? {
-        return _resolve(name: name) { (factory: (Resolver) -> Any) in factory(self) }
+        return _resolve(
+            name: name,
+            invoker: { (resolver: Resolver, factory: (Resolver) -> Any) in
+                factory(resolver)
+            }
+        )
     }
 
-    fileprivate func getEntry(for key: ServiceKey) -> ServiceEntryProtocol? {
+    /// Retrieve the service entry for a given service key.
+    ///
+    /// - Returns: An optional tuple of the service entry and the source resolver.
+    fileprivate func getEntry(for key: ServiceKey) -> (ServiceEntryProtocol, Resolver)? {
         if let entry = services[key] {
-            return entry
+            return (entry, self)
+        } else if let parentResult = parent?.getEntry(for: key) {
+            // An entry from a parent container uses that same parent container as the source resolver
+            return parentResult
         } else {
-            return parent?.getEntry(for: key)
+            return nil
         }
     }
 
     fileprivate func resolve<Service, Factory>(
         entry: ServiceEntryProtocol,
-        invoker: @escaping (Factory) -> Any
+        invoker: @escaping (Resolver, Factory) -> Any,
+        resolver: Resolver
     ) -> Service? {
         self.incrementResolutionDepth()
         defer { self.decrementResolutionDepth() }
@@ -378,7 +392,7 @@ extension Container: Resolver {
             return persistedInstance
         }
 
-        let resolvedInstance = invoker(entry.factory as! Factory)
+        let resolvedInstance = invoker(resolver, entry.factory as! Factory)
         if let persistedInstance = self.persistedInstance(Service.self, from: entry, in: currentObjectGraph) {
             // An instance for the key might be added by the factory invocation.
             return persistedInstance
