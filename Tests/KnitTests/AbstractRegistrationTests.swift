@@ -2,6 +2,7 @@
 // Copyright © Block, Inc. All rights reserved.
 //
 
+import Combine
 @testable import Knit
 import XCTest
 
@@ -91,6 +92,12 @@ final class AbstractRegistrationTests: XCTestCase {
         XCTAssertNil(int)
     }
 
+    @MainActor
+    func testAdditionalAbstractRegistration() {
+        let assembler = ModuleAssembler([Assembly4()])
+        _ = assembler.resolver.resolve(AnyPublisher<String?, Never>.self)
+    }
+
 }
 
 private struct Assembly1: AutoInitModuleAssembly {
@@ -110,5 +117,52 @@ private struct Assembly3: AutoInitModuleAssembly {
     func assemble(container: Container) {
         container.registerAbstract(Optional<String>.self)
         container.registerAbstract(Int?.self)
+    }
+}
+
+private struct Assembly4: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] { [] }
+    func assemble(container: Container) {
+        // Custom handling for AnyPublisher abstract registrations is defined below
+        container.registerAbstract(AnyPublisher<String?, Never>.self)
+    }
+}
+
+// Example of an abstract registration for a type not supported by Knit
+private struct AnyPublisherAbstractRegistration<UnwrappedServiceType>: AbstractRegistration {
+    typealias ServiceType = AnyPublisher<UnwrappedServiceType?, Never>
+
+    let name: String?
+    let file: String
+    let concurrency: ConcurrencyAttribute
+
+    var serviceDescription: String { String(describing: ServiceType.self) }
+
+    func registerPlaceholder(
+        container: Swinject.Container,
+        errorFormatter: any Knit.ModuleAssemblerErrorFormatter,
+        dependencyTree: Knit.DependencyTree
+    ) {
+        container.register(ServiceType.self, name: name) { _ in
+            Just(nil).eraseToAnyPublisher()
+        }
+    }
+}
+
+private extension Container {
+
+    // The new abstract registration type requires an additional registerAbstract function with a more explicit type
+    func registerAbstract<Service>(
+        _ serviceType: AnyPublisher<Service?, Never>.Type,
+        name: String? = nil,
+        concurrency: ConcurrencyAttribute = .nonisolated,
+        file: String = #fileID
+    ) {
+        let registration = AnyPublisherAbstractRegistration<Service>(
+            name: name,
+            file: file,
+            concurrency: concurrency
+        )
+        addAbstractRegistration(registration)
     }
 }
