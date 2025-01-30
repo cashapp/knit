@@ -12,30 +12,11 @@ your registrations with that additional information.
 This is accomplished by adding a comment directly above the registration starting with `// @knit` and then
 followed with the configuration command.
 
-Commands can be applied at either the Assembly level or the registration level. Options set at the registration level will override any from the Assembly.
-
-### Registration Visibility
-
-Knit can change the visibility of the generated type-safe accessors.
-The following commands are available:
-
-* `public`: Make the type safe function(s) public (default is internal).
-* `internal`: Make the type safe function(s) internal. This is a useful override when the assembly is set to `public`.
-* `hidden`: Do not generate any type safe function.
-* `ignore`: Completely ignore this assembly or registration
-
-#### Examples:
-
-Make the generated type-safe accessor `public`:
-``` swift
-// @knit public
-container.register(MyType.self, factory: { /*...*/ })
-```
+See the [Comment Commands](Docs/CommentCommands.md) documentation for a list of commands.
 
 ### Type Safe Getters
 
-One of the core capabilities of Knit is to generate type safe getters/accessors for your registrations.
-There are some additional options to control and configure this behavior.
+One of the core capabilities of Knit is to generate type safe getters/accessors for your registrations. Each registration inside an assembly will be parsed and a type safe function will be added to a generated Resolver extension.
 
 #### Call as Function Getter
 
@@ -55,11 +36,7 @@ In both situations the method call is type-safe.
 
 #### Commands
 
-The following commands are available:
-* `getter-named`: Generate a named accessor function. Knit will provide an automatic name based from the type.
-* `getter-named("myCustomName")`: Generate a named accessor function with a custom name. Provide the custom name as an argument to the command.
-* `getter-callAsFunction`: Generate `callAsFunction` accessor.
-* Both commands can be included to specify that both accessors should be generated. `// @knit getter-named getter-callAsFunction`
+See the [Type Safety Comment Commands](Docs/CommentCommands.md#Type-Safe-Generation-Style) documentation for examples
 
 #### Default Setting
 
