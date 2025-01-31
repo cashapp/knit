@@ -31,8 +31,6 @@ class ContainerSpeedTests: XCTestCase {
     }    
 
     func testContainerSyncResolvesByArguments() {
-        container = container.synchronize() as? Container
-
         let measureOptions = XCTMeasureOptions()
         measureOptions.iterationCount = 1
 

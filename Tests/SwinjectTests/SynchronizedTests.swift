@@ -24,7 +24,7 @@ class SynchronizedResolverTests: XCTestCase {
                     child.parent = r.resolve(ParentProtocol.self)!
                 }
                 .inObjectScope(.graph)
-        }.synchronize()
+        }
 
         onMultipleThreads {
             let parent = container.resolve(ParentProtocol.self) as! Parent
@@ -39,11 +39,10 @@ class SynchronizedResolverTests: XCTestCase {
                 container.register(Animal.self) { _ in Cat() }
                     .inObjectScope(scope)
             }
-            let parentResolver = parentContainer.synchronize()
-            let childResolver = Container(parent: parentContainer).synchronize()
+            let childResolver = Container(parent: parentContainer)
             // swiftlint:disable opening_brace
             onMultipleThreads(actions: [
-                { _ = parentResolver.resolve(Animal.self) as! Cat },
+                { _ = parentContainer.resolve(Animal.self) as! Cat },
                 { _ = childResolver.resolve(Animal.self) as! Cat },
             ])
             // swiftlint:enable opening_brace
@@ -61,7 +60,7 @@ class SynchronizedResolverTests: XCTestCase {
                 graphs.insert(($0 as! Container).currentObjectGraph!)
                 return Dog()
             }
-        }.synchronize()
+        }
 
         onMultipleThreads { _ = container.resolve(Dog.self) }
 
@@ -70,7 +69,7 @@ class SynchronizedResolverTests: XCTestCase {
     
     func testSynchronizedResolverSynchronousReadsWrites() {
         let iterationCount = 3_000
-        let container = Container().synchronize() as! Container
+        let container = Container()
         let registerExpectation = expectation(description: "register")
         let resolveExpectations = (0..<iterationCount).map { expectation(description: String(describing: $0)) }
         let resolutionLock = NSLock()
@@ -100,7 +99,7 @@ class SynchronizedResolverTests: XCTestCase {
 
     func testSynchronizedResolverCanMakeItWithoutDeadlock() {
         let container = Container()
-        let threadSafeResolver = container.synchronize()
+        let threadSafeResolver = container
         container.register(ChildProtocol.self) { _ in Child() }
         container.register(ParentProtocol.self) { _ in
             Parent(child: threadSafeResolver.resolve(ChildProtocol.self)!)
@@ -127,10 +126,8 @@ class SynchronizedResolverTests: XCTestCase {
             return Dog()
         }
 
-        let synchronized = container.synchronize()
-
         onMultipleThreads {
-            let lazy = synchronized.resolve(Provider<Animal>.self)
+            let lazy = container.resolve(Provider<Animal>.self)
             _ = lazy?.instance
         }
 
@@ -144,14 +141,12 @@ class SynchronizedResolverTests: XCTestCase {
             return Dog()
         }
 
-        let synchronized = container.synchronize()
-
         let queue = DispatchQueue(
             label: "SwinjectTests.SynchronizedContainerSpec.Queue", attributes: .concurrent
         )
         waitUntil(timeout: .seconds(2)) { done in
             queue.async {
-                let lazy = synchronized.resolve(Lazy<Dog>.self)
+                let lazy = container.resolve(Lazy<Dog>.self)
                 _ = lazy?.instance
                 done()
             }
@@ -167,8 +162,6 @@ class SynchronizedResolverTests: XCTestCase {
         }
         .inObjectScope(.container)
 
-        let synchronized = container.synchronize()
-
         // fast but roughly sufficient to trigger ARC-related crash
         for _ in 0..<200 {
             onMultipleThreads {
@@ -178,7 +171,7 @@ class SynchronizedResolverTests: XCTestCase {
                 //
                 // But, since the build with this test uses struct type for
                 // the GraphIdentifier, this test will succeed. 🎉
-                let lazy = synchronized.resolve(Lazy<Animal>.self)
+                let lazy = container.resolve(Lazy<Animal>.self)
                 _ = lazy?.instance
             }
         }

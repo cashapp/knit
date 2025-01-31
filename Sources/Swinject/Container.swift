@@ -25,7 +25,6 @@ public final class Container {
     private var resolutionDepth = 0
     private let debugHelper: DebugHelper
     private let defaultObjectScope: ObjectScope
-    private let synchronized: Bool
     internal var currentObjectGraph: GraphIdentifier?
     internal var graphInstancesInFlight = [ServiceEntryProtocol]()
     internal let lock: RecursiveLock // Used by SynchronizedResolver.
@@ -34,14 +33,12 @@ public final class Container {
     internal init(
         parent: Container? = nil,
         debugHelper: DebugHelper,
-        defaultObjectScope: ObjectScope = .graph,
-        synchronized: Bool = false
+        defaultObjectScope: ObjectScope = .graph
     ) {
         self.parent = parent
         self.debugHelper = debugHelper
         lock = parent.map(\.lock) ?? RecursiveLock()
         self.defaultObjectScope = defaultObjectScope
-        self.synchronized = synchronized
     }
 
     /// Instantiates a ``Container``
@@ -60,7 +57,11 @@ public final class Container {
         behaviors: [Behavior] = [],
         registeringClosure: (Container) -> Void = { _ in }
     ) {
-        self.init(parent: parent, debugHelper: LoggingDebugHelper(), defaultObjectScope: defaultObjectScope)
+        self.init(
+            parent: parent,
+            debugHelper: LoggingDebugHelper(),
+            defaultObjectScope: defaultObjectScope
+        )
         behaviors.forEach(addBehavior)
         registeringClosure(self)
     }
@@ -156,20 +157,6 @@ public final class Container {
 
             return entry
         }
-    }
-
-    /// Returns a synchronized view of the container for thread safety.
-    /// The returned container is ``Resolver`` type and is not the original container. Continuing to add more
-    /// registrations after calling `synchronize()` will result in different graph scope.
-    ///
-    /// It is recommended to call this method after you finish all service registrations to the original container.
-    ///
-    /// - Returns: A synchronized container as ``Resolver``.
-    public func synchronize() -> Resolver {
-        return Container(parent: self,
-                         debugHelper: debugHelper,
-                         defaultObjectScope: defaultObjectScope,
-                         synchronized: true)
     }
 
     /// Adds behavior to the container. `Behavior.container(_:didRegisterService:withName:)` will be invoked for
@@ -421,7 +408,7 @@ extension Container: Resolver {
     @inline(__always)
     @discardableResult
     internal func syncIfEnabled<T>(_ action: () throws -> T) rethrows -> T {
-        try synchronized ? lock.sync(action) : action()
+        try lock.sync(action)
     }
 }
 
