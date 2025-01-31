@@ -86,7 +86,8 @@ extension FunctionCallExprSyntax {
             concurrencyModifier: concurrencyModifier,
             registrationArguments: registrationArguments,
             leadingTrivia: self.leadingTrivia,
-            functionName: functionName
+            functionName: functionName,
+            syntax: self
         ) else {
             return ([], [])
         }
@@ -111,7 +112,8 @@ extension FunctionCallExprSyntax {
                 concurrencyModifier: concurrencyModifier,
                 registrationArguments: registrationArguments,
                 leadingTrivia: leadingTrivia,
-                functionName: .implements
+                functionName: .implements,
+                syntax: implementsCalledMethod.arguments
             ) {
                 if forwardedRegistration.hasRedundantGetter {
                     throw RegistrationParsingError.redundantGetter(
@@ -170,7 +172,8 @@ private func makeRegistrationFor(
     concurrencyModifier: String?,
     registrationArguments: [Registration.Argument],
     leadingTrivia: Trivia?,
-    functionName: Registration.FunctionName
+    functionName: Registration.FunctionName,
+    syntax: any SyntaxProtocol
 ) throws -> Registration? {
     guard let firstParam = arguments.first?.expression.as(MemberAccessExprSyntax.self) else { return nil }
     guard firstParam.declName.baseName.tokenKind == .keyword(.`self`) else { return nil }
@@ -184,6 +187,11 @@ private func makeRegistrationFor(
         getterConfig = directives.getterConfig
     } else if !defaultDirectives.getterConfig.isEmpty {
         getterConfig = defaultDirectives.getterConfig
+    }
+    if let accessLevel = directives.accessLevel {
+        if defaultDirectives.accessLevel == accessLevel || (defaultDirectives.accessLevel == nil && accessLevel == .default) {
+            throw RegistrationParsingError.redundantAccessControl(syntax: syntax)
+        }
     }
 
     return Registration(
@@ -352,6 +360,7 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
     case nestedIfConfig(syntax: SyntaxProtocol)
     case nonAbstract(syntax: SyntaxProtocol)
     case redundantGetter(syntax: SyntaxProtocol)
+    case redundantAccessControl(syntax: SyntaxProtocol)
 
     var errorDescription: String? {
         switch self {
@@ -371,6 +380,8 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             return "AbstractAssemblys may only contain Abstract registrations"
         case .redundantGetter:
             return "getter-named matches the default accessor name and can be removed"
+        case .redundantAccessControl:
+            return "Access control matches the default and can be removed"
         }
     }
 
@@ -383,7 +394,8 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             let .invalidIfConfig(syntax, _),
             let .nestedIfConfig(syntax),
             let .nonAbstract(syntax),
-            let .redundantGetter(syntax):
+            let .redundantGetter(syntax),
+            let .redundantAccessControl(syntax):
             return syntax
         }
     }
