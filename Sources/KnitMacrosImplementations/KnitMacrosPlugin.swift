@@ -8,6 +8,7 @@ import SwiftSyntaxMacros
 @main
 struct MacroFunPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        ResolvableMacro.self
+        ResolvableMacro.self,
+        ResolvableStructMacro.self,
     ]
 }
