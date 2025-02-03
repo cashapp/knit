@@ -68,7 +68,7 @@ public final class Container {
 
     /// Removes all registrations in the container.
     public func removeAll() {
-        syncIfEnabled { services.removeAll() }
+        sync { services.removeAll() }
     }
 
     /// Discards instances for services registered in the given `ObjectsScopeProtocol`.
@@ -79,7 +79,7 @@ public final class Container {
     /// - Parameters:
     ///     - objectScope: All instances registered in given `ObjectsScopeProtocol` will be discarded.
     public func resetObjectScope(_ objectScope: ObjectScopeProtocol) {
-        syncIfEnabled {
+        sync {
             services.values
                 .filter { $0.objectScope === objectScope }
                 .forEach { $0.storage.instance = nil }
@@ -142,7 +142,7 @@ public final class Container {
         name: String? = nil,
         option: ServiceKeyOption? = nil
     ) -> ServiceEntry<Service> {
-        syncIfEnabled {
+        sync {
             let key = ServiceKey(serviceType: Service.self, argumentsType: Arguments.self, name: name, option: option)
             let entry = ServiceEntry(
                 serviceType: serviceType,
@@ -165,7 +165,7 @@ public final class Container {
     /// - Parameters:
     ///     - behavior: Behavior to be added to the container
     public func addBehavior(_ behavior: Behavior) {
-        syncIfEnabled {
+        sync {
             behaviors.append(behavior)
         }
     }
@@ -182,7 +182,7 @@ public final class Container {
         of serviceType: Service.Type,
         name: String? = nil
     ) -> Bool {
-        syncIfEnabled {
+        sync {
             services.contains { key, _ in
                 key.serviceType == serviceType && key.name == name
             } || parent?.hasAnyRegistration(of: serviceType, name: name) == true
@@ -195,7 +195,7 @@ public final class Container {
     ///   - closure: Actions to execute within the Container
     /// - Returns: Any value you return (Void otherwise) within the function call.
     public func withObjectGraph<T>(_ identifier: GraphIdentifier, closure: (Container) throws -> T) rethrows -> T {
-        try syncIfEnabled {
+        try sync {
             let graphIdentifier = currentObjectGraph
             defer { 
                 self.currentObjectGraph = graphIdentifier
@@ -227,7 +227,7 @@ extension Container: _Resolver {
     ) -> Service? {
         // No need to use weak self since the resolution will be executed before
         // this function exits.
-        syncIfEnabled {
+        sync {
             var resolvedInstance: Service?
             let key = ServiceKey(serviceType: Service.self, argumentsType: Arguments.self, name: name, option: option)
 
@@ -268,7 +268,7 @@ extension Container: _Resolver {
 
         if let (entry, resolver) = getEntry(for: key) {
             let factory = { [weak self] (graphIdentifier: GraphIdentifier?) -> Any? in
-                self?.syncIfEnabled { [weak self] () -> Any? in
+                self?.sync { [weak self] () -> Any? in
                     guard let self else { return nil }
                     let originGraph = self.currentObjectGraph
                     defer { originGraph.map { self.restoreObjectGraph($0) } }
@@ -407,7 +407,7 @@ extension Container: Resolver {
 
     @inline(__always)
     @discardableResult
-    internal func syncIfEnabled<T>(_ action: () throws -> T) rethrows -> T {
+    internal func sync<T>(_ action: () throws -> T) rethrows -> T {
         try lock.sync(action)
     }
 }
