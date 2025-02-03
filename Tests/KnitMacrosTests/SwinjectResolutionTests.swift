@@ -45,6 +45,15 @@ final class SwinjectResolutionTests: XCTestCase {
         let service = container.resolve(Service5.self)
         XCTAssertEqual(service?.value, 2)
     }
+
+    func test_resolvable_struct() {
+        let container = Container()
+        container.register(String.self) { _ in "Test" }
+        container.register(Service6.self, factory: Service6.make)
+
+        let service = container.resolve(Service6.self)
+        XCTAssertEqual(service?.string, "Test")
+    }
 }
 
 private struct Service1 {
@@ -92,6 +101,11 @@ private struct Service5 {
     init(@Named("float2") value: Float) {
         self.value = value
     }
+}
+
+@ResolvableStruct<Resolver>
+private struct Service6 {
+    let string: String
 }
 
 private enum Factory {

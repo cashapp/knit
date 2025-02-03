@@ -11,7 +11,8 @@ import XCTest
 import KnitMacrosImplementations
 
 let testMacros: [String: Macro.Type] = [
-    "Resolvable": ResolvableMacro.self
+    "Resolvable": ResolvableMacro.self,
+    "ResolvableStruct": ResolvableStructMacro.self,
 ]
 #endif
 
@@ -158,6 +159,66 @@ final class ResolvableTests: XCTestCase {
                     column: 1
                 ),
             ],
+            macros: testMacros
+        )
+    }
+
+    func test_struct() throws {
+        assertMacroExpansion(
+            """
+            @ResolvableStruct<Resolver>
+            struct ABC {
+                let value: String
+            }
+            """,
+            expandedSource: """
+            
+            struct ABC {
+                let value: String
+            }
+            
+            extension ABC {
+                static func make(resolver: Resolver) -> Self {
+                     return .init(
+                         value: resolver.string()
+                     )
+                }
+            }
+            
+            """,
+            macros: testMacros
+        )
+    }
+
+    func test_ignored_struct_members() throws {
+        assertMacroExpansion(
+            """
+            @ResolvableStruct<Resolver>
+            struct Complex {
+                var computed: String { value }
+                let fixed: String = "Fixed"
+                static var padding: Int = 5
+                func test() {}
+            }
+            """,
+            expandedSource: """
+            
+            struct Complex {
+                var computed: String { value }
+                let fixed: String = "Fixed"
+                static var padding: Int = 5
+                func test() {}
+            }
+            
+            extension Complex {
+                static func make(resolver: Resolver) -> Self {
+                     return .init(
+            
+                     )
+                }
+            }
+            
+            """,
             macros: testMacros
         )
     }
