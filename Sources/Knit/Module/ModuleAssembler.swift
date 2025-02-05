@@ -12,7 +12,7 @@ public final class ModuleAssembler {
     let serviceCollector: ServiceCollector
 
     /// The resolver for this ModuleAssemblers container
-    public let resolver: Resolver
+    public var resolver: Resolver { _container }
 
     // Module types that were registered into the container owned by this ModuleAssembler
     var registeredModules: [any ModuleAssembly.Type] {
@@ -115,9 +115,6 @@ public final class ModuleAssembler {
         }
 
         abstractRegistrations.reset()
-
-        // https://github.com/Swinject/Swinject/blob/master/Documentation/ThreadSafety.md
-        self.resolver = _container.synchronize()
     }
 
     func isRegistered<T: ModuleAssembly>(_ type: T.Type) -> Bool {
