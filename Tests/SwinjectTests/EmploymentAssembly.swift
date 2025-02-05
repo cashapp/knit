@@ -44,7 +44,7 @@ class Employer {
     }
 }
 
-final class EmploymentAssembly: Assembly {
+final class EmploymentAssembly {
     private let scope: ObjectScope
 
     init(scope: ObjectScope) {
