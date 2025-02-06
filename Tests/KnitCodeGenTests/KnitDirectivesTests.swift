@@ -128,6 +128,13 @@ final class KnitDirectivesTests: XCTestCase {
         )
     }
 
+    func testCustom() {
+        XCTAssertEqual(
+            try parse("// @knit custom(\"Foo\") custom(\"Bar\")"),
+            .init(custom: ["Foo", "Bar"])
+        )
+    }
+
     private func parse(_ comment: String) throws -> KnitDirectives {
         let trivia = Trivia(pieces: [.lineComment(comment)])
         return try KnitDirectives.parse(leadingTrivia: trivia)

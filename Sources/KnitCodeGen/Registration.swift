@@ -15,6 +15,8 @@ public struct Registration: Equatable, Codable, Sendable {
 
     public let concurrencyModifier: String?
 
+    public let customDirectives: [String]
+
     /// Argument types required to resolve the registration
     public var arguments: [Argument]
 
@@ -35,6 +37,7 @@ public struct Registration: Equatable, Codable, Sendable {
         accessLevel: AccessLevel = .internal,
         arguments: [Argument] = [],
         concurrencyModifier: String? = nil,
+        customDirectives: [String] = [],
         getterConfig: Set<GetterConfig> = GetterConfig.default,
         functionName: FunctionName = .register,
         spi: String? = nil
@@ -43,6 +46,7 @@ public struct Registration: Equatable, Codable, Sendable {
         self.name = name
         self.accessLevel = accessLevel
         self.concurrencyModifier = concurrencyModifier
+        self.customDirectives = customDirectives
         self.arguments = arguments
         self.getterConfig = getterConfig
         self.functionName = functionName
@@ -56,7 +60,7 @@ public struct Registration: Equatable, Codable, Sendable {
 
     private enum CodingKeys: CodingKey {
         // ifConfigCondition is not encoded since ExprSyntax does not conform to codable
-        case service, name, accessLevel, arguments, getterConfig, functionName, concurrencyModifier, spi
+        case service, name, accessLevel, arguments, getterConfig, functionName, concurrencyModifier, spi, customDirectives
     }
 
     var namedGetterConfig: GetterConfig? {
