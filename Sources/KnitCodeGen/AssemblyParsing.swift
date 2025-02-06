@@ -343,6 +343,10 @@ enum ReplacesParsingError: LocalizedError, SyntaxError {
             return syntax
         }
     }
+
+    var positionAboveNode: Bool {
+        return false
+    }
 }
 
 // Output any errors that occurred during parsing
@@ -354,11 +358,8 @@ func printErrors(_ errors: [Error], filePath: String, syntaxTree: SyntaxProtocol
 
     for error in errors {
         if let syntaxError = error as? SyntaxError {
-            let position = syntaxError.syntax.startLocation(converter: lineConverter, afterLeadingTrivia: true)
-            let line = position.line
-            let column = position.column
             FileHandle.standardError.write(Data(
-                "\(filePath):\(line):\(column): error: \(error.localizedDescription)\n".utf8
+                syntaxError.standardErrorDescription(lineConverter: lineConverter).utf8
             ))
         } else {
             FileHandle.standardError.write(Data(
@@ -366,6 +367,22 @@ func printErrors(_ errors: [Error], filePath: String, syntaxTree: SyntaxProtocol
             ))
         }
     }
+}
+
+extension SyntaxError {
+
+    func standardErrorDescription(lineConverter: SourceLocationConverter) -> String {
+        let position = self.syntax.startLocation(
+            converter: lineConverter,
+            afterLeadingTrivia: true
+        )
+        let filePath = position.file
+        let line = positionAboveNode ? position.line - 1 : position.line
+        let column = position.column
+
+        return "\(filePath):\(line):\(column): error: \(self.localizedDescription)\n"
+    }
+
 }
 
 // MARK: - IfConfigClauseSyntax
