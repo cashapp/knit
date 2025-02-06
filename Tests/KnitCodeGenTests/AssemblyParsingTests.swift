@@ -876,6 +876,51 @@ final class AssemblyParsingTests: XCTestCase {
         })
     }
 
+    func testRedundantAccessControl() throws {
+        let sourceFile: SourceFileSyntax = """
+            // @knit public
+            class MyAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+                
+                func assemble(container: Container) {
+                    // @knit public
+                    container.register(PublicType.self) { _ in PublicType() }
+                }
+            }
+        """
+
+        _ = try assertParsesSyntaxTree(sourceFile, assertErrorsToPrint: { errors in
+            XCTAssertEqual(errors.count, 1)
+            if case RegistrationParsingError.redundantAccessControl = errors[0] {
+                // Correct
+            } else {
+                XCTFail("Incorrect error case")
+            }
+        })
+    }
+
+    func testRedundantAccessControlDefault() throws {
+        let sourceFile: SourceFileSyntax = """
+            class MyAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+                
+                func assemble(container: Container) {
+                    // @knit internal
+                    container.register(PublicType.self) { _ in PublicType() }
+                }
+            }
+        """
+
+        _ = try assertParsesSyntaxTree(sourceFile, assertErrorsToPrint: { errors in
+            XCTAssertEqual(errors.count, 1)
+            if case RegistrationParsingError.redundantAccessControl = errors[0] {
+                // Correct
+            } else {
+                XCTFail("Incorrect error case")
+            }
+        })
+    }
+
     func testRedundantForwardedGetterName() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: ModuleAssembly {
