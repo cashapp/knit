@@ -16,7 +16,7 @@ extension Container {
         file: String = #fileID
     ) {
         let registration = RealAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
-        abstractRegistrations().abstractRegistrations.append(registration)
+        addAbstractRegistration(registration)
     }
 
     /// Register that a service is expected to exist but no implementation is currently available
@@ -31,7 +31,7 @@ extension Container {
         file: String = #fileID
     ) {
         let registration = OptionalAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
-        abstractRegistrations().abstractRegistrations.append(registration)
+        addAbstractRegistration(registration)
     }
 
     // Must be called before using `registerAbstract`
@@ -43,24 +43,31 @@ extension Container {
         return registrations
     }
 
+    public func addAbstractRegistration(_ registration: any AbstractRegistration) {
+        abstractRegistrations().abstractRegistrations.append(registration)
+    }
+
     private func abstractRegistrations() -> AbstractRegistrationContainer {
         return resolve(AbstractRegistrationContainer.self)!
     }
 }
 
 /// The information required to uniquely reference a Swinject registration
-internal struct RegistrationKey: Hashable, Equatable {
+public struct RegistrationKey: Hashable, Equatable {
     let typeIdentifier: ObjectIdentifier
     let name: String?
     let concurrency: ConcurrencyAttribute
 }
 
 /// Protocol version to allow storing generic types an array
-internal protocol AbstractRegistration {
+public protocol AbstractRegistration {
     associatedtype ServiceType
 
+    /// String describing the service being registered
     var serviceDescription: String { get }
+    /// Source file used for debugging. Not included in hash calculation or equality
     var file: String { get }
+    /// Name used in the registration
     var name: String? { get }
     var key: RegistrationKey { get }
     var concurrency: ConcurrencyAttribute { get }
@@ -83,25 +90,24 @@ extension AbstractRegistration {
             name: name
         )
     }
-}
 
-// Implementation of AbstractRegistration
-fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
-    let name: String?
-    // Source file used for debugging. Not included in hash calculation or equality
-    let file: String
-
-    var serviceDescription: String { String(describing: ServiceType.self) }
-
-    let concurrency: ConcurrencyAttribute
-
-    var key: RegistrationKey {
+    public var serviceDescription: String { String(describing: ServiceType.self) }
+    
+    public var key: RegistrationKey {
         return .init(
             typeIdentifier: ObjectIdentifier(ServiceType.self),
             name: name,
             concurrency: concurrency
         )
     }
+}
+
+// Implementation of AbstractRegistration that will crash when attempting to resolve
+fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
+    let name: String?
+
+    let file: String
+    let concurrency: ConcurrencyAttribute
 
     func registerPlaceholder(
         container: Container,
@@ -119,23 +125,11 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
 /// The `UnwrappedServiceType` represents the inner type of the Optional service type for the registration.
 fileprivate struct OptionalAbstractRegistration<UnwrappedServiceType>: AbstractRegistration {
     let name: String?
-    // Source file used for debugging. Not included in hash calculation or equality
     let file: String
+    let concurrency: ConcurrencyAttribute
 
     /// The actual service type added for this registration (includes the Optional wrapper).
     typealias ServiceType = Optional<UnwrappedServiceType>
-
-    var serviceDescription: String { String(describing: ServiceType.self) }
-
-    let concurrency: ConcurrencyAttribute
-
-    var key: RegistrationKey {
-        return .init(
-            typeIdentifier: ObjectIdentifier(ServiceType.self),
-            name: name,
-            concurrency: concurrency
-        )
-    }
 
     func registerPlaceholder(
         container: Container,
