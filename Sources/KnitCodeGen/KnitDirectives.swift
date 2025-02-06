@@ -10,12 +10,15 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
     var getterConfig: Set<GetterConfig>
     var moduleName: String?
     var spi: String?
+    // Custom directives that are not consumed by Knit
+    var custom: [String] = []
 
     /// When true the code gen will not create the additional methods to improve assembler performance
     var disablePerformanceGen: Bool
 
     public init(
         accessLevel: AccessLevel? = nil,
+        custom: [String] = [],
         disablePerformanceGen: Bool = false,
         getterConfig: Set<GetterConfig> = [],
         moduleName: String? = nil,
@@ -26,6 +29,7 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
         self.getterConfig = getterConfig
         self.moduleName = moduleName
         self.spi = spi
+        self.custom = custom
     }
 
     private static let directiveMarker = "@knit"
@@ -73,6 +77,7 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
                 }
                 result.spi = spi
             }
+            result.custom.append(contentsOf: parsed.custom)
         }
 
         return result
@@ -113,6 +118,14 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
                 return KnitDirectives(spi: spi)
             }
         }
+        if let customMatch = customRegex.firstMatch(in: token, range: NSMakeRange(0, token.count)) {
+            if customMatch.numberOfRanges >= 2, customMatch.range(at: 1).location != NSNotFound {
+                var range = customMatch.range(at: 1)
+                range = NSRange(location: range.location + 2, length: range.length - 4)
+                let custom = (token as NSString).substring(with: range)
+                return KnitDirectives(custom: [custom])
+            }
+        }
 
         throw Error.unexpectedToken(token: token)
     }
@@ -123,7 +136,8 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
 
     private static let getterNamedRegex = try! NSRegularExpression(pattern: "getter-named(\\(\"\\w*\"\\))?")
     private static let moduleNameRegex = try! NSRegularExpression(pattern: "module-name(\\(\"\\w*\"\\))")
-    private static let spiRegex = try!  NSRegularExpression(pattern: "@_spi(\\(\\w*\\))")
+    private static let spiRegex = try! NSRegularExpression(pattern: "@_spi(\\(\\w*\\))")
+    private static let customRegex = try! NSRegularExpression(pattern: "custom(\\(\"\\w*\"\\))?")
 }
 
 extension KnitDirectives {

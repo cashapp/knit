@@ -631,6 +631,18 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testCustomDirective() throws {
+        try assertMultipleRegistrationsString(
+            """
+            // @knit @custom("Foo")
+            container.registerAbstract(MyType.self)
+            """,
+            registrations: [
+                Registration(service: "MyType", customDirectives: ["Foo"], functionName: .registerAbstract),
+            ]
+        )
+    }
+
     func testIncorrectRegistrations() throws {
         try assertNoRegistrationsString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
         try assertNoRegistrationsString("container.register(A)", message: "First param is not a metatype")

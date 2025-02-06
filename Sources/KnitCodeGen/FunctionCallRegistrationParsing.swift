@@ -200,6 +200,7 @@ private func makeRegistrationFor(
         accessLevel: directives.accessLevel ?? defaultDirectives.accessLevel ?? .default,
         arguments: registrationArguments,
         concurrencyModifier: concurrencyModifier,
+        customDirectives: directives.custom,
         getterConfig: getterConfig,
         functionName: functionName,
         spi: directives.spi ?? defaultDirectives.spi
