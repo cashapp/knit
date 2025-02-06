@@ -892,7 +892,14 @@ final class AssemblyParsingTests: XCTestCase {
         _ = try assertParsesSyntaxTree(sourceFile, assertErrorsToPrint: { errors in
             XCTAssertEqual(errors.count, 1)
             if case RegistrationParsingError.redundantAccessControl = errors[0] {
-                // Correct
+                // Correct. Check the printed standard error
+                assertStandardErrorMessage(
+                    sourceFile: sourceFile,
+                    error: errors.first,
+                    expectedLineNumber: 6,
+                    expectedColumnNumber: 13,
+                    expectedMessage: "Access control matches the default and can be removed"
+                )
             } else {
                 XCTFail("Incorrect error case")
             }
@@ -915,6 +922,37 @@ final class AssemblyParsingTests: XCTestCase {
             XCTAssertEqual(errors.count, 1)
             if case RegistrationParsingError.redundantAccessControl = errors[0] {
                 // Correct
+            } else {
+                XCTFail("Incorrect error case")
+            }
+        })
+    }
+
+    func testRedundantAccessControlImplements() throws {
+        let sourceFile: SourceFileSyntax = """
+            // @knit public
+            class MyAssembly: ModuleAssembly {
+                typealias TargetResolver = TestResolver
+                
+                func assemble(container: Container) {
+                    container.register(PublicType.self) { _ in PublicType() }
+                        // @knit public
+                        .implements(OtherType.self)
+                }
+            }
+        """
+
+        _ = try assertParsesSyntaxTree(sourceFile, assertErrorsToPrint: { errors in
+            XCTAssertEqual(errors.count, 1)
+            if case RegistrationParsingError.redundantAccessControl = errors[0] {
+                // Correct. Check the printed standard error
+                assertStandardErrorMessage(
+                    sourceFile: sourceFile,
+                    error: errors.first,
+                    expectedLineNumber: 7,
+                    expectedColumnNumber: 17,
+                    expectedMessage: "Access control matches the default and can be removed"
+                )
             } else {
                 XCTFail("Incorrect error case")
             }
@@ -969,4 +1007,23 @@ private func assertParsesSyntaxTree(
     }
 
     return try XCTUnwrap(configuration.first)
+}
+
+private func assertStandardErrorMessage(
+    sourceFile: SourceFileSyntax,
+    error: Error?,
+    expectedLineNumber: Int,
+    expectedColumnNumber: Int,
+    expectedMessage: String,
+    file: StaticString = #filePath,
+    line: UInt = #line
+) {
+    let locationConverter = SourceLocationConverter(fileName: "TestFile.swift", tree: sourceFile)
+    let standardError = (error as? SyntaxError)?.standardErrorDescription(lineConverter: locationConverter)
+    XCTAssertEqual(
+        standardError,
+        "TestFile.swift:\(expectedLineNumber):\(expectedColumnNumber): error: \(expectedMessage)\n",
+        file: file,
+        line: line
+    )
 }

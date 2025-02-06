@@ -113,7 +113,7 @@ extension FunctionCallExprSyntax {
                 registrationArguments: registrationArguments,
                 leadingTrivia: leadingTrivia,
                 functionName: .implements,
-                syntax: implementsCalledMethod.arguments
+                syntax: implementsCalledMethod.calledExpression.period
             ) {
                 if forwardedRegistration.hasRedundantGetter {
                     throw RegistrationParsingError.redundantGetter(
@@ -397,6 +397,17 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             let .redundantGetter(syntax),
             let .redundantAccessControl(syntax):
             return syntax
+        }
+    }
+
+    var positionAboveNode: Bool {
+        switch self {
+        case .redundantGetter,
+                .redundantAccessControl:
+            // These cases are errors regarding the comment command in the trivia above the syntax
+            return true
+        default:
+            return false
         }
     }
 
