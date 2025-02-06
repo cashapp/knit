@@ -13,6 +13,7 @@ final class RegistrationEncodingTests: XCTestCase {
         accessLevel: .public,
         arguments: [.init(identifier: "ABC", type: "Int")],
         concurrencyModifier: "MainActor",
+        customTags: ["tag1", "tag2"],
         getterAlias: "alias",
         functionName: .register,
         ifConfigCondition: ExprSyntax("SOME_FLAG"),
@@ -39,6 +40,10 @@ final class RegistrationEncodingTests: XCTestCase {
             }
           ],
           "concurrencyModifier" : "MainActor",
+          "customTags" : [
+            "tag1",
+            "tag2"
+          ],
           "functionName" : "register",
           "getterAlias" : "alias",
           "ifConfig" : "SOME_FLAG",

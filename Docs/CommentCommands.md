@@ -42,3 +42,7 @@ Knit makes some assumptions during code generation about the name of the module 
 ### DisablePerformanceGen
 
 `// @knit disable-performance-gen` disables the generation of the `_assemblyFlags` and `_autoInstantiate` functions which are important for large projects to cut down on the number of `as` and `is` calls.
+
+### Custom Tags
+
+`// @knit tag("Foo")` can be used to add a command that is not used directly inside of knit but can be used by external scripts which are performing logic based on the JSON output of the knit parser.
