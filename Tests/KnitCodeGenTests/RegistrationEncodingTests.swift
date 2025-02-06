@@ -1,0 +1,61 @@
+//  Created by Alex Skorulis on 7/2/2025.
+
+@testable import KnitCodeGen
+import Foundation
+import SwiftSyntax
+import XCTest
+
+final class RegistrationEncodingTests: XCTestCase {
+
+    private var registration = Registration(
+        service: "MyService",
+        name: "Foo",
+        accessLevel: .public,
+        arguments: [.init(identifier: "ABC", type: "Int")],
+        concurrencyModifier: "MainActor",
+        getterAlias: "alias",
+        functionName: .register,
+        ifConfigCondition: ExprSyntax("SOME_FLAG"),
+        spi: "Testing"
+    )
+
+    func testEncodingOutput() throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+
+        let data = try encoder.encode(registration)
+        let text = try XCTUnwrap(String(data: data, encoding: .utf8))
+        let expected = """
+        {
+          "accessLevel" : "public",
+          "arguments" : [
+            {
+              "identifier" : {
+                "fixed" : {
+                  "_0" : "ABC"
+                }
+              },
+              "type" : "Int"
+            }
+          ],
+          "concurrencyModifier" : "MainActor",
+          "functionName" : "register",
+          "getterAlias" : "alias",
+          "ifConfig" : "SOME_FLAG",
+          "name" : "Foo",
+          "service" : "MyService",
+          "spi" : "Testing"
+        }
+        """
+
+        XCTAssertEqual(text, expected)
+    }
+
+    func testReencoding() throws {
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(registration)
+        let decoder = JSONDecoder()
+        let reencoded = try decoder.decode(Registration.self, from: data)
+        XCTAssertEqual(registration, reencoded)
+    }
+}

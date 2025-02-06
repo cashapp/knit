@@ -21,8 +21,18 @@ public struct Registration: Equatable, Codable, Sendable {
     /// This alias for the registration's getter.
     public var getterAlias: String?
 
-    public var ifConfigCondition: ExprSyntax?
-    
+    public var ifConfigCondition: ExprSyntax? {
+        get {
+            ifConfigString.map { ExprSyntax("\(raw: $0)") }
+        }
+        set {
+            ifConfigString = newValue?.description
+        }
+    }
+
+    // This is used to encode ifConfigCondition since ExprSyntax does not conform to codable
+    private var ifConfigString: String?
+
     /// The Swinject function that was used to register this factory
     public let functionName: FunctionName
 
@@ -37,6 +47,7 @@ public struct Registration: Equatable, Codable, Sendable {
         concurrencyModifier: String? = nil,
         getterAlias: String? = nil,
         functionName: FunctionName = .register,
+        ifConfigCondition: ExprSyntax? = nil,
         spi: String? = nil
     ) {
         self.service = service
@@ -46,6 +57,7 @@ public struct Registration: Equatable, Codable, Sendable {
         self.arguments = arguments
         self.getterAlias = getterAlias
         self.functionName = functionName
+        self.ifConfigCondition = ifConfigCondition
         self.spi = spi
     }
 
@@ -54,9 +66,10 @@ public struct Registration: Equatable, Codable, Sendable {
         return functionName == .implements
     }
 
-    private enum CodingKeys: CodingKey {
+    private enum CodingKeys: String, CodingKey {
         // ifConfigCondition is not encoded since ExprSyntax does not conform to codable
         case service, name, accessLevel, arguments, getterAlias, functionName, concurrencyModifier, spi
+        case ifConfigString = "ifConfig"
     }
 
     var hasRedundantGetter: Bool {
