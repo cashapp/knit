@@ -4,7 +4,7 @@
 
 @preconcurrency import SwiftSyntax
 
-public struct Registration: Equatable, Codable, Sendable {
+public struct Registration: Equatable, Encodable, Sendable {
 
     public var service: String
 
@@ -21,8 +21,15 @@ public struct Registration: Equatable, Codable, Sendable {
     /// This registration's getter setting.
     public var getterConfig: Set<GetterConfig>
 
-    public var ifConfigCondition: ExprSyntax?
-    
+    public var ifConfigCondition: ExprSyntax? {
+        didSet {
+            ifConfigString = ifConfigCondition?.description
+        }
+    }
+
+    // This is used to encode ifConfigCondition since ExprSyntax does not conform to codable
+    private var ifConfigString: String?
+
     /// The Swinject function that was used to register this factory
     public let functionName: FunctionName
 
@@ -55,8 +62,7 @@ public struct Registration: Equatable, Codable, Sendable {
     }
 
     private enum CodingKeys: CodingKey {
-        // ifConfigCondition is not encoded since ExprSyntax does not conform to codable
-        case service, name, accessLevel, arguments, getterConfig, functionName, concurrencyModifier, spi
+        case service, name, accessLevel, arguments, getterConfig, functionName, concurrencyModifier, spi, ifConfigString
     }
 
     var namedGetterConfig: GetterConfig? {
