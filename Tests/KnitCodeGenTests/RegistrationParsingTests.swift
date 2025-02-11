@@ -90,31 +90,11 @@ final class RegistrationParsingTests: XCTestCase {
     func testGetterConfigRegistrations() throws {
         try assertMultipleRegistrationsString(
             """
-            // @knit public getter-named
+            // @knit public getter-named("alias")
             container.register(A.self) { }
             """,
             registrations: [
-                .init(service: "A", accessLevel: .public, getterConfig: [.identifiedGetter(nil)])
-            ]
-        )
-
-        try assertMultipleRegistrationsString(
-            """
-            // @knit public getter-callAsFunction
-            container.register(A.self) { }
-            """,
-            registrations: [
-                .init(service: "A", accessLevel: .public, getterConfig: [.callAsFunction])
-            ]
-        )
-
-        try assertMultipleRegistrationsString(
-            """
-            // @knit public getter-named getter-callAsFunction
-            container.register(A.self) { }
-            """,
-            registrations: [
-                .init(service: "A", accessLevel: .public, getterConfig: GetterConfig.both)
+                .init(service: "A", accessLevel: .public, getterAlias: "alias")
             ]
         )
     }
@@ -433,11 +413,11 @@ final class RegistrationParsingTests: XCTestCase {
 
         try assertMultipleRegistrationsString(
             """
-            // @knit getter-named
+            // @knit
             container.autoregister((String, Int?).self, initializer: Factory.make)
             """,
             registrations: [
-                .init(service: "(String, Int?)", getterConfig: [.identifiedGetter(nil)], functionName: .autoregister)
+                .init(service: "(String, Int?)", functionName: .autoregister)
             ]
         )
     }

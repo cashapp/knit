@@ -227,12 +227,12 @@ final class AssemblyParsingTests: XCTestCase {
 
     func testKnitDirectives() throws {
         let sourceFile: SourceFileSyntax = """
-            // @knit public getter-named
+            // @knit public
             class TestAssembly: ModuleAssembly {
                 typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     container.register(A.self) { }
-                    // @knit internal getter-callAsFunction
+                    // @knit internal getter-named("bb")
                     container.register(B.self) { }
                 }
             }
@@ -242,8 +242,8 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(
             config.registrations,
             [
-                .init(service: "A", accessLevel: .public, getterConfig: [.identifiedGetter(nil)]),
-                .init(service: "B", accessLevel: .internal, getterConfig: [.callAsFunction])
+                .init(service: "A", accessLevel: .public),
+                .init(service: "B", accessLevel: .internal, getterAlias: "bb")
             ]
         )
     }

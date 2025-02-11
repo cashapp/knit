@@ -18,8 +18,8 @@ public struct Registration: Equatable, Codable, Sendable {
     /// Argument types required to resolve the registration
     public var arguments: [Argument]
 
-    /// This registration's getter setting.
-    public var getterConfig: Set<GetterConfig>
+    /// This alias for the registration's getter.
+    public var getterAlias: String?
 
     public var ifConfigCondition: ExprSyntax?
     
@@ -35,7 +35,7 @@ public struct Registration: Equatable, Codable, Sendable {
         accessLevel: AccessLevel = .internal,
         arguments: [Argument] = [],
         concurrencyModifier: String? = nil,
-        getterConfig: Set<GetterConfig> = GetterConfig.default,
+        getterAlias: String? = nil,
         functionName: FunctionName = .register,
         spi: String? = nil
     ) {
@@ -44,7 +44,7 @@ public struct Registration: Equatable, Codable, Sendable {
         self.accessLevel = accessLevel
         self.concurrencyModifier = concurrencyModifier
         self.arguments = arguments
-        self.getterConfig = getterConfig
+        self.getterAlias = getterAlias
         self.functionName = functionName
         self.spi = spi
     }
@@ -56,18 +56,14 @@ public struct Registration: Equatable, Codable, Sendable {
 
     private enum CodingKeys: CodingKey {
         // ifConfigCondition is not encoded since ExprSyntax does not conform to codable
-        case service, name, accessLevel, arguments, getterConfig, functionName, concurrencyModifier, spi
-    }
-
-    var namedGetterConfig: GetterConfig? {
-        getterConfig.first(where: { $0.isNamed })
+        case service, name, accessLevel, arguments, getterAlias, functionName, concurrencyModifier, spi
     }
 
     var hasRedundantGetter: Bool {
-        guard let namedGetterConfig, case let GetterConfig.identifiedGetter(name) = namedGetterConfig else {
+        guard let getterAlias else {
             return false
         }
-        return TypeNamer.computedIdentifierName(type: service) == name
+        return TypeNamer.computedIdentifierName(type: service) == getterAlias
     }
 
 }

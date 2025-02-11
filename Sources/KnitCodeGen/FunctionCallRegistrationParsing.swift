@@ -182,12 +182,6 @@ private func makeRegistrationFor(
     let name = try getName(arguments: arguments)
     let directives = try KnitDirectives.parse(leadingTrivia: leadingTrivia)
 
-    var getterConfig: Set<GetterConfig> = GetterConfig.default
-    if !directives.getterConfig.isEmpty {
-        getterConfig = directives.getterConfig
-    } else if !defaultDirectives.getterConfig.isEmpty {
-        getterConfig = defaultDirectives.getterConfig
-    }
     if let accessLevel = directives.accessLevel {
         if defaultDirectives.accessLevel == accessLevel || (defaultDirectives.accessLevel == nil && accessLevel == .default) {
             throw RegistrationParsingError.redundantAccessControl(syntax: syntax)
@@ -200,7 +194,7 @@ private func makeRegistrationFor(
         accessLevel: directives.accessLevel ?? defaultDirectives.accessLevel ?? .default,
         arguments: registrationArguments,
         concurrencyModifier: concurrencyModifier,
-        getterConfig: getterConfig,
+        getterAlias: directives.getterAlias,
         functionName: functionName,
         spi: directives.spi ?? defaultDirectives.spi
     )

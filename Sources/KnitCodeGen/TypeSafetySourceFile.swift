@@ -24,19 +24,14 @@ public enum TypeSafetySourceFile {
                           """) {
 
                 for registration in unnamedRegistrations {
-                    if registration.getterConfig.contains(.callAsFunction) {
-                        try makeResolver(registration: registration, getterType: .callAsFunction)
-                    }
-                    if let namedGetter = registration.namedGetterConfig {
-                        try makeResolver(registration: registration, getterType: namedGetter)
-                    }
+                    try makeResolver(registration: registration, getterAlias: registration.getterAlias)
                 }
                 for namedGroup in namedGroups {
-                    let firstGetterConfig = namedGroup.registrations[0].getterConfig.first ?? .callAsFunction
+                    let firstGetterAlias = namedGroup.registrations[0].getterAlias
                     try makeResolver(
                         registration: namedGroup.registrations[0],
                         enumName: "\(config.assemblyName).\(namedGroup.enumName)",
-                        getterType: firstGetterConfig
+                        getterAlias: firstGetterAlias
                     )
                 }
             }
@@ -56,7 +51,7 @@ public enum TypeSafetySourceFile {
     static func makeResolver(
         registration: Registration,
         enumName: String? = nil,
-        getterType: GetterConfig = .callAsFunction
+        getterAlias: String? = nil
     ) throws -> DeclSyntaxProtocol {
         var modifier = ""
         if let spi = registration.spi {
@@ -76,13 +71,7 @@ public enum TypeSafetySourceFile {
             "file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line"
         ].compactMap { $0 }.joined(separator: ", ")
         let usages = ["\(registration.service).self", nameUsage, argUsage].compactMap { $0 }.joined(separator: ", ")
-        let funcName: String
-        switch getterType {
-        case .callAsFunction:
-            funcName = "callAsFunction"
-        case let .identifiedGetter(name):
-            funcName = name ?? TypeNamer.computedIdentifierName(type: registration.service)
-        }
+        let funcName = getterAlias ?? TypeNamer.computedIdentifierName(type: registration.service)
 
         let function = try FunctionDeclSyntax("\(raw: modifier)func \(raw: funcName)(\(raw: inputs)) -> \(raw: registration.service)") {
             "knitUnwrap(resolve(\(raw: usages)), callsiteFile: file, callsiteFunction: function, callsiteLine: line)"

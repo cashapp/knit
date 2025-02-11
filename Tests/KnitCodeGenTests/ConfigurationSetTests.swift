@@ -42,7 +42,7 @@ final class ConfigurationSetTests: XCTestCase {
             }
             /// Generated from ``Module2Assembly``
             extension Resolver {
-                public func callAsFunction(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service2 {
+                public func service2(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service2 {
                     knitUnwrap(resolve(Service2.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
                 func argumentService(string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ArgumentService {
@@ -424,7 +424,7 @@ private enum Factory {
         assemblyName: "Module2Assembly",
         moduleName: "Module2",
         registrations: [
-            .init(service: "Service2", accessLevel: .public, getterConfig: [.callAsFunction]),
+            .init(service: "Service2", accessLevel: .public),
             .init(service: "ArgumentService", accessLevel: .internal, arguments: [.init(type: "String")])
 
         ],
