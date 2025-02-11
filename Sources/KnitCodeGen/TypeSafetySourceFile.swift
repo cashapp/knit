@@ -24,7 +24,11 @@ public enum TypeSafetySourceFile {
                           """) {
 
                 for registration in unnamedRegistrations {
-                    let resolvers = try makeResolvers(registration: registration, getterAlias: registration.getterAlias)
+                    let resolvers = try makeResolvers(
+                        registration: registration,
+                        ifConfigCondition: registration.ifConfigCondition,
+                        getterAlias: registration.getterAlias
+                    )
                     for resolver in resolvers {
                         resolver
                     }
@@ -33,6 +37,7 @@ public enum TypeSafetySourceFile {
                     let firstGetterAlias = namedGroup.registrations[0].getterAlias
                     let resolvers = try makeResolvers(
                         registration: namedGroup.registrations[0],
+                        ifConfigCondition: namedGroup.ifConfigCondition,
                         enumName: "\(config.assemblyName).\(namedGroup.enumName)",
                         getterAlias: firstGetterAlias
                     )
@@ -56,6 +61,7 @@ public enum TypeSafetySourceFile {
     /// Create the type safe resolver function for this registration
     static func makeResolvers(
         registration: Registration,
+        ifConfigCondition: ExprSyntax?,
         enumName: String? = nil,
         getterAlias: String? = nil
     ) throws -> [DeclSyntaxProtocol] {
@@ -97,22 +103,7 @@ public enum TypeSafetySourceFile {
         }
 
         let functions = [function, aliasFunction].compactMap { $0 }
-
-        // Wrap the output in an #if where needed
-        guard let ifConfigCondition = registration.ifConfigCondition else {
-            return functions
-        }
-        let codeBlock = CodeBlockItemListSyntax(
-            functions.map {
-                .init(item: .init($0))
-            }
-        )
-        let clause = IfConfigClauseSyntax(
-            poundKeyword: .poundIfToken(),
-            condition: ifConfigCondition,
-            elements: .statements(codeBlock)
-        )
-        return [IfConfigDeclSyntax(clauses: [clause])]
+        return functions.map { $0.maybeWithCondition(ifConfigCondition: ifConfigCondition) }
     }
 
     private static func makeResolveFunction(
@@ -144,12 +135,7 @@ public enum TypeSafetySourceFile {
     ) throws -> ExtensionDeclSyntax {
         try ExtensionDeclSyntax("extension \(raw: assemblyName)") {
             for namedGroup in namedGroups {
-                let modifier = namedGroup.accessLevel == .public ? "public " : ""
-                try EnumDeclSyntax("\(raw: modifier)enum \(raw: namedGroup.enumName): String, CaseIterable") {
-                    for test in namedGroup.registrations {
-                        "case \(raw: test.name!)" as DeclSyntax
-                    }
-                }
+                try namedGroup.enumSourceCode(assemblyName: assemblyName)
             }
         }
     }
