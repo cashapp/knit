@@ -37,7 +37,8 @@ public struct Registration: Equatable, Codable, Sendable {
         concurrencyModifier: String? = nil,
         getterConfig: Set<GetterConfig> = GetterConfig.default,
         functionName: FunctionName = .register,
-        spi: String? = nil
+        spi: String? = nil,
+        ifConfigCondition: ExprSyntax? = nil
     ) {
         self.service = service
         self.name = name
@@ -47,6 +48,7 @@ public struct Registration: Equatable, Codable, Sendable {
         self.getterConfig = getterConfig
         self.functionName = functionName
         self.spi = spi
+        self.ifConfigCondition = ifConfigCondition
     }
 
     /// This registration is forwarded to another service entry.
