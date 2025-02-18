@@ -27,12 +27,9 @@ Make the generated type-safe accessor `public`:
 container.register(MyType.self, factory: { /*...*/ })
 ```
 
-#### Type Safe Generation Style
+#### Getter Named
 
-* `getter-named`: Generate a named accessor function. Knit will provide an automatic name based from the type. (This is the default behavior.)
 * `getter-named("myCustomName")`: Generate a named accessor function with a custom name where the default name is not appropriate. Provide the custom name as an argument to the command.
-* `getter-callAsFunction`: Generate `callAsFunction` accessor.
-* Both commands can be included to specify that both accessors should be generated. `// @knit getter-named getter-callAsFunction`
 
 ### SPI
 

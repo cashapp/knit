@@ -7,7 +7,7 @@ import SwiftSyntax
 
 public struct KnitDirectives: Codable, Equatable, Sendable {
     var accessLevel: AccessLevel?
-    var getterConfig: Set<GetterConfig>
+    var getterAlias: String?
     var moduleName: String?
     var spi: String?
 
@@ -17,13 +17,13 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
     public init(
         accessLevel: AccessLevel? = nil,
         disablePerformanceGen: Bool = false,
-        getterConfig: Set<GetterConfig> = [],
+        getterAlias: String? = nil,
         moduleName: String? = nil,
         spi: String? = nil
     ) {
         self.accessLevel = accessLevel
         self.disablePerformanceGen = disablePerformanceGen
-        self.getterConfig = getterConfig
+        self.getterAlias = getterAlias
         self.moduleName = moduleName
         self.spi = spi
     }
@@ -64,9 +64,7 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
             if parsed.disablePerformanceGen {
                 result.disablePerformanceGen = true
             }
-            for getter in parsed.getterConfig {
-                result.getterConfig.insert(getter)
-            }
+            result.getterAlias = parsed.getterAlias
             if let spi = parsed.spi {
                 if result.spi != nil {
                     throw Error.duplicateSPI(name: spi)
@@ -82,9 +80,6 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
         if let accessLevel = AccessLevel(rawValue: token) {
             return KnitDirectives(accessLevel: accessLevel)
         }
-        if token == "getter-callAsFunction" {
-            return KnitDirectives(getterConfig: [.callAsFunction])
-        }
         if token == "disable-performance-gen" {
             return KnitDirectives(disablePerformanceGen: true)
         }
@@ -93,9 +88,8 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
                 var range = nameMatch.range(at: 1)
                 range = NSRange(location: range.location + 2, length: range.length - 4)
                 let name = (token as NSString).substring(with: range)
-                return KnitDirectives(getterConfig: [.identifiedGetter(name)])
+                return KnitDirectives(getterAlias: name)
             }
-            return KnitDirectives(getterConfig: [.identifiedGetter(nil)])
         }
         if let nameMatch = moduleNameRegex.firstMatch(in: token, range: NSMakeRange(0, token.count)) {
             if nameMatch.numberOfRanges >= 2, nameMatch.range(at: 1).location != NSNotFound {
@@ -121,7 +115,7 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
         return .init()
     }
 
-    private static let getterNamedRegex = try! NSRegularExpression(pattern: "getter-named(\\(\"\\w*\"\\))?")
+    private static let getterNamedRegex = try! NSRegularExpression(pattern: "getter-named(\\(\"\\w*\"\\))")
     private static let moduleNameRegex = try! NSRegularExpression(pattern: "module-name(\\(\"\\w*\"\\))")
     private static let spiRegex = try!  NSRegularExpression(pattern: "@_spi(\\(\\w*\\))")
 }
@@ -138,25 +132,6 @@ extension KnitDirectives {
             case .duplicateSPI:
                 return "Duplicate @_spi annotations are not supported"
             }
-        }
-    }
-}
-
-public enum GetterConfig: Codable, Equatable, Hashable, Sendable {
-    /// Only the `callAsFunction()` accessor is generated.
-    case callAsFunction
-    /// Only the identified getter is generated.
-    case identifiedGetter(_ name: String?)
-
-    /// Centralized control of the default behavior.
-    public static let `default`: Set<GetterConfig> = [.identifiedGetter(nil)]
-
-    public static let both: Set<GetterConfig> = [.callAsFunction, .identifiedGetter(nil)]
-
-    public var isNamed: Bool {
-        switch self {
-        case .identifiedGetter: return true
-        default: return false
         }
     }
 }

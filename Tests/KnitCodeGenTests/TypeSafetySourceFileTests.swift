@@ -19,13 +19,13 @@ final class TypeSafetySourceFileTests: XCTestCase {
                     .init(service: "ServiceB", name: "name"),
                     .init(service: "ServiceB", name: "otherName"),
                     .init(service: "ServiceC", name: nil, accessLevel: .hidden), // No resolver is created
-                    .init(service: "ServiceD", name: nil, accessLevel: .public, getterConfig: GetterConfig.both, functionName: .implements),
+                    .init(service: "ServiceD", name: nil, accessLevel: .public, getterAlias: "serviceDAlias", functionName: .implements),
                     .init(service: "ServiceE", name: nil, accessLevel: .public, arguments: [
                         .init(type: "@escaping () -> Void"),
                         .init(type: "@escaping @Sendable (Bool) -> Void")
                     ]),
-                    .init(service: "ServiceF", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
-                    .init(service: "(String, Int?)", name: nil, accessLevel: .public, getterConfig: [GetterConfig.identifiedGetter(nil)]),
+                    .init(service: "ServiceF", name: nil, accessLevel: .public),
+                    .init(service: "(String, Int?)", name: nil, accessLevel: .public),
                 ],
                 targetResolver: "Resolve"
             )
@@ -37,10 +37,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             func serviceA(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceA {
                 knitUnwrap(resolve(ServiceA.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
-            public func callAsFunction(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceD {
-                knitUnwrap(resolve(ServiceD.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
-            }
-            public func serviceD(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceD {
+            public func serviceDAlias(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceD {
                 knitUnwrap(resolve(ServiceD.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             public func serviceE(closure1: @escaping () -> Void, closure2: @escaping @Sendable (Bool) -> Void, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceE {
@@ -83,7 +80,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 enumName: nil
             ).formatted().description,
             """
-            public func callAsFunction(string: String, url: URL, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+            public func a(string: String, url: URL, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, arguments: string, url), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
@@ -98,7 +95,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 enumName: nil
             ).formatted().description,
             """
-            public func callAsFunction(string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+            public func a(string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
@@ -113,7 +110,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 enumName: nil
             ).formatted().description,
             """
-            public func callAsFunction(string1: String, string2: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+            public func a(string1: String, string2: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, arguments: string1, string2), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
@@ -128,7 +125,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 enumName: "MyAssembly.A_ResolutionKey"
             ).formatted().description,
             """
-            public func callAsFunction(name: MyAssembly.A_ResolutionKey, string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+            public func a(name: MyAssembly.A_ResolutionKey, string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, name: name.rawValue, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
@@ -143,7 +140,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 enumName: nil
             ).formatted().description,
             """
-            public func callAsFunction(arg: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+            public func a(arg: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, argument: arg), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
@@ -160,7 +157,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ).formatted().description,
             """
             #if SOME_FLAG
-            public func callAsFunction(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+            public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             #endif
@@ -176,7 +173,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
                 enumName: nil
             ).formatted().description,
             """
-            @_spi(Testing) public func callAsFunction(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+            @_spi(Testing) public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """

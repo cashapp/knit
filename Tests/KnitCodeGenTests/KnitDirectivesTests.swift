@@ -11,29 +11,29 @@ final class KnitDirectivesTests: XCTestCase {
     func testAccessLevel() throws {
         XCTAssertEqual(
             try parse(" @knit public"),
-            .init(accessLevel: .public, getterConfig: [])
+            .init(accessLevel: .public)
         )
 
         XCTAssertEqual(
             try parse("@knit internal"),
-            .init(accessLevel: .internal, getterConfig: [])
+            .init(accessLevel: .internal)
         )
 
         XCTAssertEqual(
             try parse("@knit hidden"),
-            .init(accessLevel: .hidden, getterConfig: [])
+            .init(accessLevel: .hidden)
         )
 
         XCTAssertEqual(
             try parse("@knit ignore"),
-            .init(accessLevel: .ignore, getterConfig: [])
+            .init(accessLevel: .ignore)
         )
     }
 
     func testKnitPrefix() {
         XCTAssertEqual(
             try parse("// @knit public"),
-            .init(accessLevel: .public, getterConfig: [])
+            .init(accessLevel: .public)
         )
 
         XCTAssertEqual(
@@ -55,39 +55,19 @@ final class KnitDirectivesTests: XCTestCase {
     func testMultilLneComments() throws {
         XCTAssertEqual(
             try parse("// @knit public\n\n// another comment"),
-            .init(accessLevel: .public, getterConfig: [])
+            .init(accessLevel: .public)
         )
 
         XCTAssertEqual(
             try parse("// Comment\n// @knit public\n// another comment"),
-            .init(accessLevel: .public, getterConfig: [])
+            .init(accessLevel: .public)
         )
     }
 
-    func testGetterConfig() {
-        XCTAssertEqual(
-            try parse("// @knit getter-named"),
-            .init(accessLevel: nil, getterConfig: [.identifiedGetter(nil)])
-        )
-
+    func testGetterAlias() {
         XCTAssertEqual(
             try parse("// @knit getter-named(\"customName\")"),
-            .init(accessLevel: nil, getterConfig: [.identifiedGetter("customName")])
-        )
-
-        XCTAssertEqual(
-            try parse("// @knit getter-callAsFunction"),
-            .init(accessLevel: nil, getterConfig: [.callAsFunction])
-        )
-
-        XCTAssertEqual(
-            try parse("// @knit getter-callAsFunction getter-named"),
-            .init(accessLevel: nil, getterConfig: [.identifiedGetter(nil), .callAsFunction])
-        )
-
-        XCTAssertEqual(
-            try parse("// @knit getter-callAsFunction getter-named"),
-            .init(accessLevel: nil, getterConfig: [.identifiedGetter(nil), .callAsFunction])
+            .init(accessLevel: nil, getterAlias: "customName")
         )
     }
 
@@ -113,8 +93,8 @@ final class KnitDirectivesTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            try parse("// @knit getter-callAsFunction module-name(\"A\")"),
-            .init(getterConfig: [.callAsFunction], moduleName: "A")
+            try parse("// @knit module-name(\"A\")"),
+            .init(moduleName: "A")
         )
 
         XCTAssertThrowsError(try parse("// @knit module-name"))
