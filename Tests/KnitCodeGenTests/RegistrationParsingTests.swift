@@ -611,6 +611,18 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
+    func testCustomTags() throws {
+        try assertMultipleRegistrationsString(
+            """
+            // @knit @tag("Foo")
+            container.registerAbstract(MyType.self)
+            """,
+            registrations: [
+                Registration(service: "MyType", customTags: ["Foo"], functionName: .registerAbstract),
+            ]
+        )
+    }
+
     func testIncorrectRegistrations() throws {
         try assertNoRegistrationsString("container.someOtherMethod(AType.self)", message: "Incorrect method name")
         try assertNoRegistrationsString("container.register(A)", message: "First param is not a metatype")
