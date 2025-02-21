@@ -4,6 +4,7 @@
 
 @testable import KnitCodeGen
 import Foundation
+import SwiftSyntax
 import XCTest
 
 final class NamedRegistrationGroupTests: XCTestCase {
@@ -41,6 +42,21 @@ final class NamedRegistrationGroupTests: XCTestCase {
             namedGroup.enumName,
             "AnyProfileValueProvider_BalanceSnapshot_ResolutionKey"
         )
+    }
+
+    func testIfConfigCondition() throws {
+        let registration1 = Registration(service: "ServiceA", name: "name1", ifConfigCondition: ExprSyntax("DEBUG"))
+        let registration2 = Registration(service: "ServiceA", name: "name2")
+        let registration3 = Registration(service: "ServiceA", name: "name3", ifConfigCondition: ExprSyntax("RELEASE"))
+
+        let namedGroup1 = NamedRegistrationGroup.make(from: [registration1])[0]
+        XCTAssertEqual(namedGroup1.ifConfigCondition?.description, ExprSyntax("DEBUG").description)
+
+        let namedGroup2 = NamedRegistrationGroup.make(from: [registration1, registration2])[0]
+        XCTAssertNil(namedGroup2.ifConfigCondition)
+
+        let namedGroup3 = NamedRegistrationGroup.make(from: [registration1, registration3])[0]
+        XCTAssertNil(namedGroup3.ifConfigCondition)
     }
 
 }
