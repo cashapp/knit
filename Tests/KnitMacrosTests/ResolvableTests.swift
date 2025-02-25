@@ -127,7 +127,7 @@ final class ResolvableTests: XCTestCase {
                 Thing(value: value)
             }
             
-            static func make(resolver: Resolver) -> Thing {
+            static func makeThing(resolver: Resolver) -> Thing {
                  return makeThing(
                      value: resolver.int()
                  )
@@ -154,6 +154,53 @@ final class ResolvableTests: XCTestCase {
                     column: 1
                 ),
             ],
+            macros: testMacros
+        )
+    }
+
+    func test_main_actor_init() {
+        assertMacroExpansion(
+            """
+            @Resolvable<Resolver> @MainActor
+            init(arg1: String, arg2: Int) {}
+            """,
+            expandedSource: """
+            
+            @MainActor
+            init(arg1: String, arg2: Int) {}
+
+            @MainActor static func make(resolver: Resolver) -> Self {
+                 return .init(
+                     arg1: resolver.string(),
+                     arg2: resolver.int()
+                 )
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
+    func test_main_actor_static_function() {
+        assertMacroExpansion(
+            """
+            @Resolvable<Resolver> @MainActor
+            static func makeThing(value: Int) -> Thing {
+                Thing(value: value)
+            }
+            """,
+            expandedSource: """
+            
+            @MainActor
+            static func makeThing(value: Int) -> Thing {
+                Thing(value: value)
+            }
+            
+            @MainActor static func makeThing(resolver: Resolver) -> Thing {
+                 return makeThing(
+                     value: resolver.int()
+                 )
+            }
+            """,
             macros: testMacros
         )
     }
