@@ -18,12 +18,16 @@ public struct ResolvableMacro: PeerMacro {
         let parameterClause: FunctionParameterClauseSyntax
         let returnType: String
         let makeCall: String
+        let functionName: String
+        let mainActor: Bool
 
         if let initDecl = declaration.as(InitializerDeclSyntax.self) {
             // When the macro is applied to an initializer
             parameterClause = initDecl.signature.parameterClause
             returnType = "Self"
             makeCall = ".init"
+            functionName = "make"
+            mainActor = isMainActorAnnotated(attributes: initDecl.attributes)
         } else if let funcDecl = declaration.as(FunctionDeclSyntax.self) {
             // When the macro is applied to a static function
             parameterClause = funcDecl.signature.parameterClause
@@ -40,6 +44,8 @@ public struct ResolvableMacro: PeerMacro {
             }
             returnType = ret
             makeCall = funcDecl.name.text
+            functionName = funcDecl.name.description
+            mainActor = isMainActorAnnotated(attributes: funcDecl.attributes)
         } else {
             throw DiagnosticsError(
                 diagnostics: [.init(node: node, message:  Error.unsupportAttachment)]
@@ -53,7 +59,9 @@ public struct ResolvableMacro: PeerMacro {
                 params: params,
                 resolverType: resolverType,
                 makeCall: makeCall,
-                returnType: returnType
+                returnType: returnType,
+                functionName: functionName,
+                mainActor: mainActor
             )
         ]
     }
@@ -62,7 +70,9 @@ public struct ResolvableMacro: PeerMacro {
         params: [Param],
         resolverType: String,
         makeCall: String,
-        returnType: String
+        returnType: String,
+        functionName: String,
+        mainActor: Bool
     ) -> DeclSyntax {
         let paramsResolved = params.map { param in
             return param.resolveCall
@@ -76,9 +86,10 @@ public struct ResolvableMacro: PeerMacro {
         }
 
         let makeArgumentsString = makeArguments.joined(separator: ", ")
+        let mainActorAnnotation = mainActor ? "@MainActor " : ""
 
        return """
-       static func make(\(raw: makeArgumentsString)) -> \(raw: returnType) {
+       \(raw: mainActorAnnotation)static func \(raw: functionName)(\(raw: makeArgumentsString)) -> \(raw: returnType) {
             return \(raw: makeCall)(
                 \(raw: paramsString)
             )
@@ -141,7 +152,21 @@ public struct ResolvableMacro: PeerMacro {
         }
         return defaultValue.description.replacingOccurrences(of: "= ", with: "")
     }
-    
+
+    private static func isMainActorAnnotated(attributes: AttributeListSyntax) -> Bool {
+        for element in attributes {
+            switch element {
+            case let .attribute(attribute):
+                if attribute.attributeName.description == "MainActor" {
+                    return true
+                }
+            default:
+                continue
+            }
+        }
+        return false
+    }
+
 }
 
 extension ResolvableMacro {
