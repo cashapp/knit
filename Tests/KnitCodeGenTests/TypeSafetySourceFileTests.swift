@@ -77,6 +77,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         XCTAssertEqual(
             try TypeSafetySourceFile.makeResolver(
                 registration: registration,
+                ifConfigCondition: registration.ifConfigCondition,
                 enumName: nil
             ).formatted().description,
             """
@@ -92,6 +93,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         XCTAssertEqual(
             try TypeSafetySourceFile.makeResolver(
                 registration: registration,
+                ifConfigCondition: registration.ifConfigCondition,
                 enumName: nil
             ).formatted().description,
             """
@@ -107,6 +109,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         XCTAssertEqual(
             try TypeSafetySourceFile.makeResolver(
                 registration: registration,
+                ifConfigCondition: registration.ifConfigCondition,
                 enumName: nil
             ).formatted().description,
             """
@@ -122,6 +125,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         XCTAssertEqual(
             try TypeSafetySourceFile.makeResolver(
                 registration: registration,
+                ifConfigCondition: registration.ifConfigCondition,
                 enumName: "MyAssembly.A_ResolutionKey"
             ).formatted().description,
             """
@@ -137,6 +141,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         XCTAssertEqual(
             try TypeSafetySourceFile.makeResolver(
                 registration: registration,
+                ifConfigCondition: registration.ifConfigCondition,
                 enumName: nil
             ).formatted().description,
             """
@@ -153,6 +158,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         XCTAssertEqual(
             try TypeSafetySourceFile.makeResolver(
                 registration: registration,
+                ifConfigCondition: registration.ifConfigCondition,
                 enumName: nil
             ).formatted().description,
             """
@@ -170,6 +176,7 @@ final class TypeSafetySourceFileTests: XCTestCase {
         XCTAssertEqual(
             try TypeSafetySourceFile.makeResolver(
                 registration: registration,
+                ifConfigCondition: registration.ifConfigCondition,
                 enumName: nil
             ).formatted().description,
             """
@@ -373,6 +380,58 @@ final class TypeSafetySourceFileTests: XCTestCase {
         """
 
         XCTAssertEqual(expected, result.formatted().description)
+    }
+
+    func testResolutionKeyWithMacros() throws {
+        let registration1 = Registration(service: "ServiceA", name: "name")
+        let registration2 = Registration(service: "ServiceA", name: "name2", ifConfigCondition: ExprSyntax("DEBUG"))
+        let registration3 = Registration(service: "ServiceB", name: "name2", ifConfigCondition: ExprSyntax("RELEASE"))
+        let result = try TypeSafetySourceFile.make(
+            from: Configuration(
+                assemblyName: "ModuleAssembly",
+                moduleName: "Module",
+                registrations: [registration2, registration1, registration3],
+                targetResolver: "Resolver"
+            )
+        )
+
+        let expected = """
+        /// Generated from ``ModuleAssembly``
+        extension Resolver {
+            func serviceA(name: ModuleAssembly.ServiceA_ResolutionKey, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceA {
+                knitUnwrap(resolve(ServiceA.self, name: name.rawValue), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
+            #if RELEASE
+            func serviceB(name: ModuleAssembly.ServiceB_ResolutionKey, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceB {
+                knitUnwrap(resolve(ServiceB.self, name: name.rawValue), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
+            #endif
+        }
+        extension ModuleAssembly {
+            enum ServiceA_ResolutionKey: String, CaseIterable {
+                #if DEBUG
+                case name2
+                #endif
+                case name
+            }
+            #if RELEASE
+            enum ServiceB_ResolutionKey: String, CaseIterable {
+                case name2
+            }
+            #endif
+        }
+        extension ModuleAssembly {
+            public static var _assemblyFlags: [ModuleAssemblyFlags] {
+                []
+            }
+            public static func _autoInstantiate() -> (any ModuleAssembly)? {
+                nil
+            }
+        }
+        """
+
+        XCTAssertEqual(expected, result.formatted().description)
+
     }
 
 }
