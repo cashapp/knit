@@ -27,9 +27,9 @@ Make the generated type-safe accessor `public`:
 container.register(MyType.self, factory: { /*...*/ })
 ```
 
-#### Getter Named
+#### Getter Alias
 
-* `getter-named("myCustomName")`: Generate a named accessor function with a custom name where the default name is not appropriate. Provide the custom name as an argument to the command.
+* `alias("myCustomName")`: Generate an additional accessor function with a custom alias when the default name is not ideal. Provide the custom name as an argument to the command.
 
 ### SPI
 

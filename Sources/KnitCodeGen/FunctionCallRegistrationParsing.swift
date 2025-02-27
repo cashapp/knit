@@ -374,7 +374,7 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
         case .nonAbstract:
             return "AbstractAssemblys may only contain Abstract registrations"
         case .redundantGetter:
-            return "getter-named matches the default accessor name and can be removed"
+            return "alias matches the default accessor name and can be removed"
         case .redundantAccessControl:
             return "Access control matches the default and can be removed"
         }

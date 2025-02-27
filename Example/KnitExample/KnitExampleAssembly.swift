@@ -17,7 +17,7 @@ final class KnitExampleAssembly: ModuleAssembly {
 
         container.autoregister(ExampleService.self, initializer: ExampleService.init)
 
-        // @knit getter-named("example")
+        // @knit alias("example")
         container.register(ExampleArgumentService.self) { (_, arg: String) in
             ExampleArgumentService.init(string: arg)
         }

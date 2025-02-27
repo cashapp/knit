@@ -88,7 +88,7 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
         if token == "disable-performance-gen" {
             return KnitDirectives(disablePerformanceGen: true)
         }
-        if let nameMatch = getterNamedRegex.firstMatch(in: token, range: NSMakeRange(0, token.count)) {
+        if let nameMatch = getterAliasRegex.firstMatch(in: token, range: NSMakeRange(0, token.count)) {
             if nameMatch.numberOfRanges >= 2, nameMatch.range(at: 1).location != NSNotFound {
                 var range = nameMatch.range(at: 1)
                 range = NSRange(location: range.location + 2, length: range.length - 4)
@@ -128,7 +128,7 @@ public struct KnitDirectives: Codable, Equatable, Sendable {
         return .init()
     }
 
-    private static let getterNamedRegex = try! NSRegularExpression(pattern: "getter-named(\\(\"\\w*\"\\))")
+    private static let getterAliasRegex = try! NSRegularExpression(pattern: "alias(\\(\"\\w*\"\\))")
     private static let moduleNameRegex = try! NSRegularExpression(pattern: "module-name(\\(\"\\w*\"\\))")
     private static let spiRegex = try! NSRegularExpression(pattern: "@_spi(\\(\\w*\\))")
     private static let tagRegex = try! NSRegularExpression(pattern: "tag(\\(\"\\w*\"\\))?")
