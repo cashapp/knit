@@ -983,6 +983,23 @@ final class AssemblyParsingTests: XCTestCase {
         })
     }
 
+    func testCustomAssemblyTags() throws {
+        let sourceFile: SourceFileSyntax = """
+            // @knit tag("shared")
+            class FooAssembly: ModuleAssembly {
+                typealias TargetResolver = Resolver
+                func assemble(container: Container) {
+                    // @knit tag("single")
+                    container.register(A.self) { }
+                }
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.registrations.count, 1)
+        XCTAssertEqual(config.registrations[0].customTags, ["shared", "single"] )
+    }
+
 }
 
 private func assertParsesSyntaxTree(
