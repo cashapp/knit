@@ -89,6 +89,10 @@ duplicate at the moment that duplicate is registered.
 
 Located in the [Docs/Modules.md](Docs/Modules.md) file.
 
+## Macros
+
+See [Docs/Macros.md](Docs/Macros.md) for information about provided macros.
+
 ## Release Guide
 
 Located in the [Docs/Release.md](Docs/Release.md) file.
