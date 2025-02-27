@@ -24,15 +24,21 @@ public enum TypeSafetySourceFile {
                           """) {
 
                 for registration in unnamedRegistrations {
-                    try makeResolver(registration: registration, getterAlias: registration.getterAlias)
+                    let resolvers = try makeResolvers(registration: registration, getterAlias: registration.getterAlias)
+                    for resolver in resolvers {
+                        resolver
+                    }
                 }
                 for namedGroup in namedGroups {
                     let firstGetterAlias = namedGroup.registrations[0].getterAlias
-                    try makeResolver(
+                    let resolvers = try makeResolvers(
                         registration: namedGroup.registrations[0],
                         enumName: "\(config.assemblyName).\(namedGroup.enumName)",
                         getterAlias: firstGetterAlias
                     )
+                    for resolver in resolvers {
+                        resolver
+                    }
                 }
             }
             if !namedGroups.isEmpty {
@@ -48,11 +54,11 @@ public enum TypeSafetySourceFile {
     }
 
     /// Create the type safe resolver function for this registration
-    static func makeResolver(
+    static func makeResolvers(
         registration: Registration,
         enumName: String? = nil,
         getterAlias: String? = nil
-    ) throws -> DeclSyntaxProtocol {
+    ) throws -> [DeclSyntaxProtocol] {
         var modifier = ""
         if let spi = registration.spi {
             modifier += "@_spi(\(spi)) "
@@ -71,23 +77,54 @@ public enum TypeSafetySourceFile {
             "file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line"
         ].compactMap { $0 }.joined(separator: ", ")
         let usages = ["\(registration.service).self", nameUsage, argUsage].compactMap { $0 }.joined(separator: ", ")
-        let funcName = getterAlias ?? TypeNamer.computedIdentifierName(type: registration.service)
 
-        let function = try FunctionDeclSyntax("\(raw: modifier)func \(raw: funcName)(\(raw: inputs)) -> \(raw: registration.service)") {
-            "knitUnwrap(resolve(\(raw: usages)), callsiteFile: file, callsiteFunction: function, callsiteLine: line)"
+        let function = try makeResolveFunction(
+            modifier: modifier,
+            registration: registration,
+            functionName: TypeNamer.computedIdentifierName(type: registration.service),
+            inputs: inputs,
+            usages: usages
+        )
+
+        let aliasFunction: FunctionDeclSyntax? = try getterAlias.map {
+            try makeResolveFunction(
+                modifier: modifier,
+                registration: registration,
+                functionName: $0,
+                inputs: inputs,
+                usages: usages
+            )
         }
+
+        let functions = [function, aliasFunction].compactMap { $0 }
 
         // Wrap the output in an #if where needed
         guard let ifConfigCondition = registration.ifConfigCondition else {
-            return function
+            return functions
         }
-        let codeBlock = CodeBlockItemListSyntax([.init(item: .init(function))])
+        let codeBlock = CodeBlockItemListSyntax(
+            functions.map {
+                .init(item: .init($0))
+            }
+        )
         let clause = IfConfigClauseSyntax(
             poundKeyword: .poundIfToken(),
             condition: ifConfigCondition,
             elements: .statements(codeBlock)
         )
-        return IfConfigDeclSyntax(clauses: [clause])
+        return [IfConfigDeclSyntax(clauses: [clause])]
+    }
+
+    private static func makeResolveFunction(
+        modifier: String,
+        registration: Registration,
+        functionName: String,
+        inputs: String,
+        usages: String
+    ) throws -> FunctionDeclSyntax {
+        try FunctionDeclSyntax("\(raw: modifier)func \(raw: functionName)(\(raw: inputs)) -> \(raw: registration.service)") {
+            "knitUnwrap(resolve(\(raw: usages)), callsiteFile: file, callsiteFunction: function, callsiteLine: line)"
+        }
     }
 
     private static func argumentString(registration: Registration) -> (input: String?, usage: String?) {

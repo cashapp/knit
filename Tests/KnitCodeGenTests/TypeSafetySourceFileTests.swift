@@ -37,6 +37,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
             func serviceA(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceA {
                 knitUnwrap(resolve(ServiceA.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
+            public func serviceD(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceD {
+                knitUnwrap(resolve(ServiceD.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
             public func serviceDAlias(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceD {
                 knitUnwrap(resolve(ServiceD.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
@@ -75,10 +78,10 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationMultipleArguments() {
         let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String"), .init(type: "URL")])
         XCTAssertEqual(
-            try TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolverString(
                 registration: registration,
                 enumName: nil
-            ).formatted().description,
+            ),
             """
             public func a(string: String, url: URL, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, arguments: string, url), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
@@ -90,10 +93,10 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationSingleArgument() {
         let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String")])
         XCTAssertEqual(
-            try TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolverString(
                 registration: registration,
                 enumName: nil
-            ).formatted().description,
+            ),
             """
             public func a(string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
@@ -105,10 +108,10 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationDuplicateParamType() {
         let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(type: "String"), .init(type: "String")])
         XCTAssertEqual(
-            try TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolverString(
                 registration: registration,
                 enumName: nil
-            ).formatted().description,
+            ),
             """
             public func a(string1: String, string2: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, arguments: string1, string2), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
@@ -120,10 +123,10 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationArgumentAndName() {
         let registration = Registration(service: "A", name: "test", accessLevel: .public, arguments: [.init(type: "String")])
         XCTAssertEqual(
-            try TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolverString(
                 registration: registration,
                 enumName: "MyAssembly.A_ResolutionKey"
-            ).formatted().description,
+            ),
             """
             public func a(name: MyAssembly.A_ResolutionKey, string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, name: name.rawValue, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
@@ -135,10 +138,10 @@ final class TypeSafetySourceFileTests: XCTestCase {
     func testRegistrationWithPrenamedArguments() {
         let registration = Registration(service: "A", accessLevel: .public, arguments: [.init(identifier: "arg", type: "String")])
         XCTAssertEqual(
-            try TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolverString(
                 registration: registration,
                 enumName: nil
-            ).formatted().description,
+            ),
             """
             public func a(arg: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self, argument: arg), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
@@ -151,10 +154,10 @@ final class TypeSafetySourceFileTests: XCTestCase {
         var registration = Registration(service: "A", accessLevel: .public)
         registration.ifConfigCondition = ExprSyntax("SOME_FLAG")
         XCTAssertEqual(
-            try TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolverString(
                 registration: registration,
                 enumName: nil
-            ).formatted().description,
+            ),
             """
             #if SOME_FLAG
             public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
@@ -165,15 +168,53 @@ final class TypeSafetySourceFileTests: XCTestCase {
         )
     }
 
+    func testRegistrationWithIfConfigAndAlias() {
+        var registration = Registration(service: "A", accessLevel: .public, getterAlias: "fooAlias")
+        registration.ifConfigCondition = ExprSyntax("SOME_FLAG")
+        XCTAssertEqual(
+            try TypeSafetySourceFile.makeResolverString(
+                registration: registration,
+                enumName: nil
+            ),
+            """
+            #if SOME_FLAG
+            public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+                knitUnwrap(resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
+            public func fooAlias(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+                knitUnwrap(resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
+            #endif
+            """
+        )
+    }
+
     func testRegistrationWithSPI() {
         let registration = Registration(service: "A", accessLevel: .public, spi: "Testing")
         XCTAssertEqual(
-            try TypeSafetySourceFile.makeResolver(
+            try TypeSafetySourceFile.makeResolverString(
                 registration: registration,
                 enumName: nil
-            ).formatted().description,
+            ),
             """
             @_spi(Testing) public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+                knitUnwrap(resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
+            """
+        )
+    }
+
+    func testRegisrationWithGetterAlias() {
+        let registration = Registration(service: "A", accessLevel: .public, getterAlias: "fooAlias")
+        XCTAssertEqual(
+            try TypeSafetySourceFile.makeResolverString(
+                registration: registration
+            ),
+            """
+            public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
+                knitUnwrap(resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+            }
+            public func fooAlias(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
                 knitUnwrap(resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
@@ -373,6 +414,23 @@ final class TypeSafetySourceFileTests: XCTestCase {
         """
 
         XCTAssertEqual(expected, result.formatted().description)
+    }
+
+}
+
+private extension TypeSafetySourceFile {
+
+    static func makeResolverString(
+        registration: Registration,
+        enumName: String? = nil
+    ) throws -> String {
+        try TypeSafetySourceFile.makeResolvers(
+            registration: registration,
+            enumName: enumName,
+            getterAlias: registration.getterAlias
+        )
+        .map { $0.formatted().description }
+        .joined(separator: "\n")
     }
 
 }
