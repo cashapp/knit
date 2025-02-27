@@ -232,7 +232,7 @@ final class AssemblyParsingTests: XCTestCase {
                 typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     container.register(A.self) { }
-                    // @knit internal getter-named("bb")
+                    // @knit internal alias("bb")
                     container.register(B.self) { }
                 }
             }
@@ -860,7 +860,7 @@ final class AssemblyParsingTests: XCTestCase {
                 typealias ReplacedAssembly = RealAssembly
 
                 func assemble(container: Container) {
-                    // @knit getter-named("a")
+                    // @knit alias("a")
                     container.register(A.self) { }
                 }
             }
@@ -967,7 +967,7 @@ final class AssemblyParsingTests: XCTestCase {
 
                 func assemble(container: Container) {
                     container.register(A.self) { }
-                        // @knit getter-named("b")
+                        // @knit alias("b")
                         .implements(B.self)
                 }
             }

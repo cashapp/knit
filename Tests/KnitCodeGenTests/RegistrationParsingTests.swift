@@ -90,7 +90,7 @@ final class RegistrationParsingTests: XCTestCase {
     func testGetterConfigRegistrations() throws {
         try assertMultipleRegistrationsString(
             """
-            // @knit public getter-named("alias")
+            // @knit public alias("alias")
             container.register(A.self) { }
             """,
             registrations: [

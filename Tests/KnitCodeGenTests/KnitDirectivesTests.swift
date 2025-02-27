@@ -66,7 +66,7 @@ final class KnitDirectivesTests: XCTestCase {
 
     func testGetterAlias() {
         XCTAssertEqual(
-            try parse("// @knit getter-named(\"customName\")"),
+            try parse("// @knit alias(\"customName\")"),
             .init(accessLevel: nil, getterAlias: "customName")
         )
     }
