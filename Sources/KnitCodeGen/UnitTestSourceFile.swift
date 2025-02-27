@@ -69,33 +69,6 @@ public enum UnitTestSourceFile {
         }
     }
 
-    static func resolverExtensions(
-        registrations: [Registration],
-        registrationsIntoCollections: [RegistrationIntoCollection]
-    ) throws -> SourceFileSyntax {
-        let withArguments = registrations.filter { !$0.arguments.isEmpty }
-
-        return try SourceFileSyntax() {
-            // swiftlint:disable line_length
-            try ExtensionDeclSyntax("private extension Resolver") {
-                // This assert is only needed if there are registrations without arguments
-                if registrations.count > withArguments.count {
-                    try makeTypeAssert()
-                }
-
-                // This assert is only needed if there are registrations with arguments
-                if !withArguments.isEmpty {
-                    try makeResultAssert()
-                }
-
-                if !groupByService(registrationsIntoCollections).isEmpty {
-                    try makeCollectionAssert()
-                }
-            }
-            // swiftlint:enable line_length
-        }
-    }
-
     /// Groups the provided registrations by service
     /// - Returns: A dictionary mapping each service to the number of times it was registered
     private static func groupByService(_ registrations: [RegistrationIntoCollection]) -> [String: Int] {
@@ -134,78 +107,6 @@ public enum UnitTestSourceFile {
         } else {
             return "resolver.assertTypeResolves(\(raw: registration.service).self)"
         }
-    }
-
-    private static func makeCollectionAssert() throws -> FunctionDeclSyntax {
-        let string: SyntaxNodeString = #"""
-        @MainActor
-        func assertCollectionResolves<T>(
-            _ type: T.Type,
-            count expectedCount: Int,
-            file: StaticString = #filePath,
-            line: UInt = #line
-        ) {
-            let actualCount = resolveCollection(type).entries.count
-            XCTAssert(
-                actualCount >= expectedCount,
-                """
-                The resolved ServiceCollection<\(type)> did not contain the expected number of services \
-                (resolved \(actualCount), expected \(expectedCount)).
-                Make sure your assembler contains a ServiceCollector behavior.
-                """,
-                file: file,
-                line: line
-            )
-        }
-        """#
-        return try FunctionDeclSyntax(string)
-    }
-
-    /// Generate a function to assert that a type can be resolved
-    private static func makeTypeAssert() throws -> FunctionDeclSyntax {
-        let string: SyntaxNodeString = #"""
-        func assertTypeResolves<T>(
-            _ type: T.Type,
-            name: String? = nil,
-            file: StaticString = #filePath,
-            line: UInt = #line
-        ) {
-            XCTAssertNotNil(
-                resolve(type, name: name),
-                """
-                The container did not resolve the type: \(type). Check that this type is registered correctly.
-                Dependency Graph:
-                \(_dependencyTree())
-                """,
-                file: file,
-                line: line
-            )
-        }
-        """#
-        return try FunctionDeclSyntax(string)
-    }
-
-    /// Generate a function to assert that a value resolved correctly
-    private static func makeResultAssert() throws -> FunctionDeclSyntax {
-        let string: SyntaxNodeString = #"""
-        func assertTypeResolved<T>(
-            _ result: T?,
-            file: StaticString = #filePath,
-            line: UInt = #line
-        ) {
-            XCTAssertNotNil(
-                result,
-                """
-                The container did not resolve the type: \(T.self). Check that this type is registered correctly.
-                Dependency Graph:
-                \(_dependencyTree())
-                """,
-                file: file,
-                line: line
-            )
-        }
-        """#
-        return try FunctionDeclSyntax(string)
     }
 
     /// Generate code for a struct that contains all of the parameters used to resolve services

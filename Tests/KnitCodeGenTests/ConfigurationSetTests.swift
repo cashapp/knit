@@ -87,6 +87,7 @@ final class ConfigurationSetTests: XCTestCase {
             [
                 "import Dependency1",
                 "import Dependency2",
+                "import KnitTesting",
                 "@testable import Module1",
                 "import XCTest",
             ]
@@ -100,6 +101,7 @@ final class ConfigurationSetTests: XCTestCase {
 
             import Dependency1
             import Dependency2
+            import KnitTesting
             @testable import Module1
             import XCTest
             final class Module1RegistrationTests: XCTestCase {
@@ -129,60 +131,6 @@ final class ConfigurationSetTests: XCTestCase {
             }
             struct Module2RegistrationTestArguments {
                 let argumentServiceString: String
-            }
-            private extension Resolver {
-                func assertTypeResolves<T>(
-                    _ type: T.Type,
-                    name: String? = nil,
-                    file: StaticString = #filePath,
-                    line: UInt = #line
-                ) {
-                    XCTAssertNotNil(
-                        resolve(type, name: name),
-                        """
-                        The container did not resolve the type: \(type). Check that this type is registered correctly.
-                        Dependency Graph:
-                        \(_dependencyTree())
-                        """,
-                        file: file,
-                        line: line
-                    )
-                }
-                func assertTypeResolved<T>(
-                    _ result: T?,
-                    file: StaticString = #filePath,
-                    line: UInt = #line
-                ) {
-                    XCTAssertNotNil(
-                        result,
-                        """
-                        The container did not resolve the type: \(T.self). Check that this type is registered correctly.
-                        Dependency Graph:
-                        \(_dependencyTree())
-                        """,
-                        file: file,
-                        line: line
-                    )
-                }
-                @MainActor
-                func assertCollectionResolves<T>(
-                    _ type: T.Type,
-                    count expectedCount: Int,
-                    file: StaticString = #filePath,
-                    line: UInt = #line
-                ) {
-                    let actualCount = resolveCollection(type).entries.count
-                    XCTAssert(
-                        actualCount >= expectedCount,
-                        """
-                        The resolved ServiceCollection<\(type)> did not contain the expected number of services \
-                        (resolved \(actualCount), expected \(expectedCount)).
-                        Make sure your assembler contains a ServiceCollector behavior.
-                        """,
-                        file: file,
-                        line: line
-                    )
-                }
             }
             """#
         )
@@ -248,6 +196,7 @@ final class ConfigurationSetTests: XCTestCase {
             [
                 "import Dependency1",
                 "import Dependency2",
+                "import KnitTesting",
                 "@testable import Module1",
                 "import Module2",
                 "import XCTest",
