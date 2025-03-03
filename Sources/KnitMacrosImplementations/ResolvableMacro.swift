@@ -112,7 +112,7 @@ public struct ResolvableMacro: PeerMacro {
     }
 
     // Identify any property wrappers that change how types are resolved
-    private static func extractHint(paramSyntax: FunctionParameterSyntax) -> ParamHint? {
+    private static func extractHint(paramSyntax: FunctionParameterSyntax) throws -> ParamHint? {
         for element in paramSyntax.attributes {
             guard case let AttributeListSyntax.Element.attribute(attribute) = element else {
                 continue
@@ -125,6 +125,13 @@ public struct ResolvableMacro: PeerMacro {
                let firstString = arguments.first?.expression.as(StringLiteralExprSyntax.self)?.textContent
             {
                 return .named(firstString)
+            } else if name == "UseDefault" {
+                guard let defaultValue = extractDefault(paramSyntax: paramSyntax) else {
+                    throw DiagnosticsError(
+                        diagnostics: [.init(node: paramSyntax, message:  Error.missingDefault)]
+                    )
+                }
+                return .useDefault(defaultValue)
             }
         }
         return nil
@@ -135,13 +142,12 @@ public struct ResolvableMacro: PeerMacro {
         return try parameterClause.parameters.map { paramSyntax in
             let type = try extractType(typeSyntax: paramSyntax.type)
             let name = paramSyntax.firstName.text
-            let hint: ParamHint? = extractHint(paramSyntax: paramSyntax)
+            let hint: ParamHint? = try extractHint(paramSyntax: paramSyntax)
 
             return Param(
                 name: name,
                 type: type,
-                hint: hint,
-                defaultValue: extractDefault(paramSyntax: paramSyntax)
+                hint: hint
             )
         }
     }
@@ -174,20 +180,19 @@ extension ResolvableMacro {
         let name: String
         let type: TypeInformation
         let hint: ParamHint?
-        let defaultValue: String?
         
         var isArgument: Bool { hint == .argument }
         
         var resolveCall: String {
             let knitCallName = TypeNamer.computedIdentifierName(type: type.name)
-            if let defaultValue {
-                return "\(name): \(defaultValue)"
-            } else if let hint {
+            if let hint {
                 switch hint {
                 case let .named(serviceName):
                     return "\(name): resolver.\(knitCallName)(name: .\(serviceName))"
                 case .argument:
                     return "\(name): \(name)"
+                case let .useDefault(defaultValue):
+                    return "\(name): \(defaultValue)"
                 }
             } else {
                 return "\(name): resolver.\(knitCallName)()"
@@ -206,6 +211,7 @@ extension ResolvableMacro {
     enum ParamHint: Equatable {
         case argument
         case named(String)
+        case useDefault(String)
     }
     
     private struct HintContainer {
@@ -216,6 +222,7 @@ extension ResolvableMacro {
         case missingTargetResolver
         case unsupportAttachment
         case missingReturnType
+        case missingDefault
         case invalidParamType(String)
         
         var message: String {
@@ -228,6 +235,8 @@ extension ResolvableMacro {
                 return "Unexpected parameter type: \(string)"
             case .missingReturnType:
                 return "Static function must declare a return type"
+            case .missingDefault:
+                return "@UseDefault applied to a parameter without a default value"
             }
         }
         

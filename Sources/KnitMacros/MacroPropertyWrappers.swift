@@ -23,3 +23,14 @@ public struct Argument<Value> {
         self.wrappedValue = wrappedValue
     }
 }
+
+/// Defines that the parameter should not be resolved from the DI graph but should use the default value provided
+/// The property wrapper is only used as a hint to the Resolvable macro and has no effect outside of the macro
+@propertyWrapper
+public struct UseDefault<Value> {
+    public var wrappedValue: Value
+
+    public init(wrappedValue: Value) {
+        self.wrappedValue = wrappedValue
+    }
+}
