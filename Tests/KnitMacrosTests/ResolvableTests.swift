@@ -57,6 +57,26 @@ final class ResolvableTests: XCTestCase {
         assertMacroExpansion(
             """
             @Resolvable<Resolver>
+            init(@UseDefault value: Int = 5) {}
+            """,
+            expandedSource: """
+            
+            init(@UseDefault value: Int = 5) {}
+
+            static func make(resolver: Resolver) -> Self {
+                 return .init(
+                     value: 5
+                 )
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
+    func test_default_param_unused() throws {
+        assertMacroExpansion(
+            """
+            @Resolvable<Resolver>
             init(value: Int = 5) {}
             """,
             expandedSource: """
@@ -65,7 +85,7 @@ final class ResolvableTests: XCTestCase {
 
             static func make(resolver: Resolver) -> Self {
                  return .init(
-                     value: 5
+                     value: resolver.int()
                  )
             }
             """,

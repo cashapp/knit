@@ -73,7 +73,7 @@ private struct Service3 {
     let value: Int
     
     @Resolvable<Resolver>
-    init(defaultedValue: Int = 2) {
+    init(@UseDefault defaultedValue: Int = 2) {
         self.value = defaultedValue
     }
 }
