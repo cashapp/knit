@@ -224,4 +224,24 @@ final class ResolvableTests: XCTestCase {
             macros: testMacros
         )
     }
+
+    func test_publisher_type() throws {
+        assertMacroExpansion(
+            """
+            @Resolvable<Resolver>
+            init(profileValueProvider: AnyCurrentValuePublisher<GlobalAddress?, Never>) {}
+            """,
+            expandedSource: """
+            
+            init(profileValueProvider: AnyCurrentValuePublisher<GlobalAddress?, Never>) {}
+
+            static func make(resolver: Resolver) -> Self {
+                 return .init(
+                     profileValueProvider: resolver.globalAddressPublisher()
+                 )
+            }
+            """,
+            macros: testMacros
+        )
+    }
 }

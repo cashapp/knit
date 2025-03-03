@@ -99,7 +99,7 @@ public struct ResolvableMacro: PeerMacro {
 
     private static func extractType(typeSyntax: TypeSyntax) throws -> TypeInformation {
         if let type = typeSyntax.as(IdentifierTypeSyntax.self) {
-            return TypeInformation(name: type.name.text)
+            return TypeInformation(name: type.description)
         } else if let type = typeSyntax.as(AttributedTypeSyntax.self) {
             let baseType = try extractType(typeSyntax: type.baseType)
             return TypeInformation(name: baseType.name)
