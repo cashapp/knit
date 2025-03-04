@@ -52,7 +52,7 @@ public enum TypeNamer {
                     with: .init(location: range.location + 1, length: range.length - 2)
                 )
                 if let mainGeneric = genericName.components(separatedBy: .init(charactersIn: ",")).first {
-                    type = mainGeneric + suffix
+                    type = sanitizeType(type: mainGeneric, keepGenerics: false) + suffix
                 } else {
                     type = mainType
                 }
@@ -77,7 +77,7 @@ public enum TypeNamer {
         return type
     }
 
-    private static let suffixedGenericTypes = ["Publisher", "Subject", "Provider"]
+    private static let suffixedGenericTypes = ["Publisher", "Subject", "Provider", "Set"]
 
     static func isClosure(type: String) -> Bool {
         return type.contains("->")
