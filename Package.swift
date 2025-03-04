@@ -13,6 +13,7 @@ let package = Package(
     products: [
         .library(name: "Knit", targets: ["Knit"]),
         .library(name: "KnitMacros", targets: ["KnitMacros"] ),
+        .library(name: "KnitTesting", targets: ["KnitTesting"]),
         .plugin(name: "KnitBuildPlugin", targets: ["KnitBuildPlugin"]),
         .executable(name: "knit-cli", targets: ["knit-cli"]),
     ],
@@ -40,6 +41,13 @@ let package = Package(
             capability: .buildTool,
             dependencies: [
                 .target(name: "knit-cli"),
+            ]
+        ),
+        .target(
+            name: "KnitTesting",
+            dependencies: [
+                .target(name: "Swinject"),
+                .target(name: "Knit"),
             ]
         ),
 

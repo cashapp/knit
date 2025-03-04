@@ -69,21 +69,12 @@ public extension ConfigurationSet {
         return Self.join(sourceFiles: sourceFiles)
     }
 
-    func makeUnitTestSourceFile(includeExtensions: Bool = true) throws -> String {
+    func makeUnitTestSourceFile() throws -> String {
         let header = HeaderSourceFile.make(imports: unitTestImports().sorted, comment: nil)
         var body = try assemblies
             .map { try $0.makeUnitTestSourceFile() }
         body.append(contentsOf: try makeAdditionalTestsSources())
-        let allRegistrations = allAssemblies.flatMap { $0.registrations }
-        let allRegistrationsIntoCollections = allAssemblies.flatMap { $0.registrationsIntoCollections }
-        var sourceFiles = [header] + body
-        if includeExtensions {
-            let resolverExtensions = try UnitTestSourceFile.resolverExtensions(
-                registrations: allRegistrations,
-                registrationsIntoCollections: allRegistrationsIntoCollections
-            )
-            sourceFiles.append(resolverExtensions)
-        }
+        let sourceFiles = [header] + body
 
         return Self.join(sourceFiles: sourceFiles)
     }
@@ -124,6 +115,7 @@ public extension ConfigurationSet {
     func unitTestImports() -> ModuleImportSet {
         var imports = ModuleImportSet(imports: allAssemblies.flatMap { $0.imports })
         imports.insert(ModuleImport.testable(name: primaryAssembly.moduleName))
+        imports.insert(.named("KnitTesting"))
         imports.insert(.named("XCTest"))
 
         let additionalImports = externalTestingAssemblies

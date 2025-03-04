@@ -85,7 +85,8 @@ final class UnitTestSourceFileTests: XCTestCase {
         let expected = #"""
         // Generated using Knit
         // Do not edit directly!
-
+        
+        import KnitTesting
         @testable import My
         import XCTest
         final class MyRegistrationTests: XCTestCase {
@@ -123,7 +124,7 @@ final class UnitTestSourceFileTests: XCTestCase {
         }
         """#
 
-        XCTAssertEqual(try set.makeUnitTestSourceFile(includeExtensions: false), expected)
+        XCTAssertEqual(try set.makeUnitTestSourceFile(), expected)
     }
 
     func test_abstract_unit_tests() throws {
@@ -148,6 +149,7 @@ final class UnitTestSourceFileTests: XCTestCase {
         // Generated using Knit
         // Do not edit directly!
 
+        import KnitTesting
         @testable import Module
         import XCTest
         final class ModuleAbstractRegistrationTests: XCTestCase {
@@ -158,7 +160,7 @@ final class UnitTestSourceFileTests: XCTestCase {
             }
         }
         """#
-        XCTAssertEqual(try set.makeUnitTestSourceFile(includeExtensions: false), expected)
+        XCTAssertEqual(try set.makeUnitTestSourceFile(), expected)
 
     }
 
