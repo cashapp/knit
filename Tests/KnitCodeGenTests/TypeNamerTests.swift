@@ -149,6 +149,23 @@ final class TypeNamerTests: XCTestCase {
         )
     }
 
+    func testMultipleGenerics() {
+        assertComputedIdentifier(
+            type: "AnyPublisher<Set<AppletId>, Never>",
+            expectedIdentifier: "appletIdSetPublisher"
+        )
+
+        assertComputedIdentifier(
+            type: "Outer<Inner<Content>>",
+            expectedIdentifier: "outer"
+        )
+
+        assertComputedIdentifier(
+            type: "Set<Inner<Content>>",
+            expectedIdentifier: "innerSet"
+        )
+    }
+
 }
 
 private func assertComputedIdentifier(
