@@ -105,6 +105,8 @@ public struct ResolvableMacro: PeerMacro {
             return TypeInformation(name: baseType.name)
         } else if let type = typeSyntax.as(FunctionTypeSyntax.self) {
             return TypeInformation(name: "(\(type.description))")
+        } else if let type = typeSyntax.as(OptionalTypeSyntax.self) {
+            return TypeInformation(name: "\(type.wrappedType.description)?")
         }
         throw DiagnosticsError(
             diagnostics: [.init(node: typeSyntax, message:  Error.invalidParamType(typeSyntax.description))]

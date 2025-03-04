@@ -32,7 +32,27 @@ final class ResolvableTests: XCTestCase {
             macros: testMacros
         )
     }
-    
+
+    func test_optional_parameter() throws {
+        assertMacroExpansion(
+            """
+            @Resolvable<Resolver>
+            init(arg1: String?) {}
+            """,
+            expandedSource: """
+            
+            init(arg1: String?) {}
+
+            static func make(resolver: Resolver) -> Self {
+                 return .init(
+                     arg1: resolver.string()
+                 )
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
     func test_closure_param() throws {
         assertMacroExpansion(
             """
