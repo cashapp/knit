@@ -45,6 +45,14 @@ final class SwinjectResolutionTests: XCTestCase {
         let service = container.resolve(Service5.self)
         XCTAssertEqual(service?.value, 2)
     }
+
+    func test_static_function() {
+        let container = Container()
+        container.register(Service3.self, factory: Service3.makeService(resolver:))
+
+        let service = container.resolve(Service3.self)
+        XCTAssertEqual(service?.value, 5)
+    }
 }
 
 private struct Service1 {
@@ -75,6 +83,11 @@ private struct Service3 {
     @Resolvable<Resolver>
     init(@UseDefault defaultedValue: Int = 2) {
         self.value = defaultedValue
+    }
+
+    @Resolvable<Resolver>
+    static func makeService() -> Service3 {
+        return .init(defaultedValue: 5)
     }
 }
 
