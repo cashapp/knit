@@ -116,7 +116,7 @@ private struct Assembly1: ModuleAssembly {
     }
 
     func assemble(container: Container) {
-        container.autoregister(Service1.self, initializer: Service1.init)
+        container.register(Service1.self) { Service1(service2: $0.resolve(Service2.self)!) }
     }
 }
 
@@ -128,7 +128,7 @@ private struct Assembly2: AutoInitModuleAssembly {
     }
 
     func assemble(container: Container) {
-        container.autoregister(Service2.self, initializer: Service2.init)
+        container.register(Service2.self) { _ in Service2() }
     }
 }
 
@@ -139,7 +139,7 @@ private struct Assembly3: ModuleAssembly {
     }
 
     func assemble(container: Container) {
-        container.autoregister(Service3.self, initializer: Service3.init)
+        container.register(Service3.self) { _ in Service3()}
     }
 }
 

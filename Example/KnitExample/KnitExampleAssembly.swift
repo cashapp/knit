@@ -4,6 +4,7 @@
 
 import Foundation
 import Knit
+import KnitMacros
 
 // @knit internal
 final class KnitExampleAssembly: ModuleAssembly {
@@ -15,22 +16,22 @@ final class KnitExampleAssembly: ModuleAssembly {
     func assemble(container: Container) {
         container.addBehavior(ServiceCollector())
 
-        container.autoregister(ExampleService.self, initializer: ExampleService.init)
+        container.register(ExampleService.self) { ExampleService.make(resolver: $0) }
 
         // @knit alias("example")
         container.register(ExampleArgumentService.self) { (_, arg: String) in
             ExampleArgumentService.init(string: arg)
         }
 
-        container.autoregister(
-            ExampleArgumentService.self,
-            argument: ExampleArgumentService.Argument.self,
-            initializer: ExampleArgumentService.init(arg:)
-        )
+        container.register(ExampleArgumentService.self) { (resolver: Resolver, argument: ExampleArgumentService.Argument) in
+            ExampleArgumentService(arg: argument)
+        }
 
-        container.autoregister(NamedService.self, name: "name", initializer: NamedService.init)
+        container.register(NamedService.self, name: "name") { _ in NamedService() }
 
-        container.autoregister(ClosureService.self, argument: (() -> Void).self, initializer: ClosureService.init)
+        container.register(ClosureService.self) { (resolver: Resolver, closure: @escaping (() -> Void)) in
+            ClosureService(closure: closure)
+        }
 
         container.register(ClosureService.self, name: "Test") { (resolver, arg1: @escaping () -> Void) in
             ClosureService(closure: arg1)
@@ -43,7 +44,7 @@ final class KnitExampleAssembly: ModuleAssembly {
             }
         )
 
-        container.autoregisterIntoCollection(ExampleService.self, initializer: ExampleService.init)
+        container.registerIntoCollection(ExampleService.self) { ExampleService.make(resolver: $0) }
 
         container.registerIntoCollection(
             MainActorService.self,
@@ -53,7 +54,7 @@ final class KnitExampleAssembly: ModuleAssembly {
         )
 
         #if DEBUG
-        container.autoregister(DebugService.self, initializer: DebugService.init)
+        container.register(DebugService.self) { _ in DebugService() }
         #endif
     }
 
@@ -73,6 +74,8 @@ final class KnitExampleAssembly: ModuleAssembly {
 final class NamedService {}
 
 final class ExampleService {
+
+    @Resolvable<Resolver>
     init() { }
 
     var title: String { "Example String" }

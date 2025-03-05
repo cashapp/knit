@@ -177,7 +177,7 @@ private struct Assembly2: ModuleAssembly {
     }
 
     func assemble(container: Container) {
-        container.autoregister(Service2Protocol.self, initializer: Service2.init)
+        container.register(Service2Protocol.self) { _ in Service2() }
     }
 }
 
@@ -186,7 +186,7 @@ private struct Assembly2Fake: AutoInitModuleAssembly {
 
     func assemble(container: Container) {
         Assembly2().assemble(container: container)
-        container.autoregister(Service2Protocol.self, initializer: Service2Fake.init)
+        container.register(Service2Protocol.self) { _ in Service2Fake() }
     }
 
     static var replaces: [any ModuleAssembly.Type] { [Assembly2.self] }

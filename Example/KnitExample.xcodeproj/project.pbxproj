@@ -14,6 +14,7 @@
 		C43334F72A3FDD44003BA9E3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C43334F62A3FDD44003BA9E3 /* Assets.xcassets */; };
 		C43334FA2A3FDD44003BA9E3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C43334F92A3FDD44003BA9E3 /* Preview Assets.xcassets */; };
 		C43335062A3FDDD3003BA9E3 /* KnitExampleAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43335052A3FDDD3003BA9E3 /* KnitExampleAssembly.swift */; };
+		C4372DDF2D77D676009A668B /* KnitMacros in Frameworks */ = {isa = PBXBuildFile; productRef = C4372DDE2D77D676009A668B /* KnitMacros */; };
 		C44755192A3FEA740072333A /* TestModuleAssembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44755182A3FEA740072333A /* TestModuleAssembler.swift */; };
 		C4DB9D212D6FE9B300EC01A6 /* KnitTesting in Frameworks */ = {isa = PBXBuildFile; productRef = C4DB9D202D6FE9B300EC01A6 /* KnitTesting */; };
 /* End PBXBuildFile section */
@@ -47,6 +48,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2CF2570E2CACB3300017B59A /* Knit in Frameworks */,
+				C4372DDF2D77D676009A668B /* KnitMacros in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,6 +138,7 @@
 			name = KnitExample;
 			packageProductDependencies = (
 				2CF2570D2CACB3300017B59A /* Knit */,
+				C4372DDE2D77D676009A668B /* KnitMacros */,
 			);
 			productName = KnitExample;
 			productReference = C43334EF2A3FDD43003BA9E3 /* KnitExample.app */;
@@ -529,6 +532,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2CF2570C2CACB3300017B59A /* XCLocalSwiftPackageReference "../../knit" */;
 			productName = "plugin:KnitBuildPlugin";
+		};
+		C4372DDE2D77D676009A668B /* KnitMacros */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2CF2570C2CACB3300017B59A /* XCLocalSwiftPackageReference "../../knit" */;
+			productName = KnitMacros;
 		};
 		C4DB9D202D6FE9B300EC01A6 /* KnitTesting */ = {
 			isa = XCSwiftPackageProductDependency;

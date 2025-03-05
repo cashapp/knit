@@ -4,7 +4,7 @@
 # It generates high-arity overloads of generic functions using the file templates listed below.
 # The generated files are checked in since they are not dynamic and don't change often.
 
-files="Sources/Knit/ServiceCollection/Container+ServiceCollection Sources/Swinject/Container.Arguments Sources/Swinject/Resolver Sources/Swinject/ServiceEntry.TypeForwarding"
+files="Sources/Swinject/Container.Arguments Sources/Swinject/Resolver Sources/Swinject/ServiceEntry.TypeForwarding"
 
 for file in $files; do
   echo "Generating code to $file.swift"

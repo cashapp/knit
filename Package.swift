@@ -26,9 +26,7 @@ let package = Package(
             name: "Knit",
             dependencies: [
                 .target(name: "Swinject"),
-                .target(name: "SwinjectAutoregistration"),
-            ],
-            exclude: ["ServiceCollection/Container+ServiceCollection.erb"]
+            ]
         ),
         .testTarget(
             name: "KnitTests",
@@ -56,22 +54,10 @@ let package = Package(
             name: "Swinject",
             exclude: ["Container.Arguments.erb", "Resolver.erb", "ServiceEntry.TypeForwarding.erb"]
         ),
-        .target(
-            name: "SwinjectAutoregistration",
-            dependencies: [
-                .target(name: "Swinject"),
-            ]
-        ),
         .testTarget(
             name: "SwinjectTests",
             dependencies: [
                 .target(name: "Swinject"),
-            ]
-        ),
-        .testTarget(
-            name: "SwinjectAutoregistrationTests",
-            dependencies: [
-                .target(name: "SwinjectAutoregistration"),
             ]
         ),
 
