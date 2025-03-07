@@ -72,7 +72,27 @@ final class ResolvableTests: XCTestCase {
             macros: testMacros
         )
     }
-    
+
+    func test_any_protocol_param() throws {
+        assertMacroExpansion(
+            """
+            @Resolvable<Resolver>
+            init(arg1: any Publisher) {}
+            """,
+            expandedSource: """
+            
+            init(arg1: any Publisher) {}
+
+            static func make(resolver: Resolver) -> Self {
+                 return .init(
+                     arg1: resolver.publisher()
+                 )
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
     func test_default_param() throws {
         assertMacroExpansion(
             """
