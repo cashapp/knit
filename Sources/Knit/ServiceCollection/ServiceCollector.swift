@@ -7,14 +7,13 @@ import Swinject
 
 /// A Swinject behavior that aggregates all services registered using
 /// ``Container/registerIntoCollection(_:factory:)`` or
-/// ``Container/autoregisterIntoCollection(_:initializer:)``
 ///
 /// Usage:
 /// ```
 /// let container = Container()
 /// container.addBehavior(ServiceCollector())
-/// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
-/// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
+/// container.registerIntoCollection(Animal.self) { _ in Cat() })
+/// container.registerIntoCollection(Animal.self) { _ in Dog() })
 ///
 /// let animals = resolver.resolveCollection(Animal.self)
 /// print(animals.entries) // [Cat, Dog]
@@ -76,6 +75,5 @@ public final class ServiceCollector: Behavior {
  See also:
  - ``ServiceCollector/container(_:didRegisterType:toService:withName:)``
  - ``Container/registerIntoCollection(_:factory:)``
- - ``Container.autoregisterIntoCollection(_:initializer:)``
  */
 internal let collectionRegistrationPrefix = "ServiceCollection"

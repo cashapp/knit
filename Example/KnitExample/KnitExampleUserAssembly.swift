@@ -14,7 +14,7 @@ final class KnitExampleUserAssembly: ModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
 
     func assemble(container: Container) {
-        container.autoregister(UserService.self, initializer: UserService.init)
+        container.register(UserService.self) { _ in UserService() }
     }
 }
 

@@ -54,7 +54,7 @@ private struct Assembly1: AutoInitModuleAssembly {
     typealias TargetResolver = TestScopedResolver
     static var dependencies: [any ModuleAssembly.Type] { [] }
     func assemble(container: Container) {
-        container.autoregister(Service1.self, initializer: Service1.init)
+        container.register(Service1.self) { _ in Service1() }
     }
 }
 
@@ -62,7 +62,7 @@ private struct Assembly2: ModuleAssembly {
     typealias TargetResolver = TestScopedResolver
     static var dependencies: [any ModuleAssembly.Type] { [Assembly1.self] }
     func assemble(container: Container) {
-        container.autoregister(Service2.self, initializer: Service2.init)
+        container.register(Service2.self) { Service2(service1: $0.resolve(Service1.self)! )}
             .inObjectScope(.weak)
     }
 }

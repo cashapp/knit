@@ -6,14 +6,13 @@ extension Resolver {
 
     /// Resolves a collection of all services registered using
     /// ``Container/registerIntoCollection(_:factory:)`` or
-    /// ``Container/autoregisterIntoCollection(_:initializer:)``
     ///
     /// Usage:
     /// ```
     /// let container = Container()
     /// container.addBehavior(ServiceCollector())
-    /// container.autoregisterIntoCollection(Animal.self, initializer: Cat.init)
-    /// container.autoregisterIntoCollection(Animal.self, initializer: Dog.init)
+    /// container.registerIntoCollection(Animal.self) { _ in Cat() })
+    /// container.registerIntoCollection(Animal.self) { _ in Dog() })
     ///
     /// let animals = resolver.resolveCollection(Animal.self)
     /// print(animals.entries) // [Cat, Dog]
