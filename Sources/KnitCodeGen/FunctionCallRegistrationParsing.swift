@@ -36,7 +36,7 @@ extension FunctionCallExprSyntax {
         let registrationIntoCollection = calledMethods
             .first { method in
                 let name = method.calledExpression.declName.baseName.text
-                return name == "registerIntoCollection" || name == "autoregisterIntoCollection"
+                return name == "registerIntoCollection"
             }
             .flatMap { method in
                 makeRegistrationIntoCollection(arguments: method.arguments)
@@ -225,36 +225,6 @@ private func getArguments(
     arguments: LabeledExprListSyntax,
     trailingClosure: ClosureExprSyntax?
 ) throws -> [Registration.Argument] {
-    // `autoregister` parsing
-
-    // Check for a single argument param when using autoregister
-    if let argumentParam = arguments.first(where: {$0.label?.text == "argument"}),
-       let argumentType = getArgumentType(arg: argumentParam)
-    {
-        if TypeNamer.isClosure(type: argumentType) {
-            // Make all auto register closures @escaping
-            return [.init(type: "@escaping \(argumentType)")]
-        } else {
-            return [.init(type: argumentType)]
-        }
-    }
-
-    // Autoregister can provide multiple arguments.
-    // Everything between the `arguments` and `initializer` params is an argument
-    if let argumentsParamIndex = arguments.firstIndex(where: {$0.label?.text == "arguments"}),
-       let initIndex = arguments.firstIndex(where: {$0.label?.text == "initializer"}) {
-        return arguments[argumentsParamIndex..<initIndex].compactMap { element in
-            guard let type = getArgumentType(arg: element) else {
-                return nil
-            }
-            if TypeNamer.isClosure(type: type) {
-                return .init(type: "@escaping \(type)")
-            } else {
-                return .init(type: type)
-            }
-        }
-    }
-
     // `register` parsing
 
     // The factory closure if it exists, either as a named parameter or a trailing closure

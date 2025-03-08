@@ -96,7 +96,7 @@ extension Registration {
             if let identifier {
                 self.identifier = .fixed(identifier)
             } else {
-                self.identifier = .computed
+                self.identifier = .wildcard
             }
             self.type = type
         }
@@ -105,19 +105,18 @@ extension Registration {
             /// Used for arguments defined in `.register` registrations.
             case fixed(String)
 
-            /// Used for arguments provided to `.autoregister` registrations, as those do not receive explicit identifiers.
-            case computed
+            /// Unnamed parameters
+            case wildcard
         }
 
     }
 
     public enum FunctionName: String, Codable, Sendable {
         case register
-        case autoregister
         case registerAbstract
         case implements
 
-        static let standaloneFunctions: Set<FunctionName> = [.register, .autoregister, .registerAbstract]
+        static let standaloneFunctions: Set<FunctionName> = [.register, .registerAbstract]
         static let standaloneNames: Set<String> = Set(standaloneFunctions.map { $0.rawValue })
     }
 }

@@ -265,7 +265,7 @@ extension Registration.Argument {
         switch identifier {
         case let .fixed(value):
             return value
-        case .computed:
+        case .wildcard:
             return TypeNamer.computedIdentifierName(type: type)
         }
     }

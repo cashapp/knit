@@ -14,10 +14,6 @@ final class RegistrationParsingTests: XCTestCase {
             "container.register(AType.self)",
             serviceName: "AType"
         )
-        try assertRegistrationString(
-            "container.autoregister(BType.self)",
-            serviceName: "BType"
-        )
         try assertMultipleRegistrationsString(
             """
             container.register(AType.self) { _ in }
@@ -31,18 +27,18 @@ final class RegistrationParsingTests: XCTestCase {
         )
         try assertRegistrationString(
             """
-            container.autoregister(
+            container.register(
                 AnyPublisher<DataState, Never>.self,
-                initializer: DataStateProvider.adapter
+                factory: DataStateProvider.adapter
             )
             """,
             serviceName: "AnyPublisher<DataState, Never>"
         )
         try assertRegistrationString(
             """
-            container.autoregister(
+            container.register(
                 ((String) -> EntityGainLossDataArchiver).self,
-                initializer: FileClusterDataArchiver.makeArchiverProviderForEntityGainLoss
+                factory: FileClusterDataArchiver.makeArchiverProviderForEntityGainLoss
             )
             """,
             serviceName: "((String) -> EntityGainLossDataArchiver)"
@@ -76,14 +72,6 @@ final class RegistrationParsingTests: XCTestCase {
             """,
             serviceName: "A",
             name: "service"
-        )
-
-        try assertRegistrationString(
-            """
-            container.autoregister(A.self, name: "service2", initializer: A.init)
-            """,
-            serviceName: "A",
-            name: "service2"
         )
     }
 
@@ -140,14 +128,14 @@ final class RegistrationParsingTests: XCTestCase {
 
         try assertMultipleRegistrationsString(
             """
-            container.autoregister(A.self, initializer: A.init)
+            container.register(A.self, factory: A.init)
             .implements(B.self)
             // @knit public
             .implements(C.self, name: "foo")
             .implements(D.self, name: "bar")
             """,
             registrations: [
-                Registration(service: "A", name: nil, accessLevel: .internal, functionName: .autoregister),
+                Registration(service: "A", name: nil, accessLevel: .internal, functionName: .register),
                 Registration(service: "B", name: nil, accessLevel: .internal, functionName: .implements),
                 Registration(service: "C", name: "foo", accessLevel: .public, functionName: .implements),
                 Registration(service: "D", name: "bar", accessLevel: .internal, functionName: .implements),
@@ -253,73 +241,6 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testAutoregisterWithArguments() throws {
-        // Single argument
-        try assertMultipleRegistrationsString(
-            "container.autoregister(A.self, argument: URL.self, initializer: A.init)",
-            registrations: [
-                Registration(service: "A", accessLevel: .internal, arguments: [.init(type: "URL")], functionName: .autoregister)
-            ]
-        )
-
-        // Multiple arguments
-        try assertMultipleRegistrationsString(
-            """
-            container.autoregister(
-                A.self,
-                arguments: URL.self,
-                Int.self,
-                String.self,
-                initializer: A.init
-            )
-            """,
-            registrations: [
-                Registration(
-                    service: "A",
-                    accessLevel: .internal,
-                    arguments: [
-                        .init(type: "URL"),
-                        .init(type: "Int"),
-                        .init(type: "String"),
-                    ],
-                    functionName: .autoregister
-                )
-            ]
-        )
-
-        // Single argument with name
-        try assertMultipleRegistrationsString(
-            """
-            container.autoregister(A.self, name: "test", argument: URL.self, initializer: A.init)
-            """,
-            registrations: [
-                Registration(service: "A", name: "test", arguments: [.init(type: "URL")], functionName: .autoregister)
-            ]
-        )
-
-        // Multiple arguments with name
-        try assertMultipleRegistrationsString(
-            """
-            container.autoregister(
-                A.self,
-                name: "test",
-                arguments: URL.self,
-                Int.self,
-                initializer: A.init
-            )
-            """,
-            registrations: [
-                Registration(
-                    service: "A",
-                    name: "test",
-                    accessLevel: .internal,
-                    arguments: [.init(type: "URL"), .init(type: "Int")],
-                    functionName: .autoregister
-                )
-            ]
-        )
-    }
-
     func testRegisterNonClosureFactoryType() throws {
         // This is acceptable syntax but we will not be able to parse any arguments
         try assertMultipleRegistrationsString(
@@ -334,15 +255,17 @@ final class RegistrationParsingTests: XCTestCase {
 
     // Arguments on the main registration apply to implements also
     func testForwardedWithArgument() throws {
-        // Single argument autoregister
+        // Single argument registration
         try assertMultipleRegistrationsString(
             """
-            container.autoregister(A.self, argument: URL.self, initializer: A.init)
+            container.register(A.self) { (r: Resolver, url: URL) in 
+                A(url: url)
+            }
             .implements(B.self)
             """,
             registrations: [
-                Registration(service: "A", arguments: [.init(type: "URL")], functionName: .autoregister),
-                Registration(service: "B", arguments: [.init(type: "URL")], functionName: .implements)
+                Registration(service: "A", arguments: [.init(identifier: "url", type: "URL")], functionName: .register),
+                Registration(service: "B", arguments: [.init(identifier: "url", type: "URL")], functionName: .implements)
             ]
         )
 
@@ -385,48 +308,19 @@ final class RegistrationParsingTests: XCTestCase {
         )
     }
 
-    func testAutoRegistrationWithComplexTypes() throws {
+    func testClosureArgument() throws {
         try assertMultipleRegistrationsString(
             """
-            container.autoregister(A.self, argument: String?.self, initializer: A.init)
-            """,
-            registrations: [
-                Registration(service: "A", arguments: [.init(type: "String?")], functionName: .autoregister),
-            ]
-        )
-
-        try assertMultipleRegistrationsString(
-            """
-            container.autoregister(A.self, arguments: Result<Int, Error>.self, Optional<Int>.self, initializer: A.init)
+            container.register(A.self) { (r: Resolver, closure: () -> Void) in
+                A.init(closure: closure)
+            }
             """,
             registrations: [
                 Registration(
                     service: "A",
-                    arguments: [
-                        .init(type: "Result<Int, Error>"),
-                        .init(type: "Optional<Int>"),
-                    ],
-                    functionName: .autoregister
+                    arguments: [.init(identifier: "closure", type: "() -> Void")],
+                    functionName: .register
                 ),
-            ]
-        )
-
-        try assertMultipleRegistrationsString(
-            """
-            // @knit
-            container.autoregister((String, Int?).self, initializer: Factory.make)
-            """,
-            registrations: [
-                .init(service: "(String, Int?)", functionName: .autoregister)
-            ]
-        )
-    }
-
-    func testClosureArgument() throws {
-        try assertMultipleRegistrationsString(
-            "container.autoregister(A.self, argument: (() -> Void).self, initializer: A.init)",
-            registrations: [
-                Registration(service: "A", arguments: [.init(type: "@escaping (() -> Void)")], functionName: .autoregister),
             ]
         )
 
@@ -534,15 +428,6 @@ final class RegistrationParsingTests: XCTestCase {
         try assertMultipleRegistrationsString(
             """
             container.registerIntoCollection(AType.self) {}
-                .inObjectScope(.container)
-            """,
-            registrationsIntoCollections: [
-                .init(service: "AType"),
-            ]
-        )
-        try assertMultipleRegistrationsString(
-            """
-            container.autoregisterIntoCollection(AType.self, initializer: AType.init)
                 .inObjectScope(.container)
             """,
             registrationsIntoCollections: [
