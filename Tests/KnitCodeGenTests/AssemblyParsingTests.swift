@@ -429,9 +429,9 @@ final class AssemblyParsingTests: XCTestCase {
                 typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     #if SOME_FLAG
-                    container.autoregister(B.self, initializer: B.init)
+                    container.register(B.self, factory: B.init)
                     #else
-                    container.autoregister(C.self, initializer: C.init)
+                    container.register(C.self, factory: C.init)
                     #endif
                 }
             }
@@ -456,12 +456,12 @@ final class AssemblyParsingTests: XCTestCase {
                 typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     #if SOME_FLAG
-                    container.autoregister(A.self, initializer: A.init)
+                    container.register(A.self, factory: A.init)
                     #endif
 
                     #if SOME_FLAG && !ANOTHER_FLAG
-                    container.autoregister(B.self, initializer: B.init)
-                    container.autoregister(C.self, initializer: C.init)
+                    container.register(B.self, factory: B.init)
+                    container.register(C.self, factory: C.init)
                     #endif
                 }
             }
@@ -487,7 +487,7 @@ final class AssemblyParsingTests: XCTestCase {
                 typealias TargetResolver = TestResolver
                 func assemble(container: Container) {
                     #if targetEnvironment(simulator)
-                    container.autoregister(A.self, initializer: A.init)
+                    container.register(A.self, factory: A.init)
                     #endif
                 }
             }
@@ -508,7 +508,7 @@ final class AssemblyParsingTests: XCTestCase {
                 func assemble(container: Container) {
                     #if DEBUG
                     #if FEATURE
-                    container.autoregister(A.self, initializer: A.init)
+                    container.register(A.self, factory: A.init)
                     #endif
                     #endif
                 }
