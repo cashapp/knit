@@ -12,11 +12,11 @@ jobs:
   create-release:
     runs-on: macos-latest
     steps:
-      - uses: swift-actions/setup-swift@v2.1.0
+      - uses: swift-actions/setup-swift@v2
         with:
           swift-version: "5.10"
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
       - name: Create Release
         run: |
           set -euo pipefail
