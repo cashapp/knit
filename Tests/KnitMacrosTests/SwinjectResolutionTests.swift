@@ -33,7 +33,7 @@ final class SwinjectResolutionTests: XCTestCase {
         let container = Container()
         container.register(Service4.self, factory: Service4.make)
         
-        let service = container.resolve(Service4.self, argument: Float(5))
+        let service = container.resolve(Service4.self, arguments: Float(5))
         XCTAssertEqual(service?.value, 5)
     }
     

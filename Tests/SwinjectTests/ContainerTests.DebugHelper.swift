@@ -17,12 +17,14 @@ class ContainerTests_DebugHelper: XCTestCase {
     func testContainerShouldCallDebugHelperWithFailingServiceAndKey() {
         let container = Container(debugHelper: spy)
 
-        _ = container._resolve(name: "name") { (_: Resolver, _: (Int) -> Any) in 1 as Double } as Double?
+        let _: Double? = container._resolve(name: "name") { (resolver: Resolver, factory: Container.ServiceFactory<Int>) in
+            return 1 as Double
+        }
 
         XCTAssertEqual("\(spy.serviceType)", "Double")
         XCTAssertEqual(spy.key, ServiceKey(
             serviceType: Double.self,
-            argumentsType: Int.self,
+            argumentsType: (Swinject.Resolver, Swift.Int).self,
             name: "name",
             option: nil
         ))

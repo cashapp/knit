@@ -27,7 +27,7 @@ class ContainerTests: XCTestCase {
         container.register(Animal.self) { _, arg1, arg2 in Cat(name: arg1, sleeping: arg2) }
 
         let noname = container.resolve(Animal.self) as? Cat
-        let mimi = container.resolve(Animal.self, argument: "Mimi") as? Cat
+        let mimi = container.resolve(Animal.self, arguments: "Mimi") as? Cat
         let mew = container.resolve(Animal.self, arguments: "Mew", true) as? Cat
         XCTAssertNil(noname?.name)
         XCTAssertEqual(mimi?.name, "Mimi")

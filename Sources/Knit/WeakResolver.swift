@@ -39,83 +39,15 @@ extension WeakResolver: Resolver {
         return container
     }
 
-    public func resolve<Service>(_ serviceType: Service.Type) -> Service? {
-        unwrapped.resolve(serviceType)
+    public func resolve<Service, each Argument>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments: repeat each Argument
+    ) -> Service? {
+        return unwrapped.resolve(serviceType, name: name, arguments: repeat each arguments)
     }
 
     public func resolve<Service>(_ serviceType: Service.Type, name: String?) -> Service? {
-        unwrapped.resolve(serviceType, name: name)
-    }
-
-    public func resolve<Service, Arg1>(_ serviceType: Service.Type, argument: Arg1) -> Service? {
-        unwrapped.resolve(serviceType, argument: argument)
-    }
-
-    public func resolve<Service, Arg1>(_ serviceType: Service.Type, name: String?, argument: Arg1) -> Service? {
-        unwrapped.resolve(serviceType, name: name, argument: argument)
-    }
-
-    public func resolve<Service, Arg1, Arg2>(_ serviceType: Service.Type, arguments arg1: Arg1, _ arg2: Arg2) -> Service? {
-        unwrapped.resolve(serviceType, arguments: arg1, arg2)
-    }
-
-    public func resolve<Service, Arg1, Arg2>(_ serviceType: Service.Type, name: String?, arguments arg1: Arg1, _ arg2: Arg2) -> Service? {
-        unwrapped.resolve(serviceType, name: name, arguments: arg1, arg2)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3>(_ serviceType: Service.Type, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3) -> Service? {
-        unwrapped.resolve(serviceType, arguments: arg1, arg2, arg3)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3>(_ serviceType: Service.Type, name: String?, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3) -> Service? {
-        unwrapped.resolve(serviceType, name: name, arguments: arg1, arg2, arg3)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4>(_ serviceType: Service.Type, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4) -> Service? {
-        unwrapped.resolve(serviceType, arguments: arg1, arg2, arg3, arg4)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4>(_ serviceType: Service.Type, name: String?, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4) -> Service? {
-        unwrapped.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5>(_ serviceType: Service.Type, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5) -> Service? {
-        unwrapped.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5>(_ serviceType: Service.Type, name: String?, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5) -> Service? {
-        unwrapped.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>(_ serviceType: Service.Type, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5, _ arg6: Arg6) -> Service? {
-        unwrapped.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5, arg6)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>(_ serviceType: Service.Type, name: String?, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5, _ arg6: Arg6) -> Service? {
-        unwrapped.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5, arg6)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>(_ serviceType: Service.Type, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5, _ arg6: Arg6, _ arg7: Arg7) -> Service? {
-        unwrapped.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>(_ serviceType: Service.Type, name: String?, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5, _ arg6: Arg6, _ arg7: Arg7) -> Service? {
-        unwrapped.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>(_ serviceType: Service.Type, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5, _ arg6: Arg6, _ arg7: Arg7, _ arg8: Arg8) -> Service? {
-        unwrapped.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>(_ serviceType: Service.Type, name: String?, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5, _ arg6: Arg6, _ arg7: Arg7, _ arg8: Arg8) -> Service? {
-        unwrapped.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>(_ serviceType: Service.Type, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5, _ arg6: Arg6, _ arg7: Arg7, _ arg8: Arg8, _ arg9: Arg9) -> Service? {
-        unwrapped.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-    }
-
-    public func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>(_ serviceType: Service.Type, name: String?, arguments arg1: Arg1, _ arg2: Arg2, _ arg3: Arg3, _ arg4: Arg4, _ arg5: Arg5, _ arg6: Arg6, _ arg7: Arg7, _ arg8: Arg8, _ arg9: Arg9) -> Service? {
-        unwrapped.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+        return unwrapped.resolve(serviceType, name: name)
     }
 }

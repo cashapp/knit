@@ -64,7 +64,7 @@ class ContainerTests_TypeForwarding: XCTestCase {
         let service = container.register(Dog.self) { (_, _: String) in Dog() }
         container.forward(Cat.self, to: service)
 
-        let cat = container.resolve(Cat.self, argument: "")
+        let cat = container.resolve(Cat.self, arguments: "")
 
         XCTAssertNil(cat)
     }
@@ -160,7 +160,7 @@ class ContainerTests_TypeForwarding: XCTestCase {
 
     func testContainerResolvesOptionalWithArguments() {
         container.register(Dog.self) { _, name in Dog(name: name) }
-        let optionalDog = container.resolve(Dog?.self, argument: "Hachi")
+        let optionalDog = container.resolve(Dog?.self, arguments: "Hachi")
         XCTAssertNotNil(optionalDog ?? nil)
     }
 

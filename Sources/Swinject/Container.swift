@@ -114,17 +114,18 @@ public final class Container {
     /// - Returns: A registered ``ServiceEntry`` to configure more settings with method chaining.
     @discardableResult
     // swiftlint:disable:next identifier_name
-    public func _register<Service, Arguments>(
+    public func _register<Service, each Argument>(
         _ serviceType: Service.Type,
-        factory: @escaping (Arguments) -> Any,
+        factory: ServiceFactory<repeat each Argument>,
         name: String? = nil,
         option: ServiceKeyOption? = nil
     ) -> ServiceEntry<Service> {
         sync {
-            let key = ServiceKey(serviceType: Service.self, argumentsType: Arguments.self, name: name, option: option)
+            typealias ArgumentsType = (Resolver, repeat each Argument)
+            let key = ServiceKey(serviceType: Service.self, argumentsType: ArgumentsType.self, name: name, option: option)
             let entry = ServiceEntry(
                 serviceType: serviceType,
-                argumentsType: Arguments.self,
+                argumentsType: ArgumentsType.self,
                 factory: factory,
                 objectScope: defaultObjectScope
             )
@@ -198,16 +199,17 @@ extension Container: _Resolver {
 
     /// See documentation on `_Resolver` protocol where this method is declared.
     // swiftlint:disable:next identifier_name
-    public func _resolve<Service, Arguments>(
+    public func _resolve<Service, each Argument>(
         name: String?,
         option: ServiceKeyOption? = nil,
-        invoker: @escaping (Resolver, (Arguments) -> Any) -> Any
+        invoker: @escaping (Resolver, ServiceFactory<repeat each Argument>) -> Any
     ) -> Service? {
         // No need to use weak self since the resolution will be executed before
         // this function exits.
         sync {
             var resolvedInstance: Service?
-            let key = ServiceKey(serviceType: Service.self, argumentsType: Arguments.self, name: name, option: option)
+            typealias ArgumentsType = (Resolver, repeat each Argument)
+            let key = ServiceKey(serviceType: Service.self, argumentsType: ArgumentsType.self, name: name, option: option)
 
             if key == Self.graphIdentifierKey {
                 return currentObjectGraph as? Service
@@ -233,15 +235,15 @@ extension Container: _Resolver {
         }
     }
 
-    fileprivate func resolveAsWrapper<Wrapper, Arguments>(
+    fileprivate func resolveAsWrapper<Wrapper, each Argument>(
         name: String?,
         option: ServiceKeyOption?,
-        invoker: @escaping (Resolver, (Arguments) -> Any) -> Any
+        invoker: @escaping (Resolver, ServiceFactory<repeat each Argument>) -> Any
     ) -> Wrapper? {
         guard let wrapper = Wrapper.self as? InstanceWrapper.Type else { return nil }
-
+        typealias ArgumentsType = (Resolver, repeat each Argument)
         let key = ServiceKey(
-            serviceType: wrapper.wrappedType, argumentsType: Arguments.self, name: name, option: option
+            serviceType: wrapper.wrappedType, argumentsType: ArgumentsType.self, name: name, option: option
         )
 
         if let (entry, resolver) = getEntry(for: key) {
@@ -300,33 +302,6 @@ extension Container: _Resolver {
 // MARK: - Resolver
 
 extension Container: Resolver {
-    /// Retrieves the instance with the specified service type.
-    ///
-    /// - Parameter serviceType: The service type to resolve.
-    ///
-    /// - Returns: The resolved service type instance, or nil if no registration for the service type
-    ///            is found in the ``Container``.
-    public func resolve<Service>(_ serviceType: Service.Type) -> Service? {
-        return resolve(serviceType, name: nil)
-    }
-
-    /// Retrieves the instance with the specified service type and registration name.
-    ///
-    /// - Parameters:
-    ///   - serviceType: The service type to resolve.
-    ///   - name:        The registration name.
-    ///
-    /// - Returns: The resolved service type instance, or nil if no registration for the service type and name
-    ///            is found in the ``Container``.
-    public func resolve<Service>(_: Service.Type, name: String?) -> Service? {
-        return _resolve(
-            name: name,
-            invoker: { (resolver: Resolver, factory: (Resolver) -> Any) in
-                factory(resolver)
-            }
-        )
-    }
-
     /// Retrieve the service entry for a given service key.
     ///
     /// - Returns: An optional tuple of the service entry and the source resolver.
@@ -341,9 +316,9 @@ extension Container: Resolver {
         }
     }
 
-    fileprivate func resolve<Service, Factory>(
+    fileprivate func resolve<Service, each Argument>(
         entry: ServiceEntryProtocol,
-        invoker: @escaping (Resolver, Factory) -> Any,
+        invoker: @escaping (Resolver, ServiceFactory<repeat each Argument>) -> Any,
         resolver: Resolver
     ) -> Service? {
         self.incrementResolutionDepth()
@@ -356,8 +331,8 @@ extension Container: Resolver {
         if let persistedInstance = self.persistedInstance(Service.self, from: entry, in: currentObjectGraph) {
             return persistedInstance
         }
-
-        let resolvedInstance = invoker(resolver, entry.factory as! Factory)
+        
+        let resolvedInstance = invoker(resolver, entry.factory as! ServiceFactory<repeat each Argument>)
         if let persistedInstance = self.persistedInstance(Service.self, from: entry, in: currentObjectGraph) {
             // An instance for the key might be added by the factory invocation.
             return persistedInstance
@@ -416,6 +391,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (Resolver, repeat each ArgumentType) -> Service
     ) -> ServiceEntry<Service> {
+        let factory = ServiceFactory(factory: factory)
         return _register(serviceType, factory: factory, name: name)
     }
 
@@ -429,6 +405,46 @@ extension Container {
             MainActor.assumeIsolated {
                 return mainActorFactory(resolver, repeat each arguments)
             }
+        }
+    }
+}
+
+// MARK: - Resolution
+
+extension Container {
+
+    public func resolve<Service>(_ serviceType: Service.Type, name: String?) -> Service? {
+        return _resolve(
+            name: name,
+            invoker: { (resolver: Resolver, factory: ServiceFactory<>) in
+                factory(resolver)
+            }
+        )
+    }
+
+    public func resolve<Service, each Argument>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments: repeat each Argument
+    ) -> Service? {
+        typealias FactoryType = ((Resolver, repeat each Argument)) -> Any
+        return _resolve(
+            name: name,
+            invoker: { (resolver: Resolver, factory: ServiceFactory<repeat each Argument>) in
+                return factory(resolver, arguments: repeat each arguments)
+            }
+        )
+    }
+}
+
+extension Container {
+
+    // Wrapper around a factory stored inside of Swinject ServiceEntry. This avoids some limitations in the Swift type system
+    public struct ServiceFactory<each Argument> {
+        let factory: (Resolver, repeat each Argument) -> Any
+
+        func callAsFunction(_ resolver: Resolver, arguments: repeat each Argument) -> Any {
+            factory(resolver, repeat each arguments)
         }
     }
 }

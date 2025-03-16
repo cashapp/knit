@@ -18,7 +18,7 @@ class ContainerTests_Arguments: XCTestCase {
         }
         let animal = container.resolve(
             Animal.self,
-            argument: "1"
+            arguments: "1"
         )
         XCTAssertEqual(animal?.name, "1")
     }

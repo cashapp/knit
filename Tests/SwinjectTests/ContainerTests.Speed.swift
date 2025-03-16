@@ -44,7 +44,7 @@ fileprivate extension Container {
     func resolveCats() {
         for _ in 0..<500_000 {
             _ = resolve(Animal.self) as? Cat
-            _ = resolve(Animal.self, argument: "Mimi") as? Cat
+            _ = resolve(Animal.self, arguments: "Mimi") as? Cat
             let lazy = resolve(Lazy<Animal>.self, arguments: "Mew", true)
             _ = lazy?.instance as? Cat
         }
