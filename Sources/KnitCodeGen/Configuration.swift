@@ -58,6 +58,7 @@ public struct Configuration: Encodable, Sendable {
         case assemblyType
         case registrations
         case replaces
+        case targetResolver
     }
 
     // Testing all registrations introduces complications, limit what is tested for simplicity
