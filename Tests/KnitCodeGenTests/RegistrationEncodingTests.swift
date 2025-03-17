@@ -63,4 +63,49 @@ final class RegistrationEncodingTests: XCTestCase {
         let reencoded = try decoder.decode(Registration.self, from: data)
         XCTAssertEqual(registration, reencoded)
     }
+
+    func testAssembly() throws {
+        let assembly = Configuration(
+            assemblyName: "MainAssembly",
+            moduleName: "MyModule",
+            registrations: [.init(service: "ServiceA")],
+            targetResolver: "Resolver"
+        )
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let data = try encoder.encode(assembly)
+        let text = try XCTUnwrap(String(data: data, encoding: .utf8))
+        let expected = """
+        {
+          "assemblyName" : "MainAssembly",
+          "assemblyType" : "ModuleAssembly",
+          "directives" : {
+            "custom" : [
+
+            ],
+            "disablePerformanceGen" : false
+          },
+          "registrations" : [
+            {
+              "accessLevel" : "internal",
+              "arguments" : [
+
+              ],
+              "customTags" : [
+
+              ],
+              "functionName" : "register",
+              "service" : "ServiceA"
+            }
+          ],
+          "replaces" : [
+
+          ],
+          "targetResolver" : "Resolver"
+        }
+        """
+
+        XCTAssertEqual(text, expected)
+    }
 }
