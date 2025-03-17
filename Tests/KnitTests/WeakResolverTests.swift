@@ -2,13 +2,14 @@
 // Copyright © Block, Inc. All rights reserved.
 //
 
-import Knit
+@testable import Knit
+import Swinject
 import XCTest
 
 final class WeakResolverTests: XCTestCase {
 
     func test_weakResolver() {
-        var container: Container? = Container()
+        var container: Swinject.Container? = Swinject.Container()
         weak var weakContainer = container
         container?.register(String.self) { _ in "Test" }
 
@@ -30,7 +31,7 @@ final class WeakResolverTests: XCTestCase {
         // It is probably unusual if a consumer retains the result of the `optionalResolver` property,
         // but in case that happens we don't want to accidentally leak the container.
 
-        var container: Container? = Container()
+        var container: Swinject.Container? = Swinject.Container()
         weak var weakConatiner = container
         container?.register(String.self) { _ in "Test" }
 

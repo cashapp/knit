@@ -11,16 +11,16 @@ final class SynchronizationTests: XCTestCase {
     @MainActor
     func testMultiThreadResolving() async throws {
         // Use a parent/child relationship to test synchronization between containers
-        let parent = ModuleAssembler([Assembly1()])
-        let assembler = ModuleAssembler(parent: parent, [Assembly2()])
+        let parent = ScopedModuleAssembler<TestScopedResolver>([Assembly1()])
+        let assembler = ScopedModuleAssembler<TestScopedResolver>(parent: parent.internalAssembler, [Assembly2()])
 
         // Resolve the same service in 2 separate tasks
         async let task1 = try Task {
-            return assembler.resolver.resolve(Service2.self)!
+            return assembler.resolver.service2()
         }.result.get()
 
         async let task2 = try Task {
-            return assembler.resolver.resolve(Service2.self)!
+            return assembler.resolver.service2()
         }.result.get()
 
         let result = try await (task1, task2)
@@ -35,11 +35,11 @@ final class SynchronizationTests: XCTestCase {
 
         // Resolve the same service in 2 separate tasks
         async let task1 = try Task {
-            return assembler.resolver.resolve(Service2.self)!
+            return assembler.resolver.service2()
         }.result.get()
 
         async let task2 = try Task {
-            return assembler.resolver.resolve(Service2.self)!
+            return assembler.resolver.service2()
         }.result.get()
 
         let result = try await (task1, task2)
@@ -53,17 +53,22 @@ final class SynchronizationTests: XCTestCase {
 private struct Assembly1: AutoInitModuleAssembly {
     typealias TargetResolver = TestScopedResolver
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    func assemble(container: Container) {
-        container.register(Service1.self) { _ in Service1() }
+    func assemble(container: Container<TargetResolver>) {
+        container.register(Service1.self, factory: { _ in Service1() })
     }
 }
 
 private struct Assembly2: ModuleAssembly {
     typealias TargetResolver = TestScopedResolver
     static var dependencies: [any ModuleAssembly.Type] { [Assembly1.self] }
-    func assemble(container: Container) {
-        container.register(Service2.self) { Service2(service1: $0.resolve(Service1.self)! )}
-            .inObjectScope(.weak)
+    func assemble(container: Container<TargetResolver>) {
+        container.register(
+            Service2.self,
+            factory: { resolver in
+                Service2(service1: resolver.service1())
+            }
+        )
+        .inObjectScope(.weak)
     }
 }
 
@@ -79,5 +84,17 @@ private final class Service2 {
     }
 }
 
-public protocol TestScopedResolver: Resolver { }
-extension Container: TestScopedResolver {}
+private protocol TestScopedResolver: Knit.Resolver {
+    func service1() -> Service1
+    func service2() -> Service2
+}
+extension TestScopedResolver {
+    fileprivate func service1() -> Service1 {
+        self.unsafeResolver.resolve(Service1.self)!
+    }
+
+    fileprivate func service2() -> Service2 {
+        self.unsafeResolver.resolve(Service2.self)!
+    }
+}
+extension Container<TestScopedResolver>: TestScopedResolver {}

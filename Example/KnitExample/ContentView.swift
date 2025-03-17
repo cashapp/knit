@@ -21,8 +21,8 @@ struct ContentView: View {
 }
 
 struct ContentView_Previews: PreviewProvider {
+    static let assembler = ScopedModuleAssembler<Resolver>([KnitExampleAssembly()])
     static var previews: some View {
-        let resolver = ModuleAssembler([KnitExampleAssembly()]).resolver
-        return ContentView(resolver: resolver)
+        return ContentView(resolver: assembler.resolver)
     }
 }

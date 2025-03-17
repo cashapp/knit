@@ -13,12 +13,12 @@ final class FakeAssemblyTests: XCTestCase {
 
 private final class RealAssembly: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    func assemble(container: Swinject.Container) {}
+    func assemble(container: Container<RealAssembly.TargetResolver>) {}
 }
 
 private final class FakeTestAssembly: FakeAssembly {
     typealias ReplacedAssembly = RealAssembly
-    func assemble(container: Swinject.Container) {}
+    func assemble(container: Container<FakeTestAssembly.TargetResolver>) {}
 }
 
 extension RealAssembly: DefaultModuleAssemblyOverride {

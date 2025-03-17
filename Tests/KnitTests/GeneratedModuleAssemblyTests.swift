@@ -26,7 +26,7 @@ final class GeneratedModuleAssemblyTests: XCTestCase {
 }
 
 private struct Assembly1: AutoInitModuleAssembly {
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
 }
 
 extension Assembly1: GeneratedModuleAssembly {
@@ -34,7 +34,7 @@ extension Assembly1: GeneratedModuleAssembly {
 }
 
 private struct Assembly2: AutoInitModuleAssembly {
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
     // Assembly2 explicitly sets dependencies so ignores generatedDependencies
     static var dependencies: [any ModuleAssembly.Type] { [] }
 }
@@ -44,6 +44,6 @@ extension Assembly2: GeneratedModuleAssembly {
 }
 
 private struct Assembly3: AutoInitModuleAssembly {
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
     static var dependencies: [any ModuleAssembly.Type] { [] }
 }

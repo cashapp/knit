@@ -36,20 +36,26 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     }
 
     @MainActor
-    func test_serviceRegisteredWithoutFakes() {
-        let resolver = ModuleAssembler([Assembly2()]).resolver
+    func test_serviceRegisteredWithoutFakes() throws {
+        let resolver = try ModuleAssembler.testing([Assembly2()]).resolver
         XCTAssertTrue(resolver.resolve(Service2Protocol.self) is Service2)
     }
 
     @MainActor
-    func test_servicesRegisteredWithFakes() {
-        let resolver = ModuleAssembler([Assembly2(), Assembly2Fake()]).resolver
+    func test_servicesRegisteredWithFakes() throws {
+        let resolver = try ModuleAssembler.testing([Assembly2(), Assembly2Fake()]).resolver
         XCTAssertTrue(resolver.resolve(Service2Protocol.self) is Service2Fake)
     }
 
     @MainActor
-    func test_assemblerWithDefaultOverrides() {
-        let assembler = ModuleAssembler([Assembly2()], overrideBehavior: .useDefaultOverrides)
+    func test_assemblerWithDefaultOverrides() throws {
+        let assembler = try ModuleAssembler(
+            _modules: [Assembly2()],
+            overrideBehavior: .useDefaultOverrides,
+            preAssemble: {
+                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+            }
+        )
         XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly1Fake.self}))
         XCTAssertTrue(assembler.isRegistered(Assembly1Fake.self))
         // Treat Assembly1 as being registered because the mock is
@@ -57,54 +63,82 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     }
 
     @MainActor
-    func test_noDefaultOverrideForInputModules() {
-        let assembler = ModuleAssembler([Assembly1()], overrideBehavior: .useDefaultOverrides)
+    func test_noDefaultOverrideForInputModules() throws {
+        let assembler = try ModuleAssembler(
+            _modules: [Assembly1()],
+            overrideBehavior: .useDefaultOverrides,
+            preAssemble: {
+                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+            }
+        )
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
         // The fake is not automatically registered
         XCTAssertFalse(assembler.isRegistered(Assembly1Fake.self))
     }
 
     @MainActor
-    func test_explicitInputOverride() {
-        let assembler = ModuleAssembler([Assembly1(), Assembly1Fake()], overrideBehavior: .useDefaultOverrides)
+    func test_explicitInputOverride() throws {
+        let assembler = try ModuleAssembler(
+            _modules: [Assembly1(), Assembly1Fake()],
+            overrideBehavior: .useDefaultOverrides,
+            preAssemble: {
+                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+            }
+        )
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
         XCTAssertTrue(assembler.isRegistered(Assembly1Fake.self))
     }
 
     @MainActor
-    func test_assemblerWithoutDefaultOverrides() {
-        let assembler = ModuleAssembler([Assembly2()], overrideBehavior: .disableDefaultOverrides)
+    func test_assemblerWithoutDefaultOverrides() throws {
+        let assembler = try ModuleAssembler(
+            _modules: [Assembly2()],
+            overrideBehavior: .disableDefaultOverrides,
+            preAssemble: {
+                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+            }
+        )
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
         XCTAssertFalse(assembler.isRegistered(Assembly1Fake.self))
     }
 
     @MainActor
-    func test_assemblerWithFakes() {
-        let assembler = ModuleAssembler([Assembly2Fake()])
+    func test_assemblerWithFakes() throws {
+        let assembler = try ModuleAssembler(
+            _modules: [Assembly2Fake()],
+            preAssemble: {
+                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+            }
+        )
         XCTAssertFalse(assembler.registeredModules.contains(where: {$0 == Assembly2.self}))
         XCTAssertTrue(assembler.isRegistered(Assembly2.self))
         XCTAssertTrue(assembler.isRegistered(Assembly2Fake.self))
     }
 
     @MainActor
-    func test_parentFakes() {
-        let parent = ModuleAssembler([Assembly1Fake()])
+    func test_parentFakes() throws {
+        let parent = try ModuleAssembler.testing([Assembly1Fake()])
         let child = ModuleAssembler(parent: parent, [Assembly2()])
         XCTAssertTrue(child.isRegistered(Assembly1.self))
         XCTAssertTrue(child.isRegistered(Assembly1Fake.self))
     }
 
     @MainActor
-    func test_autoFake() {
-        let assembler = ModuleAssembler([Assembly5()])
+    func test_autoFake() throws {
+        let assembler = try ModuleAssembler(
+            _modules: [Assembly5()],
+            preAssemble: {
+                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+            }
+        )
         XCTAssertTrue(assembler.isRegistered(Assembly4.self))
         XCTAssertTrue(assembler.isRegistered(Assembly4Fake.self))
         XCTAssertTrue(assembler.isRegistered(Assembly5.self))
     }
 
     @MainActor
-    func test_overrideDefaultOverride() {
-        let assembler = ModuleAssembler(
+    func test_overrideDefaultOverride() throws {
+        let assembler = try ModuleAssembler.testing(
             [Assembly4(), Assembly4Fake2()],
             overrideBehavior: .useDefaultOverrides
         )
@@ -122,8 +156,8 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     }
 
     @MainActor
-    func test_parentNonAutoOverride() {
-        let parent = ModuleAssembler([NonAutoOverride()])
+    func test_parentNonAutoOverride() throws {
+        let parent = try ModuleAssembler.testing([NonAutoOverride()])
         let child = ModuleAssembler(parent: parent, [Assembly1()], overrideBehavior: .disableDefaultOverrides)
         XCTAssertTrue(child.isRegistered(Assembly1.self))
         XCTAssertTrue(child.registeredModules.isEmpty)
@@ -137,10 +171,13 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     }
 
     @MainActor
-    func test_multipleOverrides() {
-        let assembler = ModuleAssembler(
-            [MultipleDependencyAssembly(), MultipleOverrideAssembly()],
-            overrideBehavior: .disableDefaultOverrides
+    func test_multipleOverrides() throws {
+        let assembler = try ModuleAssembler(
+            _modules: [MultipleDependencyAssembly(), MultipleOverrideAssembly()],
+            overrideBehavior: .disableDefaultOverrides,
+            preAssemble: {
+                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+            }
         )
 
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
@@ -167,7 +204,7 @@ private struct Assembly1: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] {
         return []
     }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 // Depends on Assembly1 and registers Service2Protocol
@@ -176,17 +213,17 @@ private struct Assembly2: ModuleAssembly {
         return [Assembly1.self]
     }
 
-    func assemble(container: Container) {
-        container.register(Service2Protocol.self) { _ in Service2() }
+    func assemble(container: Container<Self.TargetResolver>) {
+        container.register(Service2Protocol.self, factory: { _ in Service2() })
     }
 }
 
 // Mock implementation of Assembly2. Adds an extra dependency on Assembly3
 private struct Assembly2Fake: AutoInitModuleAssembly {
 
-    func assemble(container: Container) {
+    func assemble(container: Container<Self.TargetResolver>) {
         Assembly2().assemble(container: container)
-        container.register(Service2Protocol.self) { _ in Service2Fake() }
+        container.register(Service2Protocol.self, factory: { _ in Service2Fake() })
     }
 
     static var replaces: [any ModuleAssembly.Type] { [Assembly2.self] }
@@ -196,7 +233,7 @@ private struct Assembly2Fake: AutoInitModuleAssembly {
 }
 
 private struct Assembly1Fake: AutoInitModuleAssembly {
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
     static var dependencies: [any ModuleAssembly.Type] { [] }
     static var replaces: [any ModuleAssembly.Type] { [Assembly1.self] }
 }
@@ -206,14 +243,14 @@ extension Assembly1: DefaultModuleAssemblyOverride {
 }
 
 private struct FakeAssembly3: AutoInitModuleAssembly {
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
     static var dependencies: [any ModuleAssembly.Type] { [] }
 }
 
 // An Assembly that is *not* AutoInit
 private struct Assembly4: ModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
 }
 
 extension Assembly4: DefaultModuleAssemblyOverride {
@@ -223,35 +260,35 @@ extension Assembly4: DefaultModuleAssemblyOverride {
 // The fake is AutoInit so can be created even when Assembly4 is unavailable
 private struct Assembly4Fake: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
     static var replaces: [any ModuleAssembly.Type] { [Assembly4.self] }
 }
 
 private struct Assembly4Fake2: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
     static var replaces: [any ModuleAssembly.Type] { [Assembly4.self] }
 }
 
 private struct NonAutoOverride: ModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
     static var replaces: [any ModuleAssembly.Type] { [Assembly1.self] }
 }
 
 private struct Assembly5: ModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [Assembly4.self] }
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
 }
 
 private struct MultipleDependencyAssembly: ModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [Assembly1.self, Assembly5.self] }
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
 }
 
 private struct MultipleOverrideAssembly: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    func assemble(container: Container) { }
+    func assemble(container: Container<Self.TargetResolver>) { }
     static var replaces: [any ModuleAssembly.Type] { [Assembly1.self, Assembly4.self, Assembly5.self] }
 }
 

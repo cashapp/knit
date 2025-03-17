@@ -8,11 +8,14 @@ import Knit
 @main
 struct KnitExampleApp: App {
 
-    let resolver: Resolver
+    let assembler: ScopedModuleAssembler<Resolver>
+    var resolver: Resolver { assembler.resolver }
 
     @MainActor
     init() {
-        resolver = ModuleAssembler([KnitExampleAssembly()]).resolver
+        assembler = ScopedModuleAssembler<Resolver>(
+            [KnitExampleAssembly()]
+        )
     }
 
     var body: some Scene {

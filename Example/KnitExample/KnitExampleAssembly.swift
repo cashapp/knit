@@ -13,9 +13,7 @@ final class KnitExampleAssembly: ModuleAssembly {
 
     static var dependencies: [any ModuleAssembly.Type] { [] }
 
-    func assemble(container: Container) {
-        container.addBehavior(ServiceCollector())
-
+    func assemble(container: Container<TargetResolver>) {
         container.register(ExampleService.self) { ExampleService.make(resolver: $0) }
 
         // @knit alias("example")

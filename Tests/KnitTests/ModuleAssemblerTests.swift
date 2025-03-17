@@ -9,34 +9,54 @@ import XCTest
 final class ModuleAssemblerTests: XCTestCase {
 
     @MainActor
-    func test_auto_assembler() {
-        let resolver = ModuleAssembler([Assembly1()]).resolver
+    func test_auto_assembler() throws {
+        let resolver = try ModuleAssembler(
+            _modules: [Assembly1()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            }
+        ).resolver
         XCTAssertNotNil(resolver.resolve(Service1.self))
     }
 
     @MainActor
-    func test_non_auto_assembler() {
-        let resolver = ModuleAssembler([
-            Assembly3(),
-            Assembly1(),
-        ]).resolver
+    func test_non_auto_assembler() throws {
+        let resolver = try ModuleAssembler(
+            _modules: [
+                Assembly3(),
+                Assembly1(),
+            ],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            }
+        ).resolver
         XCTAssertNotNil(resolver.resolve(Service1.self))
         XCTAssertNotNil(resolver.resolve(Service3.self))
     }
 
     @MainActor
-    func test_registered_modules() {
-        let assembler = ModuleAssembler([Assembly1()])
+    func test_registered_modules() throws {
+        let assembler = try ModuleAssembler(
+            _modules: [Assembly1()],
+            preAssemble: {
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+            }
+        )
         XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly1.self}))
         XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly2.self}))
         XCTAssertFalse(assembler.registeredModules.contains(where: {$0 == Assembly3.self}))
     }
 
     @MainActor
-    func test_parent_assembler() {
+    func test_parent_assembler() throws {
         // Put some modules in the parent and some in the child.
-        let parent = ModuleAssembler([Assembly1()])
-        let child = ModuleAssembler(parent: parent, [Assembly3()])
+        let parent = try ModuleAssembler(
+            _modules: [Assembly1()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            }
+        )
+        let child = try ModuleAssembler.testing(parent: parent, [Assembly3()])
         XCTAssertTrue(child.isRegistered(Assembly1.self))
         XCTAssertTrue(child.isRegistered(Assembly3.self))
         XCTAssertTrue(child.isRegistered(Assembly2.self))
@@ -52,11 +72,14 @@ final class ModuleAssemblerTests: XCTestCase {
         XCTAssertThrowsError(
             try ModuleAssembler(
                 _modules: [ Assembly4() ],
-                overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: false)
+                overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: false), 
+                preAssemble: {
+                    Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+                }
             ),
             "Should throw an error for missing concrete registration to fulfill abstract registration",
             { error in
-                guard let abstractRegistrationErrors = error as? Container.AbstractRegistrationErrors else {
+                guard let abstractRegistrationErrors = error as? AbstractRegistrationErrors else {
                     XCTFail("Incorrect error type \(error)")
                     return
                 }
@@ -78,31 +101,34 @@ final class ModuleAssemblerTests: XCTestCase {
         // No error is thrown as the graph is using abstract placeholders
         let assembler = try ModuleAssembler(
             _modules: [ Assembly4() ],
-            overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: true)
+            overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: true), 
+            preAssemble: {
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
+            }
         )
 
-        var services = assembler._container.services.filter { (key, value) in
+        var services = assembler._swinjectContainer.services.filter { (key, value) in
             // Filter out registrations for `AbstractRegistrationContainer` and `DependencyTree`
             return key.serviceType != Container.AbstractRegistrationContainer.self &&
             key.serviceType != DependencyTree.self
         }
-        XCTAssertEqual(services.count, 2)
-        
-        XCTAssertNotNil(services.removeValue(forKey: .init(
-            serviceType: Assembly5Protocol.self,
-            argumentsType: (Resolver).self,
-            name: nil
-        )), "Service entry for Assembly5Protocol without name should exist")
-        XCTAssertEqual(services.count, 1)
+        XCTAssertEqual(services.count, 3)
 
         XCTAssertNotNil(services.removeValue(forKey: .init(
             serviceType: Assembly5Protocol.self,
-            argumentsType: (Resolver).self,
+            argumentsType: (Swinject.Resolver).self,
+            name: nil
+        )), "Service entry for Assembly5Protocol without name should exist")
+        XCTAssertEqual(services.count, 2)
+
+        XCTAssertNotNil(services.removeValue(forKey: .init(
+            serviceType: Assembly5Protocol.self,
+            argumentsType: (Swinject.Resolver).self,
             name: "testName"
         )), "Service entry for Assembly5Protocol with name should exist")
         
-        // No more registrations left
-        XCTAssertEqual(services.count, 0)
+        // The last registration is for the Knit container
+        XCTAssertEqual(services.count, 1)
     }
 
 }
@@ -115,8 +141,13 @@ private struct Assembly1: ModuleAssembly {
         ]
     }
 
-    func assemble(container: Container) {
-        container.register(Service1.self) { Service1(service2: $0.resolve(Service2.self)!) }
+    func assemble(container: Knit.Container<Self.TargetResolver>) {
+        container.register(
+            Service1.self, 
+            factory: { resolver in
+                Service1(service2: resolver.service2())
+            }
+        )
     }
 }
 
@@ -127,8 +158,13 @@ private struct Assembly2: AutoInitModuleAssembly {
         return []
     }
 
-    func assemble(container: Container) {
-        container.register(Service2.self) { _ in Service2() }
+    func assemble(container: Knit.Container<Self.TargetResolver>) {
+        container.register(
+            Service2.self,
+            factory: { _ in
+                Service2()
+            }
+        )
     }
 }
 
@@ -138,8 +174,8 @@ private struct Assembly3: ModuleAssembly {
         return [Assembly1.self]
     }
 
-    func assemble(container: Container) {
-        container.register(Service3.self) { _ in Service3()}
+    func assemble(container: Knit.Container<Self.TargetResolver>) {
+        container.register(Service3.self, factory: { _ in Service3() })
     }
 }
 
@@ -161,7 +197,7 @@ private struct Service3 {}
 
 private struct Assembly4: AutoInitModuleAssembly {
 
-    func assemble(container: Swinject.Container) {
+    func assemble(container: Knit.Container<Self.TargetResolver>) {
         // None
     }
 
@@ -179,7 +215,7 @@ private struct AbstractAssembly5: AbstractAssembly {
         []
     }
 
-    func assemble(container: Swinject.Container) {
+    func assemble(container: Knit.Container<Self.TargetResolver>) {
         container.registerAbstract(Assembly5Protocol.self)
         container.registerAbstract(Assembly5Protocol.self, name: "testName")
     }
@@ -192,12 +228,20 @@ private struct Assembly5: AutoInitModuleAssembly {
     
     static var dependencies: [any ModuleAssembly.Type] { [] }
 
-    func assemble(container: Swinject.Container) {
+    func assemble(container: Knit.Container<Self.TargetResolver>) {
         // Missing a concrete registration for `Assembly5Protocol`
     }
     
     static var replaces: [any ModuleAssembly.Type] {
         [AbstractAssembly5.self]
+    }
+
+}
+
+private extension TestResolver {
+
+    func service2() -> Service2 {
+        unsafeResolver.resolve(Service2.self)!
     }
 
 }

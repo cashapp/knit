@@ -6,7 +6,7 @@ import Knit
 import Swinject
 import XCTest
 
-public extension Resolver {
+public extension Swinject.Resolver {
 
     func assertTypeResolved<T>(
         _ result: T?,

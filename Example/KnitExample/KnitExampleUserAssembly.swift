@@ -13,7 +13,7 @@ final class KnitExampleUserAssembly: ModuleAssembly {
 
     static var dependencies: [any ModuleAssembly.Type] { [] }
 
-    func assemble(container: Container) {
+    func assemble(container: Container<TargetResolver>) {
         container.register(UserService.self) { _ in UserService() }
     }
 }

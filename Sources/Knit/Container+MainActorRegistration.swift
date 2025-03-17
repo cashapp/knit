@@ -4,11 +4,9 @@
 
 import Swinject
 
-// This code should move into the Swinject library.
-// There is an open pull request to make this change https://github.com/Swinject/Swinject/pull/570
+// MARK: - MainActor Registration Methods
 
-// MARK: - MainActor registration
-extension Container {
+extension Knit.Container {
 
     /// Adds a registration for the specified service with the factory closure to specify how the service is
     /// resolved with dependencies which must be resolved on the main actor.
@@ -27,18 +25,20 @@ extension Container {
     public func register<Service>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { r in
-            MainActor.assumeIsolated {
-                return mainActorFactory(r)
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { r in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
+                return mainActorFactory(resolver)
             }
         }
     }
 }
 
-// MARK: - MainActor registration with Arguments
-extension Container {
+// MARK: - MainActor Registration Methods with Arguments
+
+extension Knit.Container {
     /// Adds a registration for the specified service with the factory closure to specify how the service is
     /// resolved with dependencies which must be resolved on the main actor.
     ///
@@ -56,10 +56,11 @@ extension Container {
     public func register<Service, Arg1>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver, Arg1) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver, Arg1) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { (resolver: Resolver, arg1: Arg1) in
-            MainActor.assumeIsolated {
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1) in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
                 return mainActorFactory(resolver, arg1)
             }
         }
@@ -82,10 +83,11 @@ extension Container {
     public func register<Service, Arg1, Arg2>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver, Arg1, Arg2) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver, Arg1, Arg2) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { (resolver: Resolver, arg1: Arg1, arg2: Arg2) in
-            MainActor.assumeIsolated {
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2) in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
                 return mainActorFactory(resolver, arg1, arg2)
             }
         }
@@ -108,10 +110,11 @@ extension Container {
     public func register<Service, Arg1, Arg2, Arg3>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver, Arg1, Arg2, Arg3) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver, Arg1, Arg2, Arg3) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { (resolver: Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3) in
-            MainActor.assumeIsolated {
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3) in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
                 return mainActorFactory(resolver, arg1, arg2, arg3)
             }
         }
@@ -134,10 +137,11 @@ extension Container {
     public func register<Service, Arg1, Arg2, Arg3, Arg4>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver, Arg1, Arg2, Arg3, Arg4) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver, Arg1, Arg2, Arg3, Arg4) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { (resolver: Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4) in
-            MainActor.assumeIsolated {
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4) in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
                 return mainActorFactory(resolver, arg1, arg2, arg3, arg4)
             }
         }
@@ -160,10 +164,11 @@ extension Container {
     public func register<Service, Arg1, Arg2, Arg3, Arg4, Arg5>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver, Arg1, Arg2, Arg3, Arg4, Arg5) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { (resolver: Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5) in
-            MainActor.assumeIsolated {
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5) in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
                 return mainActorFactory(resolver, arg1, arg2, arg3, arg4, arg5)
             }
         }
@@ -186,10 +191,11 @@ extension Container {
     public func register<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { (resolver: Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6) in
-            MainActor.assumeIsolated {
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6) in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
                 return mainActorFactory(resolver, arg1, arg2, arg3, arg4, arg5, arg6)
             }
         }
@@ -212,10 +218,11 @@ extension Container {
     public func register<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { (resolver: Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7) in
-            MainActor.assumeIsolated {
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7) in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
                 return mainActorFactory(resolver, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
             }
         }
@@ -238,10 +245,11 @@ extension Container {
     public func register<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { (resolver: Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7, arg8: Arg8) in
-            MainActor.assumeIsolated {
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7, arg8: Arg8) in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
                 return mainActorFactory(resolver, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
             }
         }
@@ -264,10 +272,11 @@ extension Container {
     public func register<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        mainActorFactory: @escaping @MainActor (Resolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9) -> Service
+        mainActorFactory: @escaping @MainActor (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9) -> Service
     ) -> ServiceEntry<Service> {
-        return register(serviceType, name: name) { (resolver: Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7, arg8: Arg8, arg9: Arg9) in
-            MainActor.assumeIsolated {
+        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7, arg8: Arg8, arg9: Arg9) in
+            let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
+            return MainActor.assumeIsolated {
                 return mainActorFactory(resolver, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
             }
         }

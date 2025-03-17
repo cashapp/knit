@@ -36,25 +36,25 @@ extension ChildResolver {
 private struct Assembly1: GeneratedModuleAssembly {
     typealias TargetResolver = ParentResolver
     static var generatedDependencies: [any ModuleAssembly.Type] { [] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 private struct Assembly2: GeneratedModuleAssembly {
     typealias TargetResolver = ChildResolver
     static var generatedDependencies: [any ModuleAssembly.Type] { [Assembly1.self] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 private struct Assembly3: GeneratedModuleAssembly {
     typealias TargetResolver = OtherResolver
     static var generatedDependencies: [any ModuleAssembly.Type] { [Assembly2.self, Assembly1.self] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 private struct Assembly4: GeneratedModuleAssembly {
     typealias TargetResolver = ParentResolver
     static var generatedDependencies: [any ModuleAssembly.Type] { [Assembly1.self] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 private extension ModuleAssembly {

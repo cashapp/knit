@@ -3,30 +3,30 @@
 //
 
 import Foundation
+import Swinject
 
 /// Module assembly which only allows registering assemblies which target a particular resolver type.
-public final class ScopedModuleAssembler<ScopedResolver> {
+public final class ScopedModuleAssembler<TargetResolver> {
 
     public let internalAssembler: ModuleAssembler
 
-    public var resolver: ScopedResolver {
-        // swiftlint:disable:next force_cast
-        internalAssembler.resolver as! ScopedResolver
+    public var resolver: TargetResolver {
+        internalAssembler.resolver.resolve(Knit.Container<TargetResolver>.self)!.resolver
     }
 
-    /// The container that registrations have been placed in. Prefer using resolver unless mutable access is required
-    public var _container: Container {
-        return internalAssembler._container
+    /// Access the underlying Swinject.Resolver to resolve without type safety.
+    var unsafeResolver: Swinject.Resolver {
+        internalAssembler.resolver
     }
 
     @MainActor
     public convenience init(
         parent: ModuleAssembler? = nil,
-        _ modules: [any ModuleAssembly],
+        _ modules: [any ModuleAssembly<TargetResolver>],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         behaviors: [Behavior] = [],
-        postAssemble: ((Container) -> Void)? = nil,
+        postAssemble: ((Container<TargetResolver>) -> Void)? = nil,
         file: StaticString = #fileID,
         line: UInt = #line
     ) {
@@ -52,18 +52,18 @@ public final class ScopedModuleAssembler<ScopedResolver> {
     @MainActor
     required init(
         parent: ModuleAssembler? = nil,
-        _modules modules: [any ModuleAssembly],
+        _modules modules: [any ModuleAssembly<TargetResolver>],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         behaviors: [Behavior] = [],
-        postAssemble: ((Container) -> Void)? = nil
+        postAssemble: ((Container<TargetResolver>) -> Void)? = nil
     ) throws {
         // For provided modules, fail early if they are scoped incorrectly
         for assembly in modules {
             let moduleAssemblyType = type(of: assembly)
-            if moduleAssemblyType.resolverType != ScopedResolver.self {
+            if moduleAssemblyType.resolverType != TargetResolver.self {
                 let scopingError = ScopedModuleAssemblerError.incorrectTargetResolver(
-                    expected: String(describing: ScopedResolver.self),
+                    expected: String(describing: TargetResolver.self),
                     actual: String(describing: moduleAssemblyType.resolverType)
                 )
 
@@ -75,16 +75,23 @@ public final class ScopedModuleAssembler<ScopedResolver> {
             _modules: modules,
             overrideBehavior: overrideBehavior,
             assemblyValidation: { moduleAssemblyType in
-                guard moduleAssemblyType.resolverType == ScopedResolver.self else {
+                guard moduleAssemblyType.resolverType == TargetResolver.self else {
                     throw ScopedModuleAssemblerError.incorrectTargetResolver(
-                        expected: String(describing: ScopedResolver.self),
+                        expected: String(describing: TargetResolver.self),
                         actual: String(describing: moduleAssemblyType.resolverType)
                     )
                 }
             },
             errorFormatter: errorFormatter,
             behaviors: behaviors,
-            postAssemble: postAssemble
+            preAssemble: { container in
+                // Register a Container for the the current-scoped `TargetResolver`
+                Knit.Container<TargetResolver>._instantiateAndRegister(_swinjectContainer: container)
+            },
+            postAssemble: { swinjectContainer in
+                let container = swinjectContainer.resolve(Container<TargetResolver>.self)!
+                postAssemble?(container)
+            }
         )
     }
 

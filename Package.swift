@@ -8,7 +8,7 @@ let package = Package(
     name: "Knit",
     platforms: [
         .macOS(.v14),
-        .iOS(.v15),
+        .iOS(.v16),
     ],
     products: [
         .library(name: "Knit", targets: ["Knit"]),
