@@ -21,6 +21,6 @@ public protocol _Resolver {
     func _resolve<Service, each Argument>(
         name: String?,
         option: ServiceKeyOption?,
-        invoker: @escaping (Resolver, Container.ServiceFactory<repeat each Argument>) -> Any
+        invoker: @escaping (Resolver, (Resolver, repeat each Argument) -> Any) -> Any
     ) -> Service?
 }

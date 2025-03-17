@@ -51,8 +51,7 @@ let package = Package(
 
         // MARK: - Swinject
         .target(
-            name: "Swinject",
-            exclude: ["Container.Arguments.erb", "Resolver.erb"]
+            name: "Swinject"
         ),
         .testTarget(
             name: "SwinjectTests",

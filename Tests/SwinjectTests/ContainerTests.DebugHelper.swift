@@ -17,7 +17,7 @@ class ContainerTests_DebugHelper: XCTestCase {
     func testContainerShouldCallDebugHelperWithFailingServiceAndKey() {
         let container = Container(debugHelper: spy)
 
-        let _: Double? = container._resolve(name: "name") { (resolver: Resolver, factory: Container.ServiceFactory<Int>) in
+        let _: Double? = container._resolve(name: "name") { (resolver: Resolver, factory: (Resolver, Int) -> Any) in
             return 1 as Double
         }
 

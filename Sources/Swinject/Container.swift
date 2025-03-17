@@ -114,7 +114,7 @@ public final class Container {
     /// - Returns: A registered ``ServiceEntry`` to configure more settings with method chaining.
     @discardableResult
     // swiftlint:disable:next identifier_name
-    public func _register<Service, each Argument>(
+    func _register<Service, each Argument>(
         _ serviceType: Service.Type,
         factory: ServiceFactory<repeat each Argument>,
         name: String? = nil,
@@ -197,9 +197,19 @@ public final class Container {
 
 extension Container: _Resolver {
 
+    public func _resolve<Service, each Argument>(
+        name: String?,
+        option: ServiceKeyOption? = nil,
+        invoker: @escaping (Resolver, (Resolver, repeat each Argument) -> Any) -> Any
+    ) -> Service? {
+        _resolveWithServiceFactory(name: name, option: option) { (resolver: Resolver, serviceFactory: ServiceFactory<repeat each Argument>) in
+            invoker(resolver, serviceFactory.factory)
+        }
+    }
+
     /// See documentation on `_Resolver` protocol where this method is declared.
     // swiftlint:disable:next identifier_name
-    public func _resolve<Service, each Argument>(
+    func _resolveWithServiceFactory<Service, each Argument>(
         name: String?,
         option: ServiceKeyOption? = nil,
         invoker: @escaping (Resolver, ServiceFactory<repeat each Argument>) -> Any
@@ -331,7 +341,7 @@ extension Container: Resolver {
         if let persistedInstance = self.persistedInstance(Service.self, from: entry, in: currentObjectGraph) {
             return persistedInstance
         }
-        
+
         let resolvedInstance = invoker(resolver, entry.factory as! ServiceFactory<repeat each Argument>)
         if let persistedInstance = self.persistedInstance(Service.self, from: entry, in: currentObjectGraph) {
             // An instance for the key might be added by the factory invocation.
@@ -385,8 +395,19 @@ private extension Container {
 
 extension Container {
 
-    @discardableResult
-    public func register<Service, each ArgumentType>(
+    /// Adds a registration for the specified service with the factory closure to specify how the service is resolved with dependencies.
+    ///
+    /// - Parameters:
+    ///   - serviceType: The service type to register.
+    ///   - name:        A registration name, which is used to differentiate from other registrations
+    ///                  that have the same service and factory types.
+    ///   - factory:     The closure to specify how the service type is resolved with the dependencies of the type.
+    ///                  It is invoked when the ``Container`` needs to instantiate the instance.
+    ///                  It takes a ``Resolver`` instance and 1 argument to inject dependencies to the instance,
+    ///                  and returns the instance of the component type for the service.
+    ///
+    /// - Returns: A registered `ServiceEntry` to configure more settings with method chaining.
+    @discardableResult public func register<Service, each ArgumentType>(
         _ serviceType: Service.Type,
         name: String? = nil,
         factory: @escaping (Resolver, repeat each ArgumentType) -> Service
@@ -395,8 +416,20 @@ extension Container {
         return _register(serviceType, factory: factory, name: name)
     }
 
-    @discardableResult
-    public func register<Service, each ArgumentType>(
+    /// Adds a registration for the specified service with the factory closure to specify how the service is
+    /// resolved with dependencies which must be resolved on the main actor.
+    ///
+    /// - Parameters:
+    ///   - serviceType:        The service type to register.
+    ///   - name:               A registration name, which is used to differentiate from other registrations
+    ///                         that have the same service and factory types.
+    ///   - mainActorFactory:   The @MainActor closure to specify how the service type is resolved with the dependencies of the type.
+    ///                         It is invoked when the ``Container`` needs to instantiate the instance.
+    ///                         It takes a ``Resolver`` to inject dependencies to the instance,
+    ///                         and returns the instance of the component type for the service.
+    ///
+    /// - Returns: A registered ``ServiceEntry`` to configure more settings with method chaining.
+    @discardableResult public func register<Service, each ArgumentType>(
         _ serviceType: Service.Type,
         name: String? = nil,
         mainActorFactory: @escaping @MainActor (Resolver, repeat each ArgumentType) -> Service
@@ -411,18 +444,18 @@ extension Container {
 
 // MARK: - Resolution
 
-extension Container {
+public extension Container {
 
-    public func resolve<Service>(_ serviceType: Service.Type, name: String?) -> Service? {
+    func resolve<Service>(_ serviceType: Service.Type, name: String?) -> Service? {
         return _resolve(
             name: name,
-            invoker: { (resolver: Resolver, factory: ServiceFactory<>) in
+            invoker: { (resolver: Resolver, factory: (Resolver) -> Any) in
                 factory(resolver)
             }
         )
     }
 
-    public func resolve<Service, each Argument>(
+    func resolve<Service, each Argument>(
         _ serviceType: Service.Type,
         name: String?,
         arguments: repeat each Argument
@@ -430,21 +463,9 @@ extension Container {
         typealias FactoryType = ((Resolver, repeat each Argument)) -> Any
         return _resolve(
             name: name,
-            invoker: { (resolver: Resolver, factory: ServiceFactory<repeat each Argument>) in
-                return factory(resolver, arguments: repeat each arguments)
+            invoker: { (resolver: Resolver, factory: (Resolver, repeat each Argument) -> Any) in
+                return factory(resolver, repeat each arguments)
             }
         )
-    }
-}
-
-extension Container {
-
-    // Wrapper around a factory stored inside of Swinject ServiceEntry. This avoids some limitations in the Swift type system
-    public struct ServiceFactory<each Argument> {
-        let factory: (Resolver, repeat each Argument) -> Any
-
-        func callAsFunction(_ resolver: Resolver, arguments: repeat each Argument) -> Any {
-            factory(resolver, repeat each arguments)
-        }
     }
 }

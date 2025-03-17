@@ -3,16 +3,16 @@
 //  Copyright © 2019 Swinject Contributors. All rights reserved.
 //
 
-//
-// NOTICE:
-//
-// Resolver.swift is generated from Resolver.erb by ERB.
-// Do NOT modify Container.Arguments.swift directly.
-// Instead, modify Resolver.erb and run `Scripts/gencode` at the project root directory to generate the code.
-//
-
-
 public protocol Resolver {
+
+    /// Retrieves the instance with the specified service type and list of arguments to the factory closure.
+    ///
+    /// - Parameters:
+    ///   - serviceType: The service type to resolve.
+    ///   - arguments:   List of arguments to pass to the factory closure.
+    ///
+    /// - Returns: The resolved service type instance, or nil if no registration for the service type
+    ///            and list of arguments is found.
     func resolve<Service, each Argument>(
         _ serviceType: Service.Type,
         name: String?,
@@ -21,6 +21,12 @@ public protocol Resolver {
 
     // This additional resolve function is a workaround a bug in the swift compiler
     // without it the compiler will crash (tested in Xcode 16.2)
+
+    /// Retrieves the instance with the specified service type.
+    ///
+    /// - Parameter serviceType: The service type to resolve.
+    ///
+    /// - Returns: The resolved service type instance, or nil if no service is found.
     func resolve<Service>(_ serviceType: Service.Type, name: String?) -> Service?
 
 }

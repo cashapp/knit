@@ -99,3 +99,13 @@ public final class ServiceEntry<Service>: ServiceEntryProtocol {
         )
     }
 }
+
+// Concreate type for factories stored inside of Swinject ServiceEntry.
+// This avoids some limitations in the Swift generic type system by wrapping the closure in a struct
+internal struct ServiceFactory<each Argument> {
+    let factory: (Resolver, repeat each Argument) -> Any
+
+    func callAsFunction(_ resolver: Resolver, arguments: repeat each Argument) -> Any {
+        factory(resolver, repeat each arguments)
+    }
+}
