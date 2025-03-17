@@ -117,19 +117,6 @@ class ContainerTests_TypeForwarding: XCTestCase {
         XCTAssertNil(dog3)
     }
 
-    func testContainerSupportsDefiningMultipleTypesAtOnce() {
-        container.register(Dog.self) { _ in Dog() }
-            .implements(DogProtocol1.self, DogProtocol2.self, DogProtocol3.self)
-
-        let dog1 = container.resolve(DogProtocol1.self)
-        let dog2 = container.resolve(DogProtocol2.self)
-        let dog3 = container.resolve(DogProtocol3.self)
-
-        XCTAssertNotNil(dog1)
-        XCTAssertNotNil(dog2)
-        XCTAssertNotNil(dog3)
-    }
-
     // MARK: Optional resolving
 
     func testContainerResolvesOptionalWhenWrappedTypeIsRegistered() {
