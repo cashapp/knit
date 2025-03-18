@@ -91,7 +91,8 @@ public final class ScopedModuleAssembler<TargetResolver> {
             postAssemble: { swinjectContainer in
                 let container = swinjectContainer.resolve(Container<TargetResolver>.self)!
                 postAssemble?(container)
-            }
+            },
+            autoConfigureContainers: false
         )
     }
 

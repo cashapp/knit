@@ -37,13 +37,13 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
 
     @MainActor
     func test_serviceRegisteredWithoutFakes() throws {
-        let resolver = try ModuleAssembler.testing([Assembly2()]).resolver
+        let resolver = try ModuleAssembler(_modules: [Assembly2()]).resolver
         XCTAssertTrue(resolver.resolve(Service2Protocol.self) is Service2)
     }
 
     @MainActor
     func test_servicesRegisteredWithFakes() throws {
-        let resolver = try ModuleAssembler.testing([Assembly2(), Assembly2Fake()]).resolver
+        let resolver = try ModuleAssembler(_modules: [Assembly2(), Assembly2Fake()]).resolver
         XCTAssertTrue(resolver.resolve(Service2Protocol.self) is Service2Fake)
     }
 
@@ -51,10 +51,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     func test_assemblerWithDefaultOverrides() throws {
         let assembler = try ModuleAssembler(
             _modules: [Assembly2()],
-            overrideBehavior: .useDefaultOverrides,
-            preAssemble: {
-                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-            }
+            overrideBehavior: .useDefaultOverrides
         )
         XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly1Fake.self}))
         XCTAssertTrue(assembler.isRegistered(Assembly1Fake.self))
@@ -66,10 +63,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     func test_noDefaultOverrideForInputModules() throws {
         let assembler = try ModuleAssembler(
             _modules: [Assembly1()],
-            overrideBehavior: .useDefaultOverrides,
-            preAssemble: {
-                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-            }
+            overrideBehavior: .useDefaultOverrides
         )
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
         // The fake is not automatically registered
@@ -80,10 +74,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     func test_explicitInputOverride() throws {
         let assembler = try ModuleAssembler(
             _modules: [Assembly1(), Assembly1Fake()],
-            overrideBehavior: .useDefaultOverrides,
-            preAssemble: {
-                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-            }
+            overrideBehavior: .useDefaultOverrides
         )
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
         XCTAssertTrue(assembler.isRegistered(Assembly1Fake.self))
@@ -93,10 +84,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     func test_assemblerWithoutDefaultOverrides() throws {
         let assembler = try ModuleAssembler(
             _modules: [Assembly2()],
-            overrideBehavior: .disableDefaultOverrides,
-            preAssemble: {
-                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-            }
+            overrideBehavior: .disableDefaultOverrides
         )
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
         XCTAssertFalse(assembler.isRegistered(Assembly1Fake.self))
@@ -105,10 +93,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     @MainActor
     func test_assemblerWithFakes() throws {
         let assembler = try ModuleAssembler(
-            _modules: [Assembly2Fake()],
-            preAssemble: {
-                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-            }
+            _modules: [Assembly2Fake()]
         )
         XCTAssertFalse(assembler.registeredModules.contains(where: {$0 == Assembly2.self}))
         XCTAssertTrue(assembler.isRegistered(Assembly2.self))
@@ -117,8 +102,8 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
 
     @MainActor
     func test_parentFakes() throws {
-        let parent = try ModuleAssembler.testing([Assembly1Fake()])
-        let child = ModuleAssembler(parent: parent, [Assembly2()])
+        let parent = try ModuleAssembler(_modules: [Assembly1Fake()])
+        let child = try ModuleAssembler(parent: parent, _modules: [Assembly2()])
         XCTAssertTrue(child.isRegistered(Assembly1.self))
         XCTAssertTrue(child.isRegistered(Assembly1Fake.self))
     }
@@ -126,10 +111,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     @MainActor
     func test_autoFake() throws {
         let assembler = try ModuleAssembler(
-            _modules: [Assembly5()],
-            preAssemble: {
-                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-            }
+            _modules: [Assembly5()]
         )
         XCTAssertTrue(assembler.isRegistered(Assembly4.self))
         XCTAssertTrue(assembler.isRegistered(Assembly4Fake.self))
@@ -138,8 +120,8 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
 
     @MainActor
     func test_overrideDefaultOverride() throws {
-        let assembler = try ModuleAssembler.testing(
-            [Assembly4(), Assembly4Fake2()],
+        let assembler = try ModuleAssembler(
+            _modules: [Assembly4(), Assembly4Fake2()],
             overrideBehavior: .useDefaultOverrides
         )
         XCTAssertTrue(assembler.isRegistered(Assembly4.self))
@@ -157,8 +139,8 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
 
     @MainActor
     func test_parentNonAutoOverride() throws {
-        let parent = try ModuleAssembler.testing([NonAutoOverride()])
-        let child = ModuleAssembler(parent: parent, [Assembly1()], overrideBehavior: .disableDefaultOverrides)
+        let parent = try ModuleAssembler(_modules: [NonAutoOverride()])
+        let child = try ModuleAssembler(parent: parent, _modules: [Assembly1()], overrideBehavior: .disableDefaultOverrides)
         XCTAssertTrue(child.isRegistered(Assembly1.self))
         XCTAssertTrue(child.registeredModules.isEmpty)
 
@@ -174,10 +156,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
     func test_multipleOverrides() throws {
         let assembler = try ModuleAssembler(
             _modules: [MultipleDependencyAssembly(), MultipleOverrideAssembly()],
-            overrideBehavior: .disableDefaultOverrides,
-            preAssemble: {
-                Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-            }
+            overrideBehavior: .disableDefaultOverrides
         )
 
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))

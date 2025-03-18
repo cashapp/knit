@@ -246,8 +246,21 @@ final class ServiceCollectorTests: XCTestCase {
 
     @MainActor
     func test_parentChildContainersWithAssemblers() throws {
-        let parent = try ModuleAssembler.testing([AssemblyA()])
-        let child = try ModuleAssembler.testing(parent: parent, [AssemblyB()])
+        let parent = try ModuleAssembler(
+            _modules: [AssemblyA()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            },
+            autoConfigureContainers: false
+        )
+        let child = try ModuleAssembler(
+            parent: parent,
+            _modules: [AssemblyB()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            },
+            autoConfigureContainers: false
+        )
 
         // When resolving from the parent resolver we only get services from AssemblyA
         XCTAssertEqual(
@@ -271,8 +284,21 @@ final class ServiceCollectorTests: XCTestCase {
 
     @MainActor
     func test_childWithEmptyParent() throws {
-        let parent = try ModuleAssembler.testing([AssemblyC()])
-        let child = try ModuleAssembler.testing(parent: parent, [AssemblyB()])
+        let parent = try ModuleAssembler(
+            _modules: [AssemblyC()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            },
+            autoConfigureContainers: false
+        )
+        let child = try ModuleAssembler(
+            parent: parent,
+            _modules: [AssemblyB()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            },
+            autoConfigureContainers: false
+        )
 
         // Parent has no services registered
         XCTAssertEqual(
@@ -288,8 +314,8 @@ final class ServiceCollectorTests: XCTestCase {
 
     @MainActor
     func test_emptyChildWithParent() throws {
-        let parent = try ModuleAssembler.testing([AssemblyB()])
-        let child = try ModuleAssembler.testing(parent: parent, [AssemblyC()])
+        let parent = try ModuleAssembler(_modules: [AssemblyB()])
+        let child = try ModuleAssembler(parent: parent, _modules: [AssemblyC()])
 
         // The parent itself has no services so they come from the child
         XCTAssertEqual(
@@ -306,9 +332,29 @@ final class ServiceCollectorTests: XCTestCase {
 
     @MainActor
     func test_grandparentRelationship() throws {
-        let grandParent = try ModuleAssembler.testing([AssemblyA()])
-        let parent = try ModuleAssembler.testing(parent: grandParent, [AssemblyC()])
-        let child = try ModuleAssembler.testing(parent: parent, [AssemblyB()])
+        let grandParent = try ModuleAssembler(
+            _modules: [AssemblyA()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            },
+            autoConfigureContainers: false
+        )
+        let parent = try ModuleAssembler(
+            parent: grandParent,
+            _modules: [AssemblyC()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            },
+            autoConfigureContainers: false
+        )
+        let child = try ModuleAssembler(
+            parent: parent,
+            _modules: [AssemblyB()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            },
+            autoConfigureContainers: false
+        )
 
         // The child has access to all services
         XCTAssertEqual(

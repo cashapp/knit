@@ -3,17 +3,14 @@
 //
 
 import Foundation
-@testable import Knit
+import Knit
 @testable import KnitExample
 
 extension KnitExampleAssembly {
     @MainActor
     static func makeAssemblerForTests() -> ModuleAssembler {
         ModuleAssembler(
-            [KnitExampleAssembly()],
-            preAssemble: { container in
-                Knit.Container<Knit.Resolver>._instantiateAndRegister(_swinjectContainer: container)
-            }
+            [KnitExampleAssembly()]
         )
     }
 
@@ -32,10 +29,7 @@ extension KnitExampleUserAssembly {
     @MainActor
     static func makeAssemblerForTests() -> ModuleAssembler {
         ModuleAssembler(
-            [KnitExampleUserAssembly(), KnitExampleAssembly()],
-            preAssemble: { container in
-                Knit.Container<Knit.Resolver>._instantiateAndRegister(_swinjectContainer: container)
-            }
+            [KnitExampleUserAssembly(), KnitExampleAssembly()]
         )
     }
 }

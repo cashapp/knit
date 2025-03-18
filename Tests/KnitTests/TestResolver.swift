@@ -18,26 +18,26 @@ extension ModuleAssembly {
 
 extension ModuleAssembler {
 
-    @MainActor
-    static func testing(
+    // Convenience throwing init that fills in preAssemble and autoConfigureContainers
+    @MainActor convenience init(
         parent: ModuleAssembler? = nil,
-        _ modules: [any ModuleAssembly],
+        _modules modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
+        behaviors: [Behavior] = [],
         postAssemble: ((Swinject.Container) -> Void)? = nil
-    ) throws -> ModuleAssembler {
-        try ModuleAssembler(
+    ) throws {
+        try self.init(
             parent: parent,
             _modules: modules,
             overrideBehavior: overrideBehavior,
             assemblyValidation: assemblyValidation,
-            errorFormatter: errorFormatter, 
-            preAssemble: { container in
-                // Automatically add the registration for `Container<TestResolver>`
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            },
-            postAssemble: postAssemble
+            errorFormatter: errorFormatter,
+            behaviors: behaviors,
+            preAssemble: nil,
+            postAssemble: postAssemble,
+            autoConfigureContainers: true
         )
     }
 

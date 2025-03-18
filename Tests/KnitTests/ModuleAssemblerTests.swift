@@ -11,10 +11,7 @@ final class ModuleAssemblerTests: XCTestCase {
     @MainActor
     func test_auto_assembler() throws {
         let resolver = try ModuleAssembler(
-            _modules: [Assembly1()],
-            preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            }
+            _modules: [Assembly1()]
         ).resolver
         XCTAssertNotNil(resolver.resolve(Service1.self))
     }
@@ -25,10 +22,7 @@ final class ModuleAssemblerTests: XCTestCase {
             _modules: [
                 Assembly3(),
                 Assembly1(),
-            ],
-            preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            }
+            ]
         ).resolver
         XCTAssertNotNil(resolver.resolve(Service1.self))
         XCTAssertNotNil(resolver.resolve(Service3.self))
@@ -37,10 +31,7 @@ final class ModuleAssemblerTests: XCTestCase {
     @MainActor
     func test_registered_modules() throws {
         let assembler = try ModuleAssembler(
-            _modules: [Assembly1()],
-            preAssemble: {
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-            }
+            _modules: [Assembly1()]
         )
         XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly1.self}))
         XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly2.self}))
@@ -54,9 +45,17 @@ final class ModuleAssemblerTests: XCTestCase {
             _modules: [Assembly1()],
             preAssemble: { container in
                 Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            }
+            },
+            autoConfigureContainers: false
         )
-        let child = try ModuleAssembler.testing(parent: parent, [Assembly3()])
+        let child = try ModuleAssembler(
+            parent: parent,
+            _modules: [Assembly3()],
+            preAssemble: { container in
+                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+            },
+            autoConfigureContainers: false
+        )
         XCTAssertTrue(child.isRegistered(Assembly1.self))
         XCTAssertTrue(child.isRegistered(Assembly3.self))
         XCTAssertTrue(child.isRegistered(Assembly2.self))
@@ -72,10 +71,7 @@ final class ModuleAssemblerTests: XCTestCase {
         XCTAssertThrowsError(
             try ModuleAssembler(
                 _modules: [ Assembly4() ],
-                overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: false), 
-                preAssemble: {
-                    Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-                }
+                overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: false)
             ),
             "Should throw an error for missing concrete registration to fulfill abstract registration",
             { error in
@@ -101,10 +97,7 @@ final class ModuleAssemblerTests: XCTestCase {
         // No error is thrown as the graph is using abstract placeholders
         let assembler = try ModuleAssembler(
             _modules: [ Assembly4() ],
-            overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: true), 
-            preAssemble: {
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: $0)
-            }
+            overrideBehavior: .init(allowDefaultOverrides: true, useAbstractPlaceholders: true)
         )
 
         var services = assembler._swinjectContainer.services.filter { (key, value) in

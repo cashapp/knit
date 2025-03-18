@@ -9,7 +9,7 @@ final class ModuleCycleTests: XCTestCase {
 
     @MainActor
     func test_cycleResolution() throws {
-        let assembler = try ModuleAssembler.testing([Assembly1()])
+        let assembler = try ModuleAssembler(_modules: [Assembly1()])
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
         XCTAssertTrue(assembler.isRegistered(Assembly2.self))
         XCTAssertTrue(assembler.isRegistered(Assembly3.self))
@@ -28,7 +28,7 @@ final class ModuleCycleTests: XCTestCase {
 
     @MainActor
     func test_sourceCycle() throws {
-        let assembler = try ModuleAssembler.testing([Assembly5()])
+        let assembler = try ModuleAssembler(_modules: [Assembly5()])
         XCTAssertEqual(
             assembler.builder.dependencyTree.sourcePath(moduleType: Assembly5.self),
             ["\(Assembly5.self)"]

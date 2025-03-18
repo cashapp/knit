@@ -89,7 +89,7 @@ final class AbstractRegistrationTests: XCTestCase {
 
     @MainActor
     func testOptionalAbstractRegistrations() throws {
-        let assembler = try ModuleAssembler.testing([Assembly3()])
+        let assembler = try ModuleAssembler(_modules: [Assembly3()])
         let string = assembler.resolver.resolve(String?.self) ?? nil
         XCTAssertNil(string)
 
@@ -99,7 +99,7 @@ final class AbstractRegistrationTests: XCTestCase {
 
     @MainActor
     func testAdditionalAbstractRegistration() throws {
-        let assembler = try ModuleAssembler.testing([Assembly4()])
+        let assembler = try ModuleAssembler(_modules: [Assembly4()])
         _ = assembler.resolver.resolve(AnyPublisher<String?, Never>.self)
     }
 
