@@ -13,7 +13,9 @@ public protocol ModuleAssembly {
 
     static var dependencies: [any ModuleAssembly.Type] { get }
 
-    @MainActor func assemble(container: Container)
+    // Knit will always call assemble on the MainActor. The annotation is not included because Swift is unable to
+    // correctly check the concurrency of closures inside a @MainActor function
+    func assemble(container: Container)
 
     /// A ModuleAssembly can replace any number of other module assemblies.
     /// If this assembly replaces another it is expected to provide all registrations from the replaced assemblies.
