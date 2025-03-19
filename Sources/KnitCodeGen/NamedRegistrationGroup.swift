@@ -3,6 +3,7 @@
 //
 
 import Foundation
+import SwiftSyntax
 
 /// Collection of named registrations for a single service.
 struct NamedRegistrationGroup {
@@ -17,6 +18,7 @@ struct NamedRegistrationGroup {
         return dict.map { key, value in
             return NamedRegistrationGroup(service: key, registrations: value)
         }
+        .sorted(by: { $0.service < $1.service})
     }
 
     var accessLevel: AccessLevel {
@@ -29,6 +31,16 @@ struct NamedRegistrationGroup {
     var enumName: String {
         let sanitizedType = TypeNamer.sanitizeType(type: service, keepGenerics: true)
         return "\(sanitizedType)_ResolutionKey"
+    }
+
+    // The if config condition wrapping the entire group
+    var ifConfigCondition: ExprSyntax? {
+        guard let firstCondition = registrations.first?.ifConfigCondition else {
+            return nil
+        }
+        // Only wrap the entire group if all conditions within the group match
+        let allMatch = registrations.allSatisfy { $0.ifConfigCondition?.description == firstCondition.description }
+        return allMatch ? firstCondition : nil
     }
 
 }

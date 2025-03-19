@@ -52,3 +52,20 @@ extension VariableDeclSyntax {
         )
     }
 }
+
+extension DeclSyntaxProtocol {
+
+    // Wrap the declaration in an #if where needed
+    func maybeWithCondition(ifConfigCondition: ExprSyntax?) -> DeclSyntaxProtocol {
+        guard let ifConfigCondition else {
+            return self
+        }
+        let codeBlock = CodeBlockItemListSyntax([.init(item: .init(self))])
+        let clause = IfConfigClauseSyntax(
+            poundKeyword: .poundIfToken(),
+            condition: ifConfigCondition,
+            elements: .statements(codeBlock)
+        )
+        return IfConfigDeclSyntax(clauses: [clause])
+    }
+}
