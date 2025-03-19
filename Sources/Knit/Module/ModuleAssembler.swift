@@ -2,17 +2,20 @@
 // Copyright © Block, Inc. All rights reserved.
 //
 
-/// ModuleAssembler wraps the Swinject Assembler to resolves the full tree of module dependencies.
+import Swinject
+
+/// ModuleAssembler wraps the Swinject Assembler to resolve the full tree of module dependencies.
 /// If dependencies are missing from the tree then the resolution will fail and indicate the missing module
 public final class ModuleAssembler {
 
     /// The container that registrations have been placed in. Prefer using resolver unless mutable access is required
-    let _container: Container
+    let _swinjectContainer: Swinject.Container
     let parent: ModuleAssembler?
     let serviceCollector: ServiceCollector
+    private let autoConfigureContainers: Bool
 
-    /// The resolver for this ModuleAssemblers container
-    public var resolver: Resolver { _container }
+    /// The unsafe resolver for this ModuleAssembler's container
+    public var resolver: Swinject.Resolver { _swinjectContainer }
 
     // Module types that were registered into the container owned by this ModuleAssembler
     var registeredModules: [any ModuleAssembly.Type] {
@@ -21,11 +24,16 @@ public final class ModuleAssembler {
 
     let builder: DependencyBuilder
 
-    /** The created ModuleAssembler will create a `Container` which references the optional parent.
-     A depth first search will find all dependencies which will be registered
+    /**
+     The created ModuleAssembler will manage finding and applying registrations from all module assemblies.
+     A depth first search will find all dependencies which will be registered.
+
+     - NOTE: Direct use of ModuleAssembler in your app will not provide safety for separation of TargetResolvers.
+        Specified generic Containers will be *automatically* created for any TargetResolver that is later used.
+        Using ModuleAssembler in this way also disallows parent-child container configuration.
+        If your app has multiple TargetResolvers you should only use the ScopedModuleAssembler instead.
 
      - Parameters:
-        - parent: A ModuleAssembler that has already been setup with some dependencies.
         - modules: Array of modules to register
         - overrideBehavior: Behavior of default override usage.
         - assemblyValidation: An optional closure to perform custom validation on module assemblies for this assembler.
@@ -34,12 +42,11 @@ public final class ModuleAssembler {
         - postAssemble: Hook after all assemblies are registered to make changes to the container.
      */
     @MainActor public convenience init(
-        parent: ModuleAssembler? = nil,
         _ modules: [any ModuleAssembly],
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
-        postAssemble: ((Container) -> Void)? = nil,
+        postAssemble: ((Swinject.Container) -> Void)? = nil,
         file: StaticString = #fileID,
         line: UInt = #line
     ) {
@@ -47,12 +54,14 @@ public final class ModuleAssembler {
         var createdBuilder: DependencyBuilder?
         do {
             try self.init(
-                parent: parent,
+                parent: nil,
                 _modules: modules,
                 overrideBehavior: overrideBehavior,
                 assemblyValidation: assemblyValidation,
-                errorFormatter: errorFormatter,
-                postAssemble: postAssemble
+                errorFormatter: errorFormatter, 
+                preAssemble: nil,
+                postAssemble: postAssemble,
+                autoConfigureContainers: true
             )
             createdBuilder = self.builder
         } catch {
@@ -73,7 +82,9 @@ public final class ModuleAssembler {
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         behaviors: [Behavior] = [],
-        postAssemble: ((Container) -> Void)? = nil
+        preAssemble: ((Swinject.Container) -> Void)?,
+        postAssemble: ((Swinject.Container) -> Void)? = nil,
+        autoConfigureContainers: Bool
     ) throws {
         self.builder = try DependencyBuilder(
             modules: modules,
@@ -85,27 +96,30 @@ public final class ModuleAssembler {
         )
 
         self.parent = parent
-        self._container = Container(
-            parent: parent?._container,
+        let _swinjectContainer = Swinject.Container(
+            parent: parent?._swinjectContainer,
             behaviors: behaviors
         )
-        self.serviceCollector = .init(parent: parent?.serviceCollector)
-        self._container.addBehavior(serviceCollector)
-        let abstractRegistrations = self._container.registerAbstractContainer()
+        self._swinjectContainer = _swinjectContainer
+        self.autoConfigureContainers = autoConfigureContainers
+        preAssemble?(_swinjectContainer)
+        self.serviceCollector = ServiceCollector(parent: parent?.serviceCollector)
+        self._swinjectContainer.addBehavior(serviceCollector)
+        let abstractRegistrations = self._swinjectContainer.registerAbstractContainer()
 
         // Expose the dependency tree for debugging
         let dependencyTree = builder.dependencyTree
-        self._container.register(DependencyTree.self) { _ in dependencyTree }
+        self._swinjectContainer.register(DependencyTree.self) { _ in dependencyTree }
 
         for assembly in builder.assemblies {
-            assembly.assemble(container: self._container)
+            assembly._assemble(swinjectContainer: _swinjectContainer, autoConfigureContainers: autoConfigureContainers)
         }
-        postAssemble?(_container)
+        postAssemble?(_swinjectContainer)
 
         if overrideBehavior.useAbstractPlaceholders {
             for registration in abstractRegistrations.unfulfilledRegistrations {
                 registration.registerPlaceholder(
-                    container: _container,
+                    container: _swinjectContainer,
                     errorFormatter: errorFormatter,
                     dependencyTree: dependencyTree
                 )
@@ -132,8 +146,42 @@ public final class ModuleAssembler {
 }
 
 // Publicly expose the dependency tree so it can be used for debugging
-public extension Resolver {
+public extension Swinject.Resolver {
     func _dependencyTree(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> DependencyTree {
         return knitUnwrap(resolve(DependencyTree.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
     }
+}
+
+// MARK: -
+
+private extension ModuleAssembly {
+
+    @MainActor
+    func _assemble(
+        swinjectContainer: Swinject.Container,
+        autoConfigureContainers: Bool
+    ) {
+        let container = getContainer(
+            swinjectContainer: swinjectContainer,
+            autoConfigureContainers: autoConfigureContainers
+        )
+
+        assemble(container: container)
+    }
+
+    private func getContainer(
+        swinjectContainer: Swinject.Container,
+        autoConfigureContainers: Bool
+    ) -> Container<TargetResolver> {
+        if let container = swinjectContainer.resolve(Container<TargetResolver>.self) {
+            return container
+        }
+        if autoConfigureContainers {
+            return Container._instantiateAndRegister(_swinjectContainer: swinjectContainer)
+        } else {
+            // This ModuleAssembler is being used internally by a ScopedModuleAssembler
+            fatalError("ModuleAssembler failed to locate appropriate Container for \(String(describing: TargetResolver.self))")
+        }
+    }
+
 }

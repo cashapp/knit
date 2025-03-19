@@ -3,6 +3,7 @@
 //
 
 @testable import Knit
+import Swinject
 import XCTest
 
 final class DuplicateRegistrationDetectorTests: XCTestCase {
@@ -12,7 +13,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let container = Container(
+        let container = Container<Resolver>(
             behaviors: [duplicateRegistrationDetector]
         )
 
@@ -24,7 +25,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         XCTAssertEqual(reportedDuplicates.count, 1)
         let firstReport = try XCTUnwrap(reportedDuplicates.first)
         XCTAssert(firstReport.serviceType == String.self)
-        XCTAssert(firstReport.argumentsType == (Resolver).self)
+        XCTAssert(firstReport.argumentsType == (Swinject.Resolver).self)
         XCTAssertEqual(firstReport.name, nil)
 
         container.register(String.self, factory: { _ in "three" })
@@ -50,7 +51,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         XCTAssertEqual(reportedDuplicates.count, 1)
         let firstReport = try XCTUnwrap(reportedDuplicates.first)
         XCTAssert(firstReport.serviceType == String.self)
-        XCTAssert(firstReport.argumentsType == (Resolver).self)
+        XCTAssert(firstReport.argumentsType == (Swinject.Resolver).self)
         XCTAssertEqual(firstReport.name, "nameOne")
     }
 
@@ -73,7 +74,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         XCTAssertEqual(reportedDuplicates.count, 1)
         let firstReport = try XCTUnwrap(reportedDuplicates.first)
         XCTAssert(firstReport.serviceType == String.self)
-        XCTAssert(firstReport.argumentsType == (Resolver, Int).self)
+        XCTAssert(firstReport.argumentsType == (Swinject.Resolver, Int).self)
         XCTAssertEqual(firstReport.name, nil)
     }
 
@@ -135,7 +136,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
     func testCustomStringDescription() throws {
         assertCustomStringDescription(key: DuplicateRegistrationDetector.Key(
             serviceType: String.self,
-            argumentsType: ((Resolver)).self,
+            argumentsType: ((Knit.Resolver)).self,
             name: nil
         ), expectedDescription:
             """
@@ -148,7 +149,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
 
         assertCustomStringDescription(key: DuplicateRegistrationDetector.Key(
             serviceType: Int.self,
-            argumentsType: (Resolver, Bool).self,
+            argumentsType: (Knit.Resolver, Bool).self,
             name: nil
         ), expectedDescription:
             """
@@ -161,7 +162,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
 
         assertCustomStringDescription(key: DuplicateRegistrationDetector.Key(
             serviceType: String.self,
-            argumentsType: ((Resolver)).self,
+            argumentsType: ((Knit.Resolver)).self,
             name: "namedRegistration"
         ), expectedDescription:
             """

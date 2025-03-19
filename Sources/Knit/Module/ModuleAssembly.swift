@@ -5,7 +5,7 @@
 import Foundation
 import Swinject
 
-public protocol ModuleAssembly {
+public protocol ModuleAssembly<TargetResolver> {
 
     associatedtype TargetResolver
 
@@ -15,7 +15,7 @@ public protocol ModuleAssembly {
 
     // Knit will always call assemble on the MainActor. The annotation is not included because Swift is unable to
     // correctly check the concurrency of closures inside a @MainActor function
-    func assemble(container: Container)
+    func assemble(container: Container<TargetResolver>)
 
     /// A ModuleAssembly can replace any number of other module assemblies.
     /// If this assembly replaces another it is expected to provide all registrations from the replaced assemblies.

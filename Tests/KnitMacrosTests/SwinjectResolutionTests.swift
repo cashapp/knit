@@ -60,7 +60,7 @@ private struct Service1 {
     let string: String
     let value: Int
     
-    @Resolvable<Resolver>
+    @Resolvable<Swinject.Resolver>
     init(string: String, value: Int) {
         self.string = string
         self.value = value
@@ -70,7 +70,7 @@ private struct Service1 {
 private struct Service2 {
     let closure: () -> Void
     
-    @Resolvable<Resolver>
+    @Resolvable<Swinject.Resolver>
     init(closure: @escaping () -> Void) {
         self.closure = closure
     }
@@ -80,12 +80,12 @@ private struct Service3 {
     
     let value: Int
     
-    @Resolvable<Resolver>
+    @Resolvable<Swinject.Resolver>
     init(@UseDefault defaultedValue: Int = 2) {
         self.value = defaultedValue
     }
 
-    @Resolvable<Resolver>
+    @Resolvable<Swinject.Resolver>
     static func makeService() -> Service3 {
         return .init(defaultedValue: 5)
     }
@@ -93,7 +93,7 @@ private struct Service3 {
 
 private struct Service4 {
     let value: Float
-    @Resolvable<Resolver>
+    @Resolvable<Swinject.Resolver>
     init(@Argument value: Float) {
         self.value = value
     }
@@ -101,14 +101,14 @@ private struct Service4 {
 
 private struct Service5 {
     let value: Float
-    @Resolvable<Resolver>
+    @Resolvable<Swinject.Resolver>
     init(@Named("float2") value: Float) {
         self.value = value
     }
 }
 
 private enum Factory {
-    static var container: Container {
+    static var container: Swinject.Container {
         let container = Container()
         container.register(String.self) { _ in "Test" }
         container.register(Int.self) { _ in 5 }
@@ -128,7 +128,7 @@ enum FloatName: String {
     case float2
 }
 
-private extension Resolver {
+private extension Swinject.Resolver {
 
     func float(name: FloatName) -> Float {
         resolve(Float.self, name: name.rawValue)!

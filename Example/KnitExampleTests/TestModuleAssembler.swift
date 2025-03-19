@@ -9,7 +9,9 @@ import Knit
 extension KnitExampleAssembly {
     @MainActor
     static func makeAssemblerForTests() -> ModuleAssembler {
-        ModuleAssembler([KnitExampleAssembly()])
+        ModuleAssembler(
+            [KnitExampleAssembly()]
+        )
     }
 
     static func makeArgumentsForTests() -> KnitExampleRegistrationTestArguments {
@@ -26,6 +28,8 @@ extension KnitExampleAssembly {
 extension KnitExampleUserAssembly {
     @MainActor
     static func makeAssemblerForTests() -> ModuleAssembler {
-        ModuleAssembler([KnitExampleUserAssembly(), KnitExampleAssembly()])
+        ModuleAssembler(
+            [KnitExampleUserAssembly(), KnitExampleAssembly()]
+        )
     }
 }

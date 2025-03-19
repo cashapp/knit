@@ -193,7 +193,7 @@ private struct Assembly1: ModuleAssembly {
         ]
     }
 
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 // Assembly2 has no dependencies but replaces Assembly8
@@ -205,7 +205,7 @@ private struct Assembly2: AutoInitModuleAssembly {
 
     static var replaces: [any ModuleAssembly.Type] { [Assembly8.self] }
 
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 // Assembly3 depends on Assembly1
@@ -214,7 +214,7 @@ private struct Assembly3: ModuleAssembly {
         return [Assembly1.self]
     }
 
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 // Assembly4 depends on Assembly1 and Assembly2
@@ -223,11 +223,11 @@ private struct Assembly4: ModuleAssembly {
     static let dependencies: [any ModuleAssembly.Type] =
         [ Assembly2.self, Assembly1.self ]
 
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 private struct Assembly5: ModuleAssembly, DefaultModuleAssemblyOverride {
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
     static var dependencies: [any ModuleAssembly.Type] { [] }
 
     // This is not valid because Assembly6 does not implement Assembly5
@@ -235,23 +235,23 @@ private struct Assembly5: ModuleAssembly, DefaultModuleAssemblyOverride {
 }
 
 private struct Assembly6: AutoInitModuleAssembly {
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
     static var dependencies: [any ModuleAssembly.Type] { [] }
 }
 
 private struct Assembly7: ModuleAssembly {
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
     static var dependencies: [any ModuleAssembly.Type] { [Assembly5.self] }
 }
 
 private struct Assembly8: AutoInitModuleAssembly, DefaultModuleAssemblyOverride {
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
     static var dependencies: [any ModuleAssembly.Type] { [] }
     typealias OverrideType = Assembly2
 }
 
 private struct Assembly9: AutoInitModuleAssembly {
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
     static var dependencies: [any ModuleAssembly.Type] { [Assembly8.self] }
 }
 

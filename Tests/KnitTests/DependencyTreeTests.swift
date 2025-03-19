@@ -42,20 +42,20 @@ final class DependencyTreeTests: XCTestCase {
 
 private struct Assembly1: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { return [] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 private struct Assembly2: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { return [] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 private struct Assembly3: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { return [] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 private struct Assembly4: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { return [] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }

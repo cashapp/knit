@@ -4,7 +4,7 @@
 
 import Swinject
 
-public extension Resolver {
+public extension Swinject.Resolver {
 
     /// Force unwrap that improves single line error logging to help track test failures
     /// This is used in knit generated type safe functions
@@ -29,4 +29,33 @@ public extension Resolver {
         }
         return unwrapped
     }
+}
+
+// MARK: -
+
+public extension Knit.Resolver {
+
+    /// Force unwrap that improves single line error logging to help track test failures
+    /// This is used in knit generated type safe functions
+    func knitUnwrap<T>(
+        _ value: T?,
+        file: StaticString = #fileID,
+        function: StaticString = #function,
+        line: UInt = #line,
+        // Allow for an additional frame of the call-stack for better context
+        callsiteFile: StaticString,
+        callsiteFunction: StaticString,
+        callsiteLine: UInt
+    ) -> T {
+        self.unsafeResolver.knitUnwrap(
+            value,
+            file: file,
+            function: function,
+            line: line,
+            callsiteFile: callsiteFile,
+            callsiteFunction: callsiteFunction,
+            callsiteLine: callsiteLine
+        )
+    }
+
 }

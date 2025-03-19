@@ -3,6 +3,7 @@
 //
 
 import Foundation
+import Swinject
 
 public protocol ModuleAssemblerErrorFormatter {
     func format(knitError: KnitAssemblyError, dependencyTree: DependencyTree?) -> String
@@ -11,9 +12,9 @@ public protocol ModuleAssemblerErrorFormatter {
 extension ModuleAssemblerErrorFormatter {
 
     func format(error: Error, dependencyTree: DependencyTree?) -> String {
-        if let abstract = error as? Container.AbstractRegistrationErrors {
+        if let abstract = error as? AbstractRegistrationErrors {
             return format(knitError: .abstractList(abstract), dependencyTree: dependencyTree)
-        } else if let abstract = error as? Container.AbstractRegistrationError {
+        } else if let abstract = error as? AbstractRegistrationError {
             return format(knitError: .abstract(abstract), dependencyTree: dependencyTree)
         } else if let scoped = error as? ScopedModuleAssemblerError {
             return format(knitError: .scoped(scoped), dependencyTree: dependencyTree)
@@ -59,10 +60,10 @@ public enum KnitAssemblyError {
     case scoped(ScopedModuleAssemblerError)
 
     /// List of errors related to abstract registrations
-    case abstractList(Container.AbstractRegistrationErrors)
-    
+    case abstractList(AbstractRegistrationErrors)
+
     /// A single abstract registration error
-    case abstract(Container.AbstractRegistrationError)
+    case abstract(AbstractRegistrationError)
 
     public var localizedDescription: String {
         switch self {

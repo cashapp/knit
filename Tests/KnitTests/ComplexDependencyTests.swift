@@ -51,36 +51,36 @@ final class ComplexDependencyTests: XCTestCase {
 // Assembly1 depends on Assembly2 and Assembly3
 private struct Assembly1: ModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [ Assembly3.self, Assembly2.self ] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 // Assembly2 has no dependencies
 private struct Assembly2: ModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 // Assembly2Fake overrides Assembly2
 private struct Assembly2Fake: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [] }
     static var replaces: [any ModuleAssembly.Type] { [Assembly2.self] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 // Assembly3 depends on a fake version of Assembly2
 private struct Assembly3: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [Assembly2Fake.self] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 // Assembly4 has a cycle with Assembly5
 private struct Assembly4: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [Assembly5.self] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }
 
 // Assembly5 has a cycle with Assembly4
 private struct Assembly5: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [Assembly4.self] }
-    func assemble(container: Container) {}
+    func assemble(container: Container<Self.TargetResolver>) {}
 }

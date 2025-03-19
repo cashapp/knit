@@ -3,6 +3,7 @@
 //
 
 import Foundation
+import Swinject
 
 extension Container {
 
@@ -16,7 +17,7 @@ extension Container {
         file: String = #fileID
     ) {
         let registration = RealAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
-        addAbstractRegistration(registration)
+        _unwrappedSwinjectContainer.addAbstractRegistration(registration)
     }
 
     /// Register that a service is expected to exist but no implementation is currently available
@@ -31,13 +32,17 @@ extension Container {
         file: String = #fileID
     ) {
         let registration = OptionalAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
-        addAbstractRegistration(registration)
+        _unwrappedSwinjectContainer.addAbstractRegistration(registration)
     }
+
+}
+
+extension Swinject.Container {
 
     // Must be called before using `registerAbstract`
     func registerAbstractContainer() -> AbstractRegistrationContainer {
         let registrations = AbstractRegistrationContainer()
-        register(Container.AbstractRegistrationContainer.self, factory: { _ in registrations })
+        register(AbstractRegistrationContainer.self, factory: { _ in registrations })
             .inObjectScope(.container)
         addBehavior(registrations)
         return registrations
@@ -47,7 +52,7 @@ extension Container {
         abstractRegistrations().abstractRegistrations.append(registration)
     }
 
-    private func abstractRegistrations() -> AbstractRegistrationContainer {
+    fileprivate func abstractRegistrations() -> AbstractRegistrationContainer {
         return resolve(AbstractRegistrationContainer.self)!
     }
 }
@@ -75,7 +80,7 @@ public protocol AbstractRegistration {
     /// Register a placeholder registration to fill the unfulfilled abstract registration
     /// This placeholder cannot be resolved
     func registerPlaceholder(
-        container: Container,
+        container: Swinject.Container,
         errorFormatter: ModuleAssemblerErrorFormatter,
         dependencyTree: DependencyTree
     )
@@ -83,8 +88,8 @@ public protocol AbstractRegistration {
 
 extension AbstractRegistration {
     // Convert the key into an error
-    var error: Container.AbstractRegistrationError {
-        return Container.AbstractRegistrationError(
+    var error: AbstractRegistrationError {
+        AbstractRegistrationError(
             serviceType: serviceDescription,
             file: file,
             name: name
@@ -110,7 +115,7 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
     let concurrency: ConcurrencyAttribute
 
     func registerPlaceholder(
-        container: Container,
+        container: Swinject.Container,
         errorFormatter: ModuleAssemblerErrorFormatter,
         dependencyTree: DependencyTree
     ) {
@@ -132,7 +137,7 @@ fileprivate struct OptionalAbstractRegistration<UnwrappedServiceType>: AbstractR
     typealias ServiceType = Optional<UnwrappedServiceType>
 
     func registerPlaceholder(
-        container: Container,
+        container: Swinject.Container,
         errorFormatter: ModuleAssemblerErrorFormatter,
         dependencyTree: DependencyTree
     ) {
@@ -142,32 +147,36 @@ fileprivate struct OptionalAbstractRegistration<UnwrappedServiceType>: AbstractR
     }
 }
 
-// MARK: - Inner types
+// MARK: -
 
-extension Container {
+public struct AbstractRegistrationError: LocalizedError {
+    public let serviceType: String
+    public let file: String
+    public let name: String?
 
-    public struct AbstractRegistrationError: LocalizedError {
-        public let serviceType: String
-        public let file: String
-        public let name: String?
-
-        public var errorDescription: String? {
-            var string = "Unsatisfied abstract registration. Service: \(serviceType), File: \(file)"
-            if let name = name {
-                string += ", Name: \(name)"
-            }
-            return string
+    public var errorDescription: String? {
+        var string = "Unsatisfied abstract registration. Service: \(serviceType), File: \(file)"
+        if let name = name {
+            string += ", Name: \(name)"
         }
+        return string
     }
+}
 
-    // Array of abstract registration errors
-    public struct AbstractRegistrationErrors: LocalizedError {
-        public let errors: [AbstractRegistrationError]
+// MARK: -
 
-        public var errorDescription: String? {
-            return errors.map { $0.localizedDescription }.joined(separator: "\n")
-        }
+// Array of abstract registration errors
+public struct AbstractRegistrationErrors: LocalizedError {
+    public let errors: [AbstractRegistrationError]
+
+    public var errorDescription: String? {
+        return errors.map { $0.localizedDescription }.joined(separator: "\n")
     }
+}
+
+// MARK: -
+
+extension Swinject.Container {
 
     final class AbstractRegistrationContainer: Behavior {
 
@@ -180,7 +189,7 @@ extension Container {
         }
 
         func container<Type, Service>(
-            _ container: Container,
+            _ container: Swinject.Container,
             didRegisterType type: Type.Type,
             toService entry: ServiceEntry<Service>,
             withName name: String?

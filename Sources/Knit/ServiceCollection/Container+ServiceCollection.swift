@@ -1,4 +1,5 @@
 import Foundation
+import Swinject
 
 extension Container {
 
@@ -24,13 +25,14 @@ extension Container {
     @discardableResult
     public func registerIntoCollection<Service>(
         _ service: Service.Type,
-        factory: @escaping @MainActor (Resolver) -> Service
+        factory: @escaping @MainActor (TargetResolver) -> Service
     ) -> ServiceEntry<Service> {
-        self.register(
+        self._unwrappedSwinjectContainer.register(
             service,
             name: makeUniqueCollectionRegistrationName(),
-            factory: { resolver in
+            factory: { r in
                 MainActor.assumeIsolated {
+                    let resolver = r.resolve(Container<TargetResolver>.self)! as! TargetResolver
                     return factory(resolver)
                 }
             }

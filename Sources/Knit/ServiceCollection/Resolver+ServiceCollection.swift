@@ -2,7 +2,9 @@
 // Copyright © Block, Inc. All rights reserved.
 //
 
-extension Resolver {
+import Swinject
+
+extension Swinject.Resolver {
 
     /// Resolves a collection of all services registered using
     /// ``Container/registerIntoCollection(_:factory:)`` or

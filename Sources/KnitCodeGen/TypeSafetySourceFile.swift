@@ -123,7 +123,7 @@ public enum TypeSafetySourceFile {
         usages: String
     ) throws -> FunctionDeclSyntax {
         try FunctionDeclSyntax("\(raw: modifier)func \(raw: functionName)(\(raw: inputs)) -> \(raw: registration.service)") {
-            "knitUnwrap(resolve(\(raw: usages)), callsiteFile: file, callsiteFunction: function, callsiteLine: line)"
+            "knitUnwrap(unsafeResolver.resolve(\(raw: usages)), callsiteFile: file, callsiteFunction: function, callsiteLine: line)"
         }
     }
 
