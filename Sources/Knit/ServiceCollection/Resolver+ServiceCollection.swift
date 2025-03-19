@@ -2,9 +2,7 @@
 // Copyright © Block, Inc. All rights reserved.
 //
 
-import Swinject
-
-extension Swinject.Resolver {
+extension Resolver {
 
     /// Resolves a collection of all services registered using
     /// ``Container/registerIntoCollection(_:factory:)`` or
@@ -24,7 +22,7 @@ extension Swinject.Resolver {
     ///            or an empty collection if no services were registered.
     @MainActor
     public func resolveCollection<Service>(_ serviceType: Service.Type) -> ServiceCollection<Service> {
-        resolve(ServiceCollection<Service>.self) ?? .init(parent: nil, entries: [])
+        unsafeResolver.resolve(ServiceCollection<Service>.self) ?? .init(parent: nil, entries: [])
     }
 
 }

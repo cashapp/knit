@@ -3,10 +3,9 @@
 //
 
 import Knit
-import Swinject
 import XCTest
 
-public extension Swinject.Resolver {
+public extension Knit.Resolver {
 
     func assertTypeResolved<T>(
         _ result: T?,
@@ -18,7 +17,7 @@ public extension Swinject.Resolver {
             """
             The container did not resolve the type: \(T.self). Check that this type is registered correctly.
             Dependency Graph:
-            \(_dependencyTree())
+            \(unsafeResolver._dependencyTree())
             """,
             file: file,
             line: line
@@ -32,11 +31,11 @@ public extension Swinject.Resolver {
         line: UInt = #line
     ) {
         XCTAssertNotNil(
-            resolve(type, name: name),
+            unsafeResolver.resolve(type, name: name),
             """
             The container did not resolve the type: \(type). Check that this type is registered correctly.
             Dependency Graph:
-            \(_dependencyTree())
+            \(unsafeResolver._dependencyTree())
             """,
             file: file,
             line: line

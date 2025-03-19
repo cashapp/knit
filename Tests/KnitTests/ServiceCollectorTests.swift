@@ -6,13 +6,21 @@
 import Swinject
 import XCTest
 
-protocol ServiceProtocol {}
+private protocol ParentResolver: Knit.Resolver {}
+private protocol ChildResolver: ParentResolver {}
+private protocol GrandChildResolver: ChildResolver {}
 
-struct ServiceA: ServiceProtocol {}
+extension Knit.Container: ParentResolver, ChildResolver, GrandChildResolver {}
 
-struct ServiceB: ServiceProtocol {}
+private protocol ServiceProtocol {}
 
-struct AssemblyA: AutoInitModuleAssembly {
+private struct ServiceA: ServiceProtocol {}
+
+private struct ServiceB: ServiceProtocol {}
+
+private struct AssemblyA: AutoInitModuleAssembly {
+    typealias TargetResolver = ParentResolver
+
     static var dependencies: [any ModuleAssembly.Type] = []
 
     func assemble(container: Knit.Container<Self.TargetResolver>) {
@@ -20,7 +28,9 @@ struct AssemblyA: AutoInitModuleAssembly {
     }
 }
 
-struct AssemblyB: AutoInitModuleAssembly {
+private struct AssemblyB: AutoInitModuleAssembly {
+    typealias TargetResolver = ChildResolver
+
     static var dependencies: [any ModuleAssembly.Type] = []
 
     func assemble(container: Knit.Container<Self.TargetResolver>) {
@@ -28,13 +38,33 @@ struct AssemblyB: AutoInitModuleAssembly {
     }
 }
 
-struct AssemblyC: AutoInitModuleAssembly {
+private struct AssemblyC: AutoInitModuleAssembly {
+    typealias TargetResolver = ParentResolver
+
     static var dependencies: [any ModuleAssembly.Type] = []
 
     func assemble(container: Knit.Container<Self.TargetResolver>) { }
 }
 
-final class CustomService: ServiceProtocol {
+private struct AssemblyD: AutoInitModuleAssembly {
+    typealias TargetResolver = ChildResolver
+
+    static var dependencies: [any ModuleAssembly.Type] = []
+
+    func assemble(container: Knit.Container<Self.TargetResolver>) { }
+}
+
+private struct AssemblyE: AutoInitModuleAssembly {
+    typealias TargetResolver = GrandChildResolver
+
+    static var dependencies: [any ModuleAssembly.Type] = []
+
+    func assemble(container: Knit.Container<Self.TargetResolver>) {
+        container.registerIntoCollection(ServiceProtocol.self, factory: { _ in ServiceB() })
+    }
+}
+
+private final class CustomService: ServiceProtocol {
     var name: String
 
     init(name: String) {
@@ -42,7 +72,7 @@ final class CustomService: ServiceProtocol {
     }
 }
 
-struct HighArityService: ServiceProtocol, Equatable {
+private struct HighArityService: ServiceProtocol, Equatable {
     var string: String
     var uint: UInt
     var int: Int
@@ -69,12 +99,12 @@ final class ServiceCollectorTests: XCTestCase {
         container.registerIntoCollection(CustomService.self) { _ in CustomService(name: "Custom 2") }
 
         // Resolving each collection should produce the expected services
-        let serviceProtocolCollection = container._unwrappedSwinjectContainer.resolveCollection(ServiceProtocol.self)
+        let serviceProtocolCollection = container.resolveCollection(ServiceProtocol.self)
         XCTAssertEqual(serviceProtocolCollection.entries.count, 2)
         XCTAssert(serviceProtocolCollection.entries.first is ServiceA)
         XCTAssert(serviceProtocolCollection.entries.last is ServiceB)
 
-        let customServiceCollection = container._unwrappedSwinjectContainer.resolveCollection(CustomService.self)
+        let customServiceCollection = container.resolveCollection(CustomService.self)
         XCTAssertEqual(
             customServiceCollection.entries.map(\.name),
             ["Custom 1", "Custom 2"]
@@ -87,7 +117,7 @@ final class ServiceCollectorTests: XCTestCase {
         let container = Knit.Container<Any>._instantiateAndRegister(_swinjectContainer: swinjectContainer)
         container._unwrappedSwinjectContainer.addBehavior(ServiceCollector())
 
-        let collection = container._unwrappedSwinjectContainer.resolveCollection(ServiceProtocol.self)
+        let collection = container.resolveCollection(ServiceProtocol.self)
         XCTAssertEqual(collection.entries.count, 0)
     }
 
@@ -96,7 +126,7 @@ final class ServiceCollectorTests: XCTestCase {
         let swinjectContainer = Swinject.Container()
         let container = Knit.Container<Any>._instantiateAndRegister(_swinjectContainer: swinjectContainer)
 
-        let collection = container._unwrappedSwinjectContainer.resolveCollection(ServiceProtocol.self)
+        let collection = container.resolveCollection(ServiceProtocol.self)
         XCTAssertEqual(collection.entries.count, 0)
     }
 
@@ -115,7 +145,7 @@ final class ServiceCollectorTests: XCTestCase {
         container.register([ServiceProtocol].self) { _ in [ServiceB()] }
 
         // Resolving the collection should produce A
-        let collection = container._unwrappedSwinjectContainer.resolveCollection(ServiceProtocol.self)
+        let collection = container.resolveCollection(ServiceProtocol.self)
         XCTAssertEqual(collection.entries.count, 1)
         XCTAssert(collection.entries.first is ServiceA)
 
@@ -139,13 +169,13 @@ final class ServiceCollectorTests: XCTestCase {
         _ = container.register(ServiceProtocol.self) { _ in ServiceB() }
 
         // Resolving the collection should produce A and B
-        let collection = container._unwrappedSwinjectContainer.resolveCollection(ServiceProtocol.self)
+        let collection = container.resolveCollection(ServiceProtocol.self)
         XCTAssertEqual(collection.entries.count, 2)
         XCTAssert(collection.entries.first is ServiceA)
         XCTAssert(collection.entries.last is ServiceB)
 
         // Resolving the service individually should produce B
-        XCTAssert(container._unwrappedSwinjectContainer.resolve(ServiceProtocol.self) is ServiceB)
+        XCTAssert(container.unsafeResolver.resolve(ServiceProtocol.self) is ServiceB)
     }
 
     @MainActor
@@ -160,7 +190,7 @@ final class ServiceCollectorTests: XCTestCase {
         _ = container.registerIntoCollection(ServiceProtocol.self) { _ in CustomService(name: "Car Repair") }
 
         // Resolving the collection should produce all services
-        let collection = container._unwrappedSwinjectContainer.resolveCollection(ServiceProtocol.self)
+        let collection = container.resolveCollection(ServiceProtocol.self)
         XCTAssertEqual(
             collection.entries.compactMap { ($0 as? CustomService)?.name },
             ["Dry Cleaning", "Car Repair", "Car Repair"]
@@ -181,8 +211,8 @@ final class ServiceCollectorTests: XCTestCase {
             .registerIntoCollection(CustomService.self) { _ in CustomService(name: "service") }
             .inObjectScope(.transient)
 
-        let collection1 = container._unwrappedSwinjectContainer.resolveCollection(CustomService.self)
-        let collection2 = container._unwrappedSwinjectContainer.resolveCollection(CustomService.self)
+        let collection1 = container.resolveCollection(CustomService.self)
+        let collection2 = container.resolveCollection(CustomService.self)
 
         let instance1 = try XCTUnwrap(collection1.entries.first)
         let instance2 = try XCTUnwrap(collection2.entries.first)
@@ -202,8 +232,8 @@ final class ServiceCollectorTests: XCTestCase {
             .registerIntoCollection(CustomService.self) { _ in CustomService(name: "service") }
             .inObjectScope(.container)
 
-        let collection1 = container._unwrappedSwinjectContainer.resolveCollection(CustomService.self)
-        let collection2 = container._unwrappedSwinjectContainer.resolveCollection(CustomService.self)
+        let collection1 = container.resolveCollection(CustomService.self)
+        let collection2 = container.resolveCollection(CustomService.self)
 
         let instance1 = try XCTUnwrap(collection1.entries.first)
         let instance2 = try XCTUnwrap(collection2.entries.first)
@@ -229,37 +259,29 @@ final class ServiceCollectorTests: XCTestCase {
             .inObjectScope(.weak)
 
         // Resolve the initial instance
-        var instance1: CustomService? = try XCTUnwrap(container._unwrappedSwinjectContainer.resolveCollection(CustomService.self).entries.first)
+        var instance1: CustomService? = try XCTUnwrap(container.resolveCollection(CustomService.self).entries.first)
         XCTAssertEqual(factoryCallCount, 1)
 
         // Resolving again shouldn't increase `factoryCallCount` since `instance1` is still retained.
-        var instance2: CustomService? = try XCTUnwrap(container._unwrappedSwinjectContainer.resolveCollection(CustomService.self).entries.first)
+        var instance2: CustomService? = try XCTUnwrap(container.resolveCollection(CustomService.self).entries.first)
         XCTAssertEqual(factoryCallCount, 1)
         XCTAssert(instance2 === instance1)
 
         // Release our instances and resolve again. This time a new instance should be created.
         instance1 = nil
         instance2 = nil
-        _ = container._unwrappedSwinjectContainer.resolveCollection(CustomService.self)
+        _ = container.resolveCollection(CustomService.self)
         XCTAssertEqual(factoryCallCount, 2)
     }
 
     @MainActor
     func test_parentChildContainersWithAssemblers() throws {
-        let parent = try ModuleAssembler(
-            _modules: [AssemblyA()],
-            preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            },
-            autoConfigureContainers: false
+        let parent = try ScopedModuleAssembler<ParentResolver>(
+            _modules: [AssemblyA()]
         )
-        let child = try ModuleAssembler(
-            parent: parent,
-            _modules: [AssemblyB()],
-            preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            },
-            autoConfigureContainers: false
+        let child = try ScopedModuleAssembler<ChildResolver>(
+            parent: parent.internalAssembler,
+            _modules: [AssemblyB()]
         )
 
         // When resolving from the parent resolver we only get services from AssemblyA
@@ -284,20 +306,12 @@ final class ServiceCollectorTests: XCTestCase {
 
     @MainActor
     func test_childWithEmptyParent() throws {
-        let parent = try ModuleAssembler(
-            _modules: [AssemblyC()],
-            preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            },
-            autoConfigureContainers: false
+        let parent = try ScopedModuleAssembler<ParentResolver>(
+            _modules: [AssemblyC()]
         )
-        let child = try ModuleAssembler(
-            parent: parent,
-            _modules: [AssemblyB()],
-            preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            },
-            autoConfigureContainers: false
+        let child = try ScopedModuleAssembler<ChildResolver>(
+            parent: parent.internalAssembler,
+            _modules: [AssemblyB()]
         )
 
         // Parent has no services registered
@@ -314,8 +328,8 @@ final class ServiceCollectorTests: XCTestCase {
 
     @MainActor
     func test_emptyChildWithParent() throws {
-        let parent = try ModuleAssembler(_modules: [AssemblyB()])
-        let child = try ModuleAssembler(parent: parent, _modules: [AssemblyC()])
+        let parent = try ScopedModuleAssembler<ParentResolver>(_modules: [AssemblyA()])
+        let child = try ScopedModuleAssembler<ChildResolver>(parent: parent.internalAssembler, _modules: [AssemblyD()])
 
         // The parent itself has no services so they come from the child
         XCTAssertEqual(
@@ -332,45 +346,39 @@ final class ServiceCollectorTests: XCTestCase {
 
     @MainActor
     func test_grandparentRelationship() throws {
-        let grandParent = try ModuleAssembler(
-            _modules: [AssemblyA()],
-            preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            },
-            autoConfigureContainers: false
+        let parent = try ScopedModuleAssembler<ParentResolver>(
+            _modules: [AssemblyA()]
         )
-        let parent = try ModuleAssembler(
-            parent: grandParent,
-            _modules: [AssemblyC()],
-            preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            },
-            autoConfigureContainers: false
+        let child = try ScopedModuleAssembler<ChildResolver>(
+            parent: parent.internalAssembler,
+            _modules: [AssemblyD()]
         )
-        let child = try ModuleAssembler(
-            parent: parent,
-            _modules: [AssemblyB()],
-            preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
-            },
-            autoConfigureContainers: false
+        let grandChild = try ScopedModuleAssembler<GrandChildResolver>(
+            parent: child.internalAssembler,
+            _modules: [AssemblyE()]
         )
 
-        // The child has access to all services
+        // The grand child has access to all services
         XCTAssertEqual(
-            child.resolver.resolveCollection(ServiceProtocol.self).allEntries.count,
+            grandChild.resolver.resolveCollection(ServiceProtocol.self).allEntries.count,
             2
         )
 
-        // The parent has access to grandparent services
+        // The child has access to parent services
+        XCTAssertEqual(
+            child.resolver.resolveCollection(ServiceProtocol.self).allEntries.count,
+            1
+        )
+
+        // The parent has access to its own services
         XCTAssertEqual(
             parent.resolver.resolveCollection(ServiceProtocol.self).allEntries.count,
             1
         )
 
-        // 1 service is registered directly into the child
+        // 1 service is registered directly into the grand child
         XCTAssertEqual(
-            child.resolver.resolveCollection(ServiceProtocol.self).entries.count,
+            grandChild.resolver.resolveCollection(ServiceProtocol.self).entries.count,
             1
         )
     }
