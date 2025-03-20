@@ -3,9 +3,10 @@
 //
 
 import Knit
+import Swinject
 import XCTest
 
-public extension Knit.Resolver {
+public extension Swinject.Resolver {
 
     func assertTypeResolved<T>(
         _ result: T?,
@@ -17,7 +18,7 @@ public extension Knit.Resolver {
             """
             The container did not resolve the type: \(T.self). Check that this type is registered correctly.
             Dependency Graph:
-            \(unsafeResolver._dependencyTree())
+            \(_dependencyTree())
             """,
             file: file,
             line: line
@@ -31,11 +32,11 @@ public extension Knit.Resolver {
         line: UInt = #line
     ) {
         XCTAssertNotNil(
-            unsafeResolver.resolve(type, name: name),
+            resolve(type, name: name),
             """
             The container did not resolve the type: \(type). Check that this type is registered correctly.
             Dependency Graph:
-            \(unsafeResolver._dependencyTree())
+            \(_dependencyTree())
             """,
             file: file,
             line: line
@@ -60,6 +61,39 @@ public extension Knit.Resolver {
             file: file,
             line: line
         )
+    }
+
+}
+
+// MARK: - Knit Resolver
+
+public extension Knit.Resolver {
+
+    func assertTypeResolved<T>(
+        _ result: T?,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        unsafeResolver.assertTypeResolved(result, file: file, line: line)
+    }
+
+    func assertTypeResolves<T>(
+        _ type: T.Type,
+        name: String? = nil,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        unsafeResolver.assertTypeResolves(type, name: name, file: file, line: line)
+    }
+
+    @MainActor
+    func assertCollectionResolves<T>(
+        _ type: T.Type,
+        count expectedCount: Int,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        unsafeResolver.assertCollectionResolves(type, count: expectedCount, file: file, line: line)
     }
 
 }
