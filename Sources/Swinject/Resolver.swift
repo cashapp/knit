@@ -12,7 +12,7 @@
 //
 
 
-public protocol Resolver {
+public protocol Resolver: AnyObject {
     /// Retrieves the instance with the specified service type.
     ///
     /// - Parameter serviceType: The service type to resolve.
