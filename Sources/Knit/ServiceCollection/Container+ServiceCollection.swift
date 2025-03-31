@@ -7,8 +7,6 @@ extension Container {
     ///
     /// Usage:
     /// ```
-    /// let container = Container()
-    /// container.addBehavior(ServiceCollector())
     /// container.registerIntoCollection(Animal.self) { _ in Cat(...) }
     /// container.registerIntoCollection(Animal.self) { _ in Dog(...) }
     ///

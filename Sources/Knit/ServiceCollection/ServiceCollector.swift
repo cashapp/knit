@@ -6,12 +6,13 @@ import Foundation
 import Swinject
 
 /// A Swinject behavior that aggregates all services registered using
-/// ``Container/registerIntoCollection(_:factory:)`` or
+/// ``Container/registerIntoCollection(_:factory:)``
 ///
 /// Usage:
 /// ```
 /// let container = Container()
-/// container.addBehavior(ServiceCollector())
+/// container.addBehavior(ServiceCollector()) // Note that this is done by default in Knit's ModuleAssembler
+///
 /// container.registerIntoCollection(Animal.self) { _ in Cat() })
 /// container.registerIntoCollection(Animal.self) { _ in Dog() })
 ///

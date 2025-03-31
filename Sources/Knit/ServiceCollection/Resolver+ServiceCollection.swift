@@ -7,12 +7,10 @@ import Swinject
 extension Swinject.Resolver {
 
     /// Resolves a collection of all services registered using
-    /// ``Container/registerIntoCollection(_:factory:)`` or
+    /// ``Container/registerIntoCollection(_:factory:)``
     ///
     /// Usage:
     /// ```
-    /// let container = Container()
-    /// container.addBehavior(ServiceCollector())
     /// container.registerIntoCollection(Animal.self) { _ in Cat() })
     /// container.registerIntoCollection(Animal.self) { _ in Dog() })
     ///
@@ -34,12 +32,10 @@ extension Swinject.Resolver {
 extension Knit.Resolver {
 
     /// Resolves a collection of all services registered using
-    /// ``Container/registerIntoCollection(_:factory:)`` or
+    /// ``Container/registerIntoCollection(_:factory:)``
     ///
     /// Usage:
     /// ```
-    /// let container = Container()
-    /// container.addBehavior(ServiceCollector())
     /// container.registerIntoCollection(Animal.self) { _ in Cat() })
     /// container.registerIntoCollection(Animal.self) { _ in Dog() })
     ///
