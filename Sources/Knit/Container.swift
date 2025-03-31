@@ -66,7 +66,7 @@ extension Container {
     // Force unwraps the weak Container
     var _unwrappedSwinjectContainer: Swinject.Container {
         guard let _swinjectContainer else {
-            fatalError("Attempting to resolve using a container which has been released")
+            fatalError("Attempting to resolve using the container for \(TargetResolver.self) which has been released")
         }
         return _swinjectContainer
     }
