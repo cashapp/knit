@@ -5,15 +5,24 @@
 import Foundation
 import PackagePlugin
 
-@main
+@main @available(macOS 13.0, *)
 struct KnitBuildPlugin: BuildToolPlugin {
 
     func createBuildCommands(
         context: PluginContext,
         target: any Target
     ) async throws -> [Command] {
-        // This method is only invoked when the plugin is consumed by an SPM-only project
-        fatalError("Unexpected project type. Please add plugin to an Xcode project.")
+        let jsonFile = context.package.directory.appending(subpath: "knitconfig.json")
+        
+        return [
+            try KnitBuildPlugin.createCommand(
+                type: .source,
+                toolPath: try context.tool(named: "knit-cli").path,
+                configFilePath: jsonFile,
+                workingDirectory: context.pluginWorkDirectory
+            )
+        ]
+        
     }
 
 }
@@ -21,6 +30,7 @@ struct KnitBuildPlugin: BuildToolPlugin {
 #if canImport(XcodeProjectPlugin)
 import XcodeProjectPlugin
 
+@available(macOS 13.0, *)
 extension KnitBuildPlugin: XcodeBuildToolPlugin {
     
     func createBuildCommands(
@@ -50,29 +60,60 @@ extension XcodePluginContext {
         from configFilePath: Path,
         target: XcodeTarget
     ) throws -> Command {
-        let configFileData = try Data(contentsOf: URL(filePath: configFilePath.string))
-
-        let config = try JSONDecoder().decode(KnitPluginConfig.self, from: configFileData)
-
-        let typeSafetyOutputPath: Path?
-        let unitTestOutputPath: Path?
+        let command: CommandType
         switch target.product?.kind {
         case .application:
-            typeSafetyOutputPath = self.pluginWorkDirectory.appending("KnitDITypeSafety.swift")
-            unitTestOutputPath = nil
+            command = .source
         case .other("com.apple.product-type.bundle.unit-test"):
-            typeSafetyOutputPath = nil
-            unitTestOutputPath = self.pluginWorkDirectory.appending(subpath: "KnitDIRegistrationTests.swift")
-
+            command = .tests
         default:
-            typeSafetyOutputPath = nil
-            unitTestOutputPath = nil
+            command = .unknown
         }
+        
+        return try KnitBuildPlugin.createCommand(
+            type: command,
+            toolPath: try self.tool(named: "knit-cli").path,
+            configFilePath: configFilePath,
+            workingDirectory: self.pluginWorkDirectory
+        )
+    }
 
+}
+
+#endif
+
+fileprivate enum CommandType {
+    case source, tests, unknown
+}
+
+@available(macOS 13.0, *)
+extension KnitBuildPlugin {
+    fileprivate static func createCommand(
+        type: CommandType,
+        toolPath: Path,
+        configFilePath: Path,
+        workingDirectory: Path
+    ) throws -> Command {
+        let configFileData = try Data(contentsOf: URL(filePath: configFilePath.string))
+        let config = try JSONDecoder().decode(KnitPluginConfig.self, from: configFileData)
         let assemblyInputPaths = config.makeInputPaths(
             configFilePath: configFilePath
         )
-
+        
+        let typeSafetyOutputPath: Path?
+        let unitTestOutputPath: Path?
+        switch type {
+        case .source:
+            typeSafetyOutputPath = workingDirectory.appending("KnitDITypeSafety.swift")
+            unitTestOutputPath = nil
+        case .tests:
+            typeSafetyOutputPath = nil
+            unitTestOutputPath = workingDirectory.appending(subpath: "KnitDIRegistrationTests.swift")
+        case .unknown:
+            unitTestOutputPath = nil
+            typeSafetyOutputPath = nil
+        }
+        
         let assemblyInputArgs: [String] = assemblyInputPaths.flatMap { path in
             [
                 "--assembly-input-path",
@@ -101,17 +142,14 @@ extension XcodePluginContext {
             unitTestArgs
 
         return .buildCommand(
-            displayName: "Knit Plugin: Generate Knit files based on config \(configFilePath.description)",
-            executable: try self.tool(named: "knit-cli").path,
+            displayName: "Knit Plugin: Generate Knit files based on config \(configFilePath.description). Output folder: \(workingDirectory.description)",
+            executable: toolPath,
             arguments: arguments,
             inputFiles: assemblyInputPaths,
             outputFiles: [typeSafetyOutputPath, unitTestOutputPath].compactMap { $0 }
         )
     }
-
 }
-
-#endif
 
 /// Corresponds to the `knitconfig.json` file.
 /// That JSON data will be decoded into a `KnitPluginConfig` instance.
