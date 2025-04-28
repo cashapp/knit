@@ -77,7 +77,7 @@ public enum TypeNamer {
         return type
     }
 
-    private static let suffixedGenericTypes = ["Publisher", "Subject", "Provider", "Set"]
+    private static let suffixedGenericTypes = ["Publisher", "Subject", "Provider", "Set", "Future"]
 
     static func isClosure(type: String) -> Bool {
         return type.contains("->")
