@@ -147,6 +147,12 @@ final class TypeNamerTests: XCTestCase {
             type: "ValueProvider<Int>",
             expectedIdentifier: "intProvider"
         )
+
+        assertComputedIdentifier(
+            type: "Future<MyClass, Never>",
+            expectedIdentifier: "myClassFuture"
+        )
+
     }
 
     func testMultipleGenerics() {
