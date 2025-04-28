@@ -161,20 +161,13 @@ private final class TestAssembly: AutoInitModuleAssembly {
 class MainActorTests: XCTestCase {
 
     @MainActor
-    func testAssembly() throws {
+    func testAssembly() async throws {
         let assembler = ModuleAssembler(
             [TestAssembly()]
         )
         let finalConsumer = try XCTUnwrap(assembler.resolver.resolve(FinalConsumer.self))
 
-        let asyncExpectation = expectation(description: "async task")
-
-        Task {
-            let result = await finalConsumer.askCustomGlobalActorClassToSayHello()
-            XCTAssertEqual(result, "Hello")
-            asyncExpectation.fulfill()
-        }
-
-        waitForExpectations(timeout: 5)
+        let result = await finalConsumer.askCustomGlobalActorClassToSayHello()
+        XCTAssertEqual(result, "Hello")
     }
 }
