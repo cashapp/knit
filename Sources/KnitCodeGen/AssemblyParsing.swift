@@ -290,7 +290,7 @@ enum AssemblyParsingError: Error {
     case missingTargetResolver
     case parsingError
     case noAssembliesFound(String)
-    case moduleNameMismatch
+    case moduleNameMismatch(names: [String])
     case missingReplacedAssemblyTypealias
 }
 
@@ -311,8 +311,8 @@ extension AssemblyParsingError: LocalizedError {
             return "ModuleAssembly is required to declare a TargetResolver"
         case let .noAssembliesFound(path):
             return "The given file path did not contain any valid assemblies: \(path)"
-        case .moduleNameMismatch:
-            return "Assemblies in a single file have different modules"
+        case let .moduleNameMismatch(names):
+            return "Assemblies in a single file have different modules: \(names.joined(separator: ", "))."
         case .missingReplacedAssemblyTypealias:
             return "The FakeAssembly is missing a required `typealias ReplacedAssembly`"
         }
