@@ -85,7 +85,7 @@ public struct AssemblyParser {
         }
         let moduleNames =  Set(configurations.map { $0.moduleName })
         if moduleNames.count > 1 {
-            throw AssemblyParsingError.moduleNameMismatch
+            throw AssemblyParsingError.moduleNameMismatch(names: Array(moduleNames))
         }
 
         return configurations
