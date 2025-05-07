@@ -23,24 +23,11 @@ public enum HeaderSourceFile {
             leadingTrivia: TriviaProvider.headerTrivia,
             statementsBuilder:  {
                 for moduleImport in imports {
-                    importDecl(moduleImport: moduleImport)
+                    moduleImport.decl
+                        .maybeWithCondition(ifConfigCondition: moduleImport.ifConfigCondition)
                 }
             },
             trailingTrivia: trivia
         )
-    }
-
-    private static func importDecl(moduleImport: ModuleImport) -> DeclSyntaxProtocol {
-        // Wrap the output in an #if where needed
-        guard let ifConfigCondition = moduleImport.ifConfigCondition else {
-            return moduleImport.decl
-        }
-        let codeBlock = CodeBlockItemListSyntax([.init(item: .init(moduleImport.decl))])
-        let clause = IfConfigClauseSyntax(
-            poundKeyword: .poundIfToken(),
-            condition: ifConfigCondition,
-            elements: .statements(codeBlock)
-        )
-        return IfConfigDeclSyntax(clauses: [clause])
     }
 }
