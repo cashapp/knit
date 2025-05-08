@@ -10,6 +10,7 @@ public final class ModuleAssembler {
 
     /// The container that registrations have been placed in. Prefer using resolver unless mutable access is required
     let _swinjectContainer: Swinject.Container
+    let containerManager: ContainerManager
     let parent: ModuleAssembler?
     let serviceCollector: ServiceCollector
     private let autoConfigureContainers: Bool
@@ -101,6 +102,12 @@ public final class ModuleAssembler {
             behaviors: behaviors
         )
         self._swinjectContainer = _swinjectContainer
+        self.containerManager = ContainerManager(
+            parent: parent?.containerManager,
+            swinjectContainer: _swinjectContainer,
+            autoConfigureContainers: autoConfigureContainers
+        )
+        
         self.autoConfigureContainers = autoConfigureContainers
         preAssemble?(_swinjectContainer)
         self.serviceCollector = ServiceCollector(parent: parent?.serviceCollector)
@@ -112,7 +119,7 @@ public final class ModuleAssembler {
         self._swinjectContainer.register(DependencyTree.self) { _ in dependencyTree }
 
         for assembly in builder.assemblies {
-            assembly._assemble(swinjectContainer: _swinjectContainer, autoConfigureContainers: autoConfigureContainers)
+            assembly._assemble(containerManager: containerManager)
         }
         postAssemble?(_swinjectContainer)
 
@@ -157,31 +164,9 @@ public extension Swinject.Resolver {
 private extension ModuleAssembly {
 
     @MainActor
-    func _assemble(
-        swinjectContainer: Swinject.Container,
-        autoConfigureContainers: Bool
-    ) {
-        let container = getContainer(
-            swinjectContainer: swinjectContainer,
-            autoConfigureContainers: autoConfigureContainers
-        )
-
+    func _assemble(containerManager: ContainerManager) {
+        let container = containerManager.get(TargetResolver.self)
         assemble(container: container)
-    }
-
-    private func getContainer(
-        swinjectContainer: Swinject.Container,
-        autoConfigureContainers: Bool
-    ) -> Container<TargetResolver> {
-        if let container = swinjectContainer.resolve(Container<TargetResolver>.self) {
-            return container
-        }
-        if autoConfigureContainers {
-            return Container._instantiateAndRegister(_swinjectContainer: swinjectContainer)
-        } else {
-            // This ModuleAssembler is being used internally by a ScopedModuleAssembler
-            fatalError("ModuleAssembler failed to locate appropriate Container for \(String(describing: TargetResolver.self))")
-        }
     }
 
 }

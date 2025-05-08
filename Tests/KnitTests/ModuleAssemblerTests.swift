@@ -44,7 +44,7 @@ final class ModuleAssemblerTests: XCTestCase {
         let parent = try ModuleAssembler(
             _modules: [Assembly1()],
             preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+                container.resolve(ContainerManager.self)!.register(TestResolver.self)
             },
             autoConfigureContainers: false
         )
@@ -52,7 +52,7 @@ final class ModuleAssemblerTests: XCTestCase {
             parent: parent,
             _modules: [Assembly3()],
             preAssemble: { container in
-                Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: container)
+                container.resolve(ContainerManager.self)!.register(TestResolver.self)
             },
             autoConfigureContainers: false
         )
@@ -103,7 +103,7 @@ final class ModuleAssemblerTests: XCTestCase {
         var services = assembler._swinjectContainer.services.filter { (key, value) in
             // Filter out registrations for `AbstractRegistrationContainer` and `DependencyTree`
             return key.serviceType != Container.AbstractRegistrationContainer.self &&
-            key.serviceType != DependencyTree.self
+            key.serviceType != DependencyTree.self && key.serviceType != ContainerManager.self
         }
         XCTAssertEqual(services.count, 3)
 

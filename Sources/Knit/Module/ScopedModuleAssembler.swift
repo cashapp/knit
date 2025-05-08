@@ -86,7 +86,7 @@ public final class ScopedModuleAssembler<TargetResolver> {
             behaviors: behaviors,
             preAssemble: { container in
                 // Register a Container for the the current-scoped `TargetResolver`
-                Knit.Container<TargetResolver>._instantiateAndRegister(_swinjectContainer: container)
+                container.resolve(ContainerManager.self)!.register(TargetResolver.self)
             },
             postAssemble: { swinjectContainer in
                 let container = swinjectContainer.resolve(Container<TargetResolver>.self)!

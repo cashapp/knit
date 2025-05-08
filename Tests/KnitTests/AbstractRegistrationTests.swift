@@ -11,7 +11,7 @@ final class AbstractRegistrationTests: XCTestCase {
 
     func testMissingRegistration() {
         let swinjectContainer = Swinject.Container()
-        let container = Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: swinjectContainer)
+        let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
         let abstractRegistrations = container._unwrappedSwinjectContainer.registerAbstractContainer()
         container.registerAbstract(String.self)
         container.registerAbstract(String.self, name: "test")
@@ -31,7 +31,7 @@ final class AbstractRegistrationTests: XCTestCase {
 
     func testFilledRegistrations() {
         let swinjectContainer = Swinject.Container()
-        let container = Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: swinjectContainer)
+        let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
         let abstractRegistrations = container._unwrappedSwinjectContainer.registerAbstractContainer()
         container.registerAbstract(String.self)
         container.register(String.self) { _ in "Test" }
@@ -47,7 +47,7 @@ final class AbstractRegistrationTests: XCTestCase {
 
     func testNamedRegistrations() {
         let swinjectContainer = Swinject.Container()
-        let container = Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: swinjectContainer)
+        let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
         let abstractRegistrations = container._unwrappedSwinjectContainer.registerAbstractContainer()
         container.registerAbstract(String.self)
         container.registerAbstract(String.self, name: "test")
@@ -64,7 +64,7 @@ final class AbstractRegistrationTests: XCTestCase {
 
     func testPreRegistered() {
         let swinjectContainer = Swinject.Container()
-        let container = Knit.Container<TestResolver>._instantiateAndRegister(_swinjectContainer: swinjectContainer)
+        let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
         let abstractRegistrations = container._unwrappedSwinjectContainer.registerAbstractContainer()
         container.register(String.self) { _ in "Test" }
         container.registerAbstract(String.self)
