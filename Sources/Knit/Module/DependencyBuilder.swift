@@ -120,6 +120,12 @@ final class DependencyBuilder {
 
     private func resolvedType(_ moduleType: any ModuleAssembly.Type) throws -> any ModuleAssembly.Type {
         let fromInput = inputModules.contains(where: { type(of: $0) == moduleType})
+        if !fromInput {
+            // See if any input modules can be used for this type
+            if let inputMatch = inputModules.first(where: { type(of: $0).doesReplace(type: moduleType)}) {
+                return type(of: inputMatch)
+            }
+        }
         return try defaultOverride(moduleType, fromInput: fromInput) ?? moduleType
     }
 

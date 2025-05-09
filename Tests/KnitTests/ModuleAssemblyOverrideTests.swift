@@ -170,7 +170,6 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
             MultipleDependencyAssembly
               - Assembly1 (MultipleOverrideAssembly)
               - Assembly5 (MultipleOverrideAssembly)
-                - Assembly4 (MultipleOverrideAssembly)
             MultipleOverrideAssembly
             """
         )
