@@ -138,6 +138,11 @@ final class DependencyBuilder {
         else {
             return nil
         }
+        for module in inputModules {
+            if type(of: module).doesReplace(type: moduleType) {
+                return type(of: module)
+            }
+        }
 
         let type = defaultType.erasedType
         guard type.doesReplace(type: moduleType) else {
