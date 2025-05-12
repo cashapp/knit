@@ -46,6 +46,14 @@ final class ComplexDependencyTests: XCTestCase {
         )
     }
 
+    // When using a real assembly the fake should not be pulled in as a dependency of Assembly7
+    func testFakeNotIncluded() throws {
+        let builder = try DependencyBuilder(modules: [Assembly7(), RealAssembly6()], overrideBehavior: .useDefaultOverrides)
+        XCTAssertEqual(builder.assemblies.count, 2)
+        XCTAssertTrue(builder.assemblies[0] is RealAssembly6)
+        XCTAssertTrue(builder.assemblies[1] is Assembly7)
+    }
+
 }
 
 // Assembly1 depends on Assembly2 and Assembly3
@@ -82,5 +90,29 @@ private struct Assembly4: AutoInitModuleAssembly {
 // Assembly5 has a cycle with Assembly4
 private struct Assembly5: AutoInitModuleAssembly {
     static var dependencies: [any ModuleAssembly.Type] { [Assembly4.self] }
+    func assemble(container: Container<Self.TargetResolver>) {}
+}
+
+// AbstractAssembly implemented by FakeAssembly6 and RealAssembly6
+private struct Assembly6: AbstractAssembly, DefaultModuleAssemblyOverride {
+    typealias OverrideType = FakeAssembly6
+    static var dependencies: [any ModuleAssembly.Type] { [] }
+    func assemble(container: Container<Self.TargetResolver>) {}
+}
+
+private struct FakeAssembly6: FakeAssembly {
+    typealias ReplacedAssembly = Assembly6
+    typealias TargetResolver = TestResolver
+    func assemble(container: Container<TargetResolver>) {}
+}
+
+private struct RealAssembly6: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] { [Assembly6.self] }
+    func assemble(container: Container<Self.TargetResolver>) {}
+    static var replaces: [any ModuleAssembly.Type] { [Assembly6.self] }
+}
+
+private struct Assembly7: AutoInitModuleAssembly {
+    static var dependencies: [any ModuleAssembly.Type] { [Assembly6.self] }
     func assemble(container: Container<Self.TargetResolver>) {}
 }
