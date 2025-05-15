@@ -8,7 +8,6 @@ import Foundation
 /// This type is designed to handle the base case for fake assemblies, for more complex cases use a standard ModuleAssembly
 /// The following rules are applied:
 /// * The FakeAssembly must use the same TargetResolver as the real assembly
-/// * The real assembly must have a DefaultModuleAssemblyOverride setup pointing to this fake
 /// * The FakeAssembly defaults to no dependencies to prevent expanding the DI graph
 ///
 /// Knit will then generate the following for you:
