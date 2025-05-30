@@ -12,8 +12,9 @@ Examples of the macro output can be seen in the tests [ResolvableTests.swift](..
 ### Property Wrappers
 
 * `@Named("name")` - The parameter will be resolved from the DI graph using the given name.
-* `@Argument` - The parameter will not be resolved from the DI graph. An additional parameter will be added to the generated function.
-* `@UseDefault` - The parameter will not be resolved from the DI graph and will use the deafault value provided instead.
+* `@Argument` - The parameter will not be resolved from the DI graph. An additional parameter will be added to the generated function. 
+    If the parameter also includes a default value, that default value will also be present in the arguments for the generated function.
+* `@UseDefault` - The parameter will not be resolved from the DI graph and will always use the default value provided instead.
 
 ### Optional parameters
 

@@ -80,8 +80,9 @@ public struct ResolvableMacro: PeerMacro {
         let paramsString = paramsResolved.joined(separator: ",\n")
         var makeArguments = ["resolver: \(resolverType)"]
         for param in params {
-            if param.isArgument {
-                makeArguments.append("\(param.name): \(param.type.name)")
+            if case let .argument(defaultValue) = param.hint {
+                let defaultString = defaultValue.map { "= \($0)" } ?? ""
+                makeArguments.append("\(param.name): \(param.type.name)" + defaultString)
             }
         }
 
@@ -123,7 +124,7 @@ public struct ResolvableMacro: PeerMacro {
             }
             let name = attribute.attributeName.description.trimmingCharacters(in: .whitespaces)
             if name == "Argument" {
-                return .argument
+                return .argument(defaultValue: extractDefault(paramSyntax: paramSyntax))
             } else if name == "Named",
                let arguments = attribute.arguments?.as(LabeledExprListSyntax.self),
                let firstString = arguments.first?.expression.as(StringLiteralExprSyntax.self)?.textContent
@@ -184,9 +185,7 @@ extension ResolvableMacro {
         let name: String
         let type: TypeInformation
         let hint: ParamHint?
-        
-        var isArgument: Bool { hint == .argument }
-        
+
         var resolveCall: String {
             let knitCallName = TypeNamer.computedIdentifierName(type: type.name)
             if let hint {
@@ -213,7 +212,7 @@ extension ResolvableMacro {
     }
     
     enum ParamHint: Equatable {
-        case argument
+        case argument(defaultValue: String?)
         case named(String)
         case useDefault(String)
     }
