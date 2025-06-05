@@ -13,7 +13,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let container = Container<Resolver>(
+        let container = Container(
             behaviors: [duplicateRegistrationDetector]
         )
 
