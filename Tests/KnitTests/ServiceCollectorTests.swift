@@ -88,7 +88,7 @@ final class ServiceCollectorTests: XCTestCase {
     func test_registerIntoCollection() {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(Any.self)
-        container._unwrappedSwinjectContainer.addBehavior(ServiceCollector())
+        container._unwrappedSwinjectContainer().addBehavior(ServiceCollector())
 
         // Register some services into a collection
         container.registerIntoCollection(ServiceProtocol.self) { _ in ServiceA() }
@@ -115,7 +115,7 @@ final class ServiceCollectorTests: XCTestCase {
     func test_registerIntoCollection_emptyWithBehavior() {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(Any.self)
-        container._unwrappedSwinjectContainer.addBehavior(ServiceCollector())
+        container._unwrappedSwinjectContainer().addBehavior(ServiceCollector())
 
         let collection = container.resolveCollection(ServiceProtocol.self)
         XCTAssertEqual(collection.entries.count, 0)
@@ -136,7 +136,7 @@ final class ServiceCollectorTests: XCTestCase {
     func test_registerIntoCollection_doesntConflictWithArray() throws {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(Any.self)
-        container._unwrappedSwinjectContainer.addBehavior(ServiceCollector())
+        container._unwrappedSwinjectContainer().addBehavior(ServiceCollector())
 
         // Register A into a collection
         container.registerIntoCollection(ServiceProtocol.self) { _ in ServiceA() }
@@ -150,7 +150,7 @@ final class ServiceCollectorTests: XCTestCase {
         XCTAssert(collection.entries.first is ServiceA)
 
         // Resolving the array should produce B
-        let array = try XCTUnwrap(container._unwrappedSwinjectContainer.resolve([ServiceProtocol].self))
+        let array = try XCTUnwrap(container._unwrappedSwinjectContainer().resolve([ServiceProtocol].self))
         XCTAssertEqual(array.count, 1)
         XCTAssert(array.first is ServiceB)
     }
@@ -159,7 +159,7 @@ final class ServiceCollectorTests: XCTestCase {
     func test_registerIntoCollection_doesntImplicitlyAggregateInstances() throws {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(Any.self)
-        container._unwrappedSwinjectContainer.addBehavior(ServiceCollector())
+        container._unwrappedSwinjectContainer().addBehavior(ServiceCollector())
 
         // Register A and B into a collection
         _ = container.registerIntoCollection(ServiceProtocol.self) { _ in ServiceA() }
@@ -175,14 +175,14 @@ final class ServiceCollectorTests: XCTestCase {
         XCTAssert(collection.entries.last is ServiceB)
 
         // Resolving the service individually should produce B
-        XCTAssert(container.unsafeResolver.resolve(ServiceProtocol.self) is ServiceB)
+        XCTAssert(container._unwrappedSwinjectContainer().resolve(ServiceProtocol.self) is ServiceB)
     }
 
     @MainActor
     func test_registerIntoCollection_allowsDuplicates() {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(Any.self)
-        container._unwrappedSwinjectContainer.addBehavior(ServiceCollector())
+        container._unwrappedSwinjectContainer().addBehavior(ServiceCollector())
 
         // Register some duplicate services
         _ = container.registerIntoCollection(ServiceProtocol.self) { _ in CustomService(name: "Dry Cleaning") }
@@ -203,7 +203,7 @@ final class ServiceCollectorTests: XCTestCase {
     func test_registerIntoCollection_supportsTransientScopedObjects() throws {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(Any.self)
-        container._unwrappedSwinjectContainer.addBehavior(ServiceCollector())
+        container._unwrappedSwinjectContainer().addBehavior(ServiceCollector())
 
         // Register a service with the `transient` scope.
         // It should be recreated each time the ServiceCollection is resolved.
@@ -224,7 +224,7 @@ final class ServiceCollectorTests: XCTestCase {
     func test_registerIntoCollection_supportsContainerScopedObjects() throws {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(Any.self)
-        container._unwrappedSwinjectContainer.addBehavior(ServiceCollector())
+        container._unwrappedSwinjectContainer().addBehavior(ServiceCollector())
 
         // Register a service with the `container` scope.
         // The same instance should be shared, even if the collection is resolved many times.
@@ -245,7 +245,7 @@ final class ServiceCollectorTests: XCTestCase {
     func test_registerIntoCollection_supportsWeakScopedObjects() throws {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(Any.self)
-        container._unwrappedSwinjectContainer.addBehavior(ServiceCollector())
+        container._unwrappedSwinjectContainer().addBehavior(ServiceCollector())
 
         // Register a service with the `weak` scope.
         // The same instance should be shared while the instance is alive.

@@ -114,7 +114,7 @@ private final class TestAssembly: AutoInitModuleAssembly {
         container.register(
             Future<CustomGlobalActorClass, Never>.self,
             mainActorFactory: { @MainActor resolver in
-                let mainClassA = resolver.unsafeResolver.resolve(MainClassA.self)!
+                let mainClassA = resolver.unsafeResolver(file: #filePath, function: #function, line: #line).resolve(MainClassA.self)!
 
                 return Future<CustomGlobalActorClass, Never>() { promise in
                     let customGlobalActorClass = await CustomGlobalActorClass(
@@ -137,10 +137,11 @@ private final class TestAssembly: AutoInitModuleAssembly {
         container.register(
             FinalConsumer.self,
             mainActorFactory: { @MainActor resolver in
-                let actorA = resolver.unsafeResolver.resolve(ActorA.self)!
-                let mainClassA = resolver.unsafeResolver.resolve(MainClassA.self)!
-                let customGlobalActorClass = resolver.unsafeResolver.resolve(Future<CustomGlobalActorClass, Never>.self)!
-                let asyncInitClass = resolver.unsafeResolver.resolve(Future<AsyncInitClass, Never>.self)!
+                let r = resolver.unsafeResolver(file: #filePath, function: #function, line: #line)
+                let actorA = r.resolve(ActorA.self)!
+                let mainClassA = r.resolve(MainClassA.self)!
+                let customGlobalActorClass = r.resolve(Future<CustomGlobalActorClass, Never>.self)!
+                let asyncInitClass = r.resolve(Future<AsyncInitClass, Never>.self)!
                 return FinalConsumer(
                     actorA: actorA,
                     mainClassA: mainClassA,

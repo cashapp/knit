@@ -35,25 +35,32 @@ final class TypeSafetySourceFileTests: XCTestCase {
         /// Generated from ``ModuleAssembly``
         extension Resolve {
             func serviceA(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceA {
-                knitUnwrap(unsafeResolver.resolve(ServiceA.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(ServiceA.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             public func serviceD(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceD {
-                knitUnwrap(unsafeResolver.resolve(ServiceD.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(ServiceD.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             public func serviceDAlias(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceD {
-                knitUnwrap(unsafeResolver.resolve(ServiceD.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(ServiceD.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             public func serviceE(closure1: @escaping () -> Void, closure2: @escaping @Sendable (Bool) -> Void, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceE {
-                knitUnwrap(unsafeResolver.resolve(ServiceE.self, arguments: closure1, closure2), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(ServiceE.self, arguments: closure1, closure2), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             public func serviceF(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceF {
-                knitUnwrap(unsafeResolver.resolve(ServiceF.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(ServiceF.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             public func stringInt(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> (String, Int?) {
-                knitUnwrap(unsafeResolver.resolve((String, Int?).self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve((String, Int?).self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             func serviceB(name: ModuleAssembly.ServiceB_ResolutionKey, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceB {
-                knitUnwrap(unsafeResolver.resolve(ServiceB.self, name: name.rawValue), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(ServiceB.self, name: name.rawValue), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
         }
         extension ModuleAssembly {
@@ -84,7 +91,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ),
             """
             public func a(string: String, url: URL, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self, arguments: string, url), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self, arguments: string, url), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
         )
@@ -99,7 +107,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ),
             """
             public func a(string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
         )
@@ -114,7 +123,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ),
             """
             public func a(string1: String, string2: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self, arguments: string1, string2), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self, arguments: string1, string2), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
         )
@@ -129,7 +139,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ),
             """
             public func a(name: MyAssembly.A_ResolutionKey, string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self, name: name.rawValue, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self, name: name.rawValue, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
         )
@@ -144,7 +155,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ),
             """
             public func a(arg: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self, argument: arg), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self, argument: arg), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
         )
@@ -161,7 +173,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
             """
             #if SOME_FLAG
             public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             #endif
             """
@@ -179,12 +192,14 @@ final class TypeSafetySourceFileTests: XCTestCase {
             """
             #if SOME_FLAG
             public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             #endif
             #if SOME_FLAG
             public func fooAlias(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             #endif
             """
@@ -200,7 +215,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ),
             """
             @_spi(Testing) public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
         )
@@ -214,10 +230,12 @@ final class TypeSafetySourceFileTests: XCTestCase {
             ),
             """
             public func a(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             public func fooAlias(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> A {
-                knitUnwrap(unsafeResolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(A.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             """
         )
@@ -402,7 +420,8 @@ final class TypeSafetySourceFileTests: XCTestCase {
         /// Generated from ``MainActorAssembly``
         extension Resolver {
             @MainActor func serviceA(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceA {
-                knitUnwrap(unsafeResolver.resolve(ServiceA.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(ServiceA.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
         }
         extension MainActorAssembly {
@@ -435,11 +454,13 @@ final class TypeSafetySourceFileTests: XCTestCase {
         /// Generated from ``ModuleAssembly``
         extension Resolver {
             func serviceA(name: ModuleAssembly.ServiceA_ResolutionKey, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceA {
-                knitUnwrap(unsafeResolver.resolve(ServiceA.self, name: name.rawValue), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(ServiceA.self, name: name.rawValue), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             #if RELEASE
             func serviceB(name: ModuleAssembly.ServiceB_ResolutionKey, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ServiceB {
-                knitUnwrap(unsafeResolver.resolve(ServiceB.self, name: name.rawValue), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                let resolver = unsafeResolver(file: file, function: function, line: line)
+                return knitUnwrap(resolver.resolve(ServiceB.self, name: name.rawValue), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
             }
             #endif
         }

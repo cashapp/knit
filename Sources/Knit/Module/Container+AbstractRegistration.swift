@@ -17,7 +17,7 @@ extension Container {
         file: String = #fileID
     ) {
         let registration = RealAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
-        _unwrappedSwinjectContainer.addAbstractRegistration(registration)
+        _unwrappedSwinjectContainer().addAbstractRegistration(registration)
     }
 
     /// Register that a service is expected to exist but no implementation is currently available
@@ -32,7 +32,7 @@ extension Container {
         file: String = #fileID
     ) {
         let registration = OptionalAbstractRegistration<Service>(name: name, file: file, concurrency: concurrency)
-        _unwrappedSwinjectContainer.addAbstractRegistration(registration)
+        _unwrappedSwinjectContainer().addAbstractRegistration(registration)
     }
 
 }
