@@ -72,18 +72,22 @@ public extension Knit.Resolver {
     func assertTypeResolved<T>(
         _ result: T?,
         file: StaticString = #filePath,
+        function: StaticString = #function,
         line: UInt = #line
     ) {
-        unsafeResolver.assertTypeResolved(result, file: file, line: line)
+        unsafeResolver(file: file, function: function, line: line)
+            .assertTypeResolved(result, file: file, line: line)
     }
 
     func assertTypeResolves<T>(
         _ type: T.Type,
         name: String? = nil,
         file: StaticString = #filePath,
+        function: StaticString = #function,
         line: UInt = #line
     ) {
-        unsafeResolver.assertTypeResolves(type, name: name, file: file, line: line)
+        unsafeResolver(file: file, function: function, line: line)
+            .assertTypeResolves(type, name: name, file: file, line: line)
     }
 
     @MainActor
@@ -91,9 +95,11 @@ public extension Knit.Resolver {
         _ type: T.Type,
         count expectedCount: Int,
         file: StaticString = #filePath,
+        function: StaticString = #function,
         line: UInt = #line
     ) {
-        unsafeResolver.assertCollectionResolves(type, count: expectedCount, file: file, line: line)
+        unsafeResolver(file: file, function: function, line: line)
+            .assertCollectionResolves(type, count: expectedCount, file: file, line: line)
     }
 
 }

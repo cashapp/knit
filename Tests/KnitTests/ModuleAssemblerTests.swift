@@ -234,7 +234,7 @@ private struct Assembly5: AutoInitModuleAssembly {
 private extension TestResolver {
 
     func service2() -> Service2 {
-        unsafeResolver.resolve(Service2.self)!
+        unsafeResolver(file: #filePath, function: #function, line: #line).resolve(Service2.self)!
     }
 
 }

@@ -47,15 +47,17 @@ public extension Knit.Resolver {
         callsiteFunction: StaticString,
         callsiteLine: UInt
     ) -> T {
-        self.unsafeResolver.knitUnwrap(
-            value,
-            file: file,
-            function: function,
-            line: line,
-            callsiteFile: callsiteFile,
-            callsiteFunction: callsiteFunction,
-            callsiteLine: callsiteLine
-        )
+        self
+            .unsafeResolver(file: callsiteFile, function: callsiteFunction, line: callsiteLine)
+            .knitUnwrap(
+                value,
+                file: file,
+                function: function,
+                line: line,
+                callsiteFile: callsiteFile,
+                callsiteFunction: callsiteFunction,
+                callsiteLine: callsiteLine
+            )
     }
 
 }

@@ -29,7 +29,8 @@ final class ConfigurationSetTests: XCTestCase {
             /// Generated from ``Module1Assembly``
             extension Resolver {
                 public func service1(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service1 {
-                    knitUnwrap(unsafeResolver.resolve(Service1.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                    let resolver = unsafeResolver(file: file, function: function, line: line)
+                    return knitUnwrap(resolver.resolve(Service1.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
             }
             extension Module1Assembly {
@@ -43,10 +44,12 @@ final class ConfigurationSetTests: XCTestCase {
             /// Generated from ``Module2Assembly``
             extension Resolver {
                 public func service2(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service2 {
-                    knitUnwrap(unsafeResolver.resolve(Service2.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                    let resolver = unsafeResolver(file: file, function: function, line: line)
+                    return knitUnwrap(resolver.resolve(Service2.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
                 func argumentService(string: String, file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> ArgumentService {
-                    knitUnwrap(unsafeResolver.resolve(ArgumentService.self, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                    let resolver = unsafeResolver(file: file, function: function, line: line)
+                    return knitUnwrap(resolver.resolve(ArgumentService.self, argument: string), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
             }
             extension Module2Assembly {
@@ -60,7 +63,8 @@ final class ConfigurationSetTests: XCTestCase {
             /// Generated from ``Module3Assembly``
             extension Resolver {
                 public func service3(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service3 {
-                    knitUnwrap(unsafeResolver.resolve(Service3.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                    let resolver = unsafeResolver(file: file, function: function, line: line)
+                    return knitUnwrap(resolver.resolve(Service3.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
             }
             extension Module3Assembly {
@@ -343,7 +347,8 @@ final class ConfigurationSetTests: XCTestCase {
             /// Generated from ``CustomAssembly``
             extension Resolver {
                 func service1(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> Service1 {
-                    knitUnwrap(unsafeResolver.resolve(Service1.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
+                    let resolver = unsafeResolver(file: file, function: function, line: line)
+                    return knitUnwrap(resolver.resolve(Service1.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
                 }
             }
             """

@@ -11,6 +11,6 @@ public protocol Resolver: AnyObject {
     /// Returns `true` if the backing container is still available in memory, otherwise `false`.
     var isAvailable: Bool { get }
 
-    var unsafeResolver: Swinject.Resolver { get }
+    func unsafeResolver(file: StaticString, function: StaticString, line: UInt) -> Swinject.Resolver
 
 }

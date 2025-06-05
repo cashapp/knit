@@ -26,8 +26,8 @@ public class Container<TargetResolver>: Knit.Resolver {
 
     // MARK: - Swinject.Resolver
 
-    public var unsafeResolver: Swinject.Resolver {
-        _unwrappedSwinjectContainer
+    public func unsafeResolver(file: StaticString, function: StaticString, line: UInt) -> Swinject.Resolver {
+        _unwrappedSwinjectContainer(file: file, function: function, line: line)
     }
 
     // MARK: - Private Properties
@@ -45,9 +45,17 @@ public class Container<TargetResolver>: Knit.Resolver {
 extension Container {
 
     // Force unwraps the weak Container
-    var _unwrappedSwinjectContainer: Swinject.Container {
+    func _unwrappedSwinjectContainer(
+        file: StaticString = #fileID,
+        function: StaticString = #function,
+        line: UInt = #line
+    ) -> Swinject.Container {
         guard let _swinjectContainer else {
-            fatalError("Attempting to resolve using the container for \(TargetResolver.self) which has been released")
+            fatalError(
+                "\(function) incorrectly accessed the container for \(TargetResolver.self) which has already been released",
+                file: file,
+                line: line
+            )
         }
         return _swinjectContainer
     }

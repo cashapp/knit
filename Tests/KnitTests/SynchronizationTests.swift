@@ -90,11 +90,11 @@ private protocol TestScopedResolver: Knit.Resolver {
 }
 extension TestScopedResolver {
     fileprivate func service1() -> Service1 {
-        self.unsafeResolver.resolve(Service1.self)!
+        self.unsafeResolver(file: #filePath, function: #function, line: #line).resolve(Service1.self)!
     }
 
     fileprivate func service2() -> Service2 {
-        self.unsafeResolver.resolve(Service2.self)!
+        self.unsafeResolver(file: #filePath, function: #function, line: #line).resolve(Service2.self)!
     }
 }
 extension Container<TestScopedResolver>: TestScopedResolver {}

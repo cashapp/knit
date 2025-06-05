@@ -27,7 +27,7 @@ extension Knit.Container {
         name: String? = nil,
         factory: @escaping (TargetResolver) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { r in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { r in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver)
         }
@@ -56,7 +56,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (TargetResolver, Arg1) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1) in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1) in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver, arg1)
         }
@@ -81,7 +81,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (TargetResolver, Arg1, Arg2) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2) in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2) in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver, arg1, arg2)
         }
@@ -106,7 +106,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (TargetResolver, Arg1, Arg2, Arg3) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3) in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3) in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver, arg1, arg2, arg3)
         }
@@ -131,7 +131,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (TargetResolver, Arg1, Arg2, Arg3, Arg4) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4) in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4) in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver, arg1, arg2, arg3, arg4)
         }
@@ -156,7 +156,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5) in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5) in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver, arg1, arg2, arg3, arg4, arg5)
         }
@@ -181,7 +181,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6) in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6) in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver, arg1, arg2, arg3, arg4, arg5, arg6)
         }
@@ -206,7 +206,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7) in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7) in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
         }
@@ -231,7 +231,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7, arg8: Arg8) in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7, arg8: Arg8) in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
         }
@@ -256,7 +256,7 @@ extension Container {
         name: String? = nil,
         factory: @escaping (TargetResolver, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9) -> Service
     ) -> ServiceEntry<Service> {
-        return _unwrappedSwinjectContainer.register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7, arg8: Arg8, arg9: Arg9) in
+        return _unwrappedSwinjectContainer().register(serviceType, name: name) { (r: Swinject.Resolver, arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, arg6: Arg6, arg7: Arg7, arg8: Arg8, arg9: Arg9) in
             let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
             return factory(resolver, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
         }

@@ -25,7 +25,7 @@ extension Container {
         _ service: Service.Type,
         factory: @escaping @MainActor (TargetResolver) -> Service
     ) -> ServiceEntry<Service> {
-        self._unwrappedSwinjectContainer.register(
+        self._unwrappedSwinjectContainer().register(
             service,
             name: makeUniqueCollectionRegistrationName(),
             factory: { r in

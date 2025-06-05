@@ -12,7 +12,7 @@ final class AbstractRegistrationTests: XCTestCase {
     func testMissingRegistration() {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
-        let abstractRegistrations = container._unwrappedSwinjectContainer.registerAbstractContainer()
+        let abstractRegistrations = container._unwrappedSwinjectContainer().registerAbstractContainer()
         container.registerAbstract(String.self)
         container.registerAbstract(String.self, name: "test")
         container.registerAbstract(Optional<Int>.self)
@@ -32,7 +32,7 @@ final class AbstractRegistrationTests: XCTestCase {
     func testFilledRegistrations() {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
-        let abstractRegistrations = container._unwrappedSwinjectContainer.registerAbstractContainer()
+        let abstractRegistrations = container._unwrappedSwinjectContainer().registerAbstractContainer()
         container.registerAbstract(String.self)
         container.register(String.self) { _ in "Test" }
 
@@ -41,14 +41,14 @@ final class AbstractRegistrationTests: XCTestCase {
         container.register(Optional<Int>.self) { _ in 1 }
 
         XCTAssertNoThrow(try abstractRegistrations.validate())
-        XCTAssertEqual(container._unwrappedSwinjectContainer.resolve(String.self), "Test")
-        XCTAssertEqual(container._unwrappedSwinjectContainer.resolve(Optional<Int>.self), 1)
+        XCTAssertEqual(container._unwrappedSwinjectContainer().resolve(String.self), "Test")
+        XCTAssertEqual(container._unwrappedSwinjectContainer().resolve(Optional<Int>.self), 1)
     }
 
     func testNamedRegistrations() {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
-        let abstractRegistrations = container._unwrappedSwinjectContainer.registerAbstractContainer()
+        let abstractRegistrations = container._unwrappedSwinjectContainer().registerAbstractContainer()
         container.registerAbstract(String.self)
         container.registerAbstract(String.self, name: "test")
 
@@ -65,7 +65,7 @@ final class AbstractRegistrationTests: XCTestCase {
     func testPreRegistered() {
         let swinjectContainer = Swinject.Container()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
-        let abstractRegistrations = container._unwrappedSwinjectContainer.registerAbstractContainer()
+        let abstractRegistrations = container._unwrappedSwinjectContainer().registerAbstractContainer()
         container.register(String.self) { _ in "Test" }
         container.registerAbstract(String.self)
         XCTAssertNoThrow(try abstractRegistrations.validate())
@@ -168,6 +168,6 @@ private extension Knit.Container {
             file: file,
             concurrency: concurrency
         )
-        _unwrappedSwinjectContainer.addAbstractRegistration(registration)
+        _unwrappedSwinjectContainer().addAbstractRegistration(registration)
     }
 }

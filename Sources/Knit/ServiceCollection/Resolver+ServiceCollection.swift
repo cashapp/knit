@@ -46,8 +46,14 @@ extension Knit.Resolver {
     /// - Returns: A ``ServiceCollection`` containing all registered services,
     ///            or an empty collection if no services were registered.
     @MainActor
-    public func resolveCollection<Service>(_ serviceType: Service.Type) -> ServiceCollection<Service> {
-        unsafeResolver.resolveCollection(serviceType)
+    public func resolveCollection<Service>(
+        _ serviceType: Service.Type,
+        file: StaticString = #fileID,
+        function: StaticString = #function,
+        line: UInt = #line
+    ) -> ServiceCollection<Service> {
+        unsafeResolver(file: file, function: function, line: line)
+            .resolveCollection(serviceType)
     }
 
 }
