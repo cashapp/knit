@@ -304,4 +304,24 @@ final class ResolvableTests: XCTestCase {
             macros: testMacros
         )
     }
+
+    func test_escaping_argument() throws {
+        assertMacroExpansion(
+            """
+            @Resolvable<Resolver>
+            init(@Argument arg: @escaping () -> Void) {}
+            """,
+            expandedSource: """
+            
+            init(@Argument arg: @escaping () -> Void) {}
+
+            static func make(resolver: Resolver, arg: @escaping (() -> Void)) -> Self {
+                 return .init(
+                     arg: arg
+                 )
+            }
+            """,
+            macros: testMacros
+        )
+    }
 }

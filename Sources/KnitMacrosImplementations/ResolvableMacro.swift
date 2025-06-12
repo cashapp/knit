@@ -82,7 +82,11 @@ public struct ResolvableMacro: PeerMacro {
         for param in params {
             if case let .argument(defaultValue) = param.hint {
                 let defaultString = defaultValue.map { "= \($0)" } ?? ""
-                makeArguments.append("\(param.name): \(param.type.name)" + defaultString)
+                var attributes = param.type.attributes.joined(separator: " ")
+                if !attributes.isEmpty {
+                    attributes = attributes + " "
+                }
+                makeArguments.append("\(param.name): \(attributes)\(param.type.name)" + defaultString)
             }
         }
 
@@ -103,7 +107,7 @@ public struct ResolvableMacro: PeerMacro {
             return TypeInformation(name: type.description)
         } else if let type = typeSyntax.as(AttributedTypeSyntax.self) {
             let baseType = try extractType(typeSyntax: type.baseType)
-            return TypeInformation(name: baseType.name)
+            return TypeInformation(name: baseType.name, attributes: extractAttributes(list: type.attributes))
         } else if let type = typeSyntax.as(FunctionTypeSyntax.self) {
             return TypeInformation(name: "(\(type.description))")
         } else if let type = typeSyntax.as(OptionalTypeSyntax.self) {
@@ -114,6 +118,17 @@ public struct ResolvableMacro: PeerMacro {
         throw DiagnosticsError(
             diagnostics: [.init(node: typeSyntax, message:  Error.invalidParamType(typeSyntax.description))]
         )
+    }
+
+    private static func extractAttributes(list: AttributeListSyntax) -> [String] {
+        return list.compactMap { element in
+            switch element {
+            case let .attribute(att):
+                return "@" + att.attributeName.trimmedDescription
+            case .ifConfigDecl:
+                return nil
+            }
+        }
     }
 
     // Identify any property wrappers that change how types are resolved
@@ -205,9 +220,11 @@ extension ResolvableMacro {
     
     struct TypeInformation {
         let name: String
-        
-        init(name: String) {
+        let attributes: [String]
+
+        init(name: String, attributes: [String] = []) {
             self.name = name
+            self.attributes = attributes
         }
     }
     
