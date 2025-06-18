@@ -159,6 +159,12 @@ public extension Swinject.Resolver {
     }
 }
 
+public extension Knit.Resolver {
+    func _dependencyTree() -> DependencyTree {
+        self.unsafeResolver(file: #fileID, function: #function, line: #line)._dependencyTree()
+    }
+}
+
 // MARK: -
 
 private extension ModuleAssembly {
