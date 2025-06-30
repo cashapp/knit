@@ -6,7 +6,7 @@ import Foundation
 import Swinject
 
 /// Module assembly which only allows registering assemblies which target a particular resolver type.
-public final class ScopedModuleAssembler<TargetResolver> {
+public final class ScopedModuleAssembler<TargetResolver: Resolver> {
 
     public let internalAssembler: ModuleAssembler
 
@@ -60,14 +60,13 @@ public final class ScopedModuleAssembler<TargetResolver> {
     ) throws {
         // For provided modules, fail early if they are scoped incorrectly
         for assembly in modules {
-            let moduleAssemblyType = type(of: assembly)
-            if moduleAssemblyType.resolverType != TargetResolver.self {
+            if !assembly.usesResolver(TargetResolver.self) {
                 let scopingError = ScopedModuleAssemblerError.incorrectTargetResolver(
                     expected: String(describing: TargetResolver.self),
-                    actual: String(describing: moduleAssemblyType.resolverType)
+                    actual: String(describing: type(of: assembly).resolverType)
                 )
 
-                throw DependencyBuilderError.assemblyValidationFailure(moduleAssemblyType, reason: scopingError)
+                throw DependencyBuilderError.assemblyValidationFailure(type(of: assembly), reason: scopingError)
             }
         }
         self.internalAssembler = try ModuleAssembler(
@@ -75,7 +74,7 @@ public final class ScopedModuleAssembler<TargetResolver> {
             _modules: modules,
             overrideBehavior: overrideBehavior,
             assemblyValidation: { moduleAssemblyType in
-                guard moduleAssemblyType.resolverType == TargetResolver.self else {
+                guard moduleAssemblyType.resolverType.equal(TargetResolver.self) else {
                     throw ScopedModuleAssemblerError.incorrectTargetResolver(
                         expected: String(describing: TargetResolver.self),
                         actual: String(describing: moduleAssemblyType.resolverType)

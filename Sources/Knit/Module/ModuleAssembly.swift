@@ -7,7 +7,7 @@ import Swinject
 
 public protocol ModuleAssembly<TargetResolver> {
 
-    associatedtype TargetResolver
+    associatedtype TargetResolver: Resolver
 
     static var resolverType: Self.TargetResolver.Type { get }
 
@@ -41,9 +41,12 @@ public extension ModuleAssembly {
 
     static func scoped(_ dependencies: [any ModuleAssembly.Type]) -> [any ModuleAssembly.Type] {
         return dependencies.filter {
-            // Default the scoped implementation to match types directly
-            return self.resolverType == $0.resolverType
+            return self.resolverType.is($0.resolverType) 
         }
+    }
+
+    func usesResolver(_ resolverType: Resolver.Type) -> Bool {
+        return type(of: self).resolverType.equal(resolverType)
     }
 
     static var _assemblyFlags: [ModuleAssemblyFlags] {

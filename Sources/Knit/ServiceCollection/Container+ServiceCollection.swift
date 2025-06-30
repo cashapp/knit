@@ -30,7 +30,7 @@ extension Container {
             name: makeUniqueCollectionRegistrationName(),
             factory: { r in
                 MainActor.assumeIsolated {
-                    let resolver = r.resolve(Container<TargetResolver>.self)! as! TargetResolver
+                    let resolver = r.resolve(Container<TargetResolver>.self)!.resolver
                     return factory(resolver)
                 }
             }
