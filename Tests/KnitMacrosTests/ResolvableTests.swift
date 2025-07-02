@@ -324,4 +324,45 @@ final class ResolvableTests: XCTestCase {
             macros: testMacros
         )
     }
+
+    func test_macro_expansion_nested_type() throws {
+        assertMacroExpansion(
+            """
+            @Resolvable<Resolver>
+            init(arg1: MyType.Nested) {}
+            """,
+            expandedSource: """
+            
+            init(arg1: MyType.Nested) {}
+
+            static func make(resolver: Resolver) -> Self {
+                 return .init(
+                     arg1: resolver.nested()
+                 )
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
+    func test_macro_expansion_nested_type_argument() throws {
+        assertMacroExpansion(
+            """
+            @Resolvable<Resolver>
+            init(@Argument arg1: MyType.Nested) {}
+            """,
+            expandedSource: """
+            
+            init(@Argument arg1: MyType.Nested) {}
+
+            static func make(resolver: Resolver, arg1: MyType.Nested) -> Self {
+                 return .init(
+                     arg1: arg1
+                 )
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
 }
