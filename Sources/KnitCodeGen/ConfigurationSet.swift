@@ -187,11 +187,28 @@ extension ConfigurationSet {
             }
     }
 
+    public func validateAbstractRegistrations() throws {
+        for assembly in assemblies {
+            if assembly.assemblyType == .abstractAssembly {
+                continue
+            }
+            for registration in assembly.registrations {
+                if registration.functionName == .registerAbstract {
+                    throw ConfigurationSetParsingError.abstractRegistrationViolation(
+                        service: registration.service,
+                        assembly: assembly.assemblyName
+                    )
+                }
+            }
+        }
+    }
+
 }
 
 enum ConfigurationSetParsingError: LocalizedError {
 
     case detectedDuplicateRegistration(service: String, name: String?, arguments: [String])
+    case abstractRegistrationViolation(service: String, assembly: String)
 
     var errorDescription: String? {
         switch self {
@@ -202,6 +219,12 @@ enum ConfigurationSetParsingError: LocalizedError {
                     Name (optional): \(name ?? "`nil`")
                     Arguments: \(arguments)
                     """
+        case let .abstractRegistrationViolation(service, assembly):
+            return """
+            Detected abstract registration in non abstract assembly
+            Service type: \(service)
+            Assembly: \(assembly)
+            """
         }
     }
 
