@@ -342,7 +342,7 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
         case .nestedIfConfig:
             return "Nested #if statements are not supported"
         case .nonAbstract:
-            return "AbstractAssemblys may only contain Abstract registrations"
+            return "`AbstractAssembly`s may only contain Abstract registrations"
         case .redundantGetter:
             return "alias matches the default accessor name and can be removed"
         case .redundantAccessControl:
