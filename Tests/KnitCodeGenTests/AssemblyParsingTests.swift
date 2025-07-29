@@ -661,7 +661,7 @@ final class AssemblyParsingTests: XCTestCase {
                 XCTAssertEqual(errors.count, 1)
                 XCTAssertEqual(
                     errors.first?.localizedDescription,
-                    "AbstractAssemblys may only contain Abstract registrations"
+                    "`AbstractAssembly`s may only contain Abstract registrations"
                 )
             }
         )
