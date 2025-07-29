@@ -52,7 +52,10 @@ extension Container {
     ) -> Swinject.Container {
         guard let _swinjectContainer else {
             fatalError(
-                "\(function) incorrectly accessed the container for \(TargetResolver.self) which has already been released",
+                """
+                \(function) incorrectly accessed the container for \(TargetResolver.self) which has already been released.
+                This may be caused by a memory leak of an object defined in \(file) which is holding a reference to a Knit resolver.
+                """,
                 file: file,
                 line: line
             )
