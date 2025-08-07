@@ -19,8 +19,8 @@ public final class ModuleAssembler {
     public var resolver: Swinject.Resolver { _swinjectContainer }
 
     // Module types that were registered into the container owned by this ModuleAssembler
-    var registeredModules: [any ModuleAssembly.Type] {
-        builder.assemblies.map { type(of: $0) }
+    var registeredReferences: [AssemblyReference] {
+        builder.assemblyCache.assemblyList
     }
 
     let builder: DependencyBuilder
@@ -136,6 +136,7 @@ public final class ModuleAssembler {
         }
 
         abstractRegistrations.reset()
+        builder.releaseAssemblies()
     }
 
     func isRegistered<T: ModuleAssembly>(_ type: T.Type) -> Bool {

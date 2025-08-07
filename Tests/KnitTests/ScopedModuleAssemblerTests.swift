@@ -13,7 +13,7 @@ final class ScopedModuleAssemblerTests: XCTestCase {
     func testScoping() throws {
         // Allows modules at the same level to be registered
         let assembler = try ScopedModuleAssembler<TestResolver>(_modules: [Assembly1()])
-        XCTAssertEqual(assembler.internalAssembler.registeredModules.count, 1)
+        XCTAssertEqual(assembler.internalAssembler.registeredReferences.count, 1)
     }
 
     @MainActor
@@ -23,7 +23,7 @@ final class ScopedModuleAssemblerTests: XCTestCase {
             parent: parent.internalAssembler,
             _modules: [Assembly3()]
         )
-        XCTAssertEqual(assembler.internalAssembler.registeredModules.count, 1)
+        XCTAssertEqual(assembler.internalAssembler.registeredReferences.count, 1)
     }
 
     @MainActor

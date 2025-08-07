@@ -53,7 +53,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
             _modules: [Assembly2()],
             overrideBehavior: .useDefaultOverrides
         )
-        XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly1Fake.self}))
+        XCTAssertTrue(assembler.registeredReferences.contains(where: {$0.type == Assembly1Fake.self}))
         XCTAssertTrue(assembler.isRegistered(Assembly1Fake.self))
         // Treat Assembly1 as being registered because the mock is
         XCTAssertTrue(assembler.isRegistered(Assembly1.self))
@@ -95,7 +95,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         let assembler = try ModuleAssembler(
             _modules: [Assembly2Fake()]
         )
-        XCTAssertFalse(assembler.registeredModules.contains(where: {$0 == Assembly2.self}))
+        XCTAssertFalse(assembler.registeredReferences.contains(where: {$0.type == Assembly2.self}))
         XCTAssertTrue(assembler.isRegistered(Assembly2.self))
         XCTAssertTrue(assembler.isRegistered(Assembly2Fake.self))
     }
@@ -142,7 +142,7 @@ final class ModuleAssemblyOverrideTests: XCTestCase {
         let parent = try ModuleAssembler(_modules: [NonAutoOverride()])
         let child = try ModuleAssembler(parent: parent, _modules: [Assembly1()], overrideBehavior: .disableDefaultOverrides)
         XCTAssertTrue(child.isRegistered(Assembly1.self))
-        XCTAssertTrue(child.registeredModules.isEmpty)
+        XCTAssertTrue(child.registeredReferences.isEmpty)
 
         XCTAssertEqual(
             child.resolver._dependencyTree().debugDescription,
