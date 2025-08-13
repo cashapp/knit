@@ -65,9 +65,6 @@ struct GenCommand: ParsableCommand {
                   """)
     var moduleNameRegex: String?
 
-    @Flag(help: "When true, only abstract modules will be allowed to contain abstract registrations")
-    var strictAbstract: Bool = false
-
     public init() {}
 
     public func run() throws {
@@ -86,9 +83,6 @@ struct GenCommand: ParsableCommand {
             )
 
             try parsedConfig.validateNoDuplicateRegistrations()
-            if strictAbstract {
-                try parsedConfig.validateAbstractRegistrations()
-            }
 
             if let jsonDataOutputPath {
                 let data = try JSONEncoder().encode(parsedConfig.allAssemblies)

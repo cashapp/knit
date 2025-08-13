@@ -667,6 +667,28 @@ final class AssemblyParsingTests: XCTestCase {
         )
     }
 
+    func testNonAbstractAssemblyAbstractRegistrations() throws {
+        let sourceFile: SourceFileSyntax = """
+            class MyAssembly: AutoInitModuleAssembly {
+                typealias TargetResolver = TestResolver
+                func assemble(container: Container) {
+                    container.registerAbstract(A.self) { }
+                }
+            }
+        """
+
+        _ = try assertParsesSyntaxTree(
+            sourceFile,
+            assertErrorsToPrint: { errors in
+                XCTAssertEqual(errors.count, 1)
+                XCTAssertEqual(
+                    errors.first?.localizedDescription,
+                    "`AutoInitModuleAssembly`'s cannot contain registerAbstract registrations"
+                )
+            }
+        )
+    }
+
     func testAssemblyReplaces() throws {
         let sourceFile: SourceFileSyntax = """
             class TestAssembly: ModuleAssembly {
