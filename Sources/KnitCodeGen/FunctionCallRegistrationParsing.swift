@@ -17,13 +17,24 @@ struct CalledMethod {
     let trailingClosure: ClosureExprSyntax?
 }
 
+extension Configuration.AssemblyType {
+    fileprivate var supportedFunctions: [Registration.FunctionName] {
+        switch self {
+        case .abstractAssembly:
+            return [.registerAbstract]
+        case .moduleAssembly, .autoInitAssembly, .fakeAssembly:
+            return [.implements, .register]
+        }
+    }
+}
+
 extension FunctionCallExprSyntax {
 
     /// Retrieve any registrations if they exist in the function call expression.
     /// Function call expressions can contain chained function calls, and this method will parse the chain.
     func getRegistrations(
         defaultDirectives: KnitDirectives = .empty,
-        abstractOnly: Bool = false
+        assemblyType: Configuration.AssemblyType? = nil
     ) throws -> (registrations: [Registration], registrationsIntoCollections: [RegistrationIntoCollection]) {
 
         let (calledMethods, baseIdentifier) = recurseAllCalledMethods(startingWith: self)
@@ -64,8 +75,12 @@ extension FunctionCallExprSyntax {
             return ([], [])
         }
 
-        if abstractOnly && functionName != .registerAbstract {
-            throw RegistrationParsingError.nonAbstract(syntax: primaryRegisterMethod.calledExpression)
+        if let assemblyType, !assemblyType.supportedFunctions.contains(functionName) {
+            throw RegistrationParsingError.unsuppportedFunction(
+                syntax: primaryRegisterMethod.calledExpression,
+                assemblyType: assemblyType,
+                functionName: functionName
+            )
         }
 
         // Arguments from the primary registration apply to all .implements() calls
@@ -323,9 +338,13 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
     case nonStaticString(syntax: SyntaxProtocol, name: String)
     case invalidIfConfig(syntax: SyntaxProtocol, text: String)
     case nestedIfConfig(syntax: SyntaxProtocol)
-    case nonAbstract(syntax: SyntaxProtocol)
     case redundantGetter(syntax: SyntaxProtocol)
     case redundantAccessControl(syntax: SyntaxProtocol)
+    case unsuppportedFunction(
+        syntax: SyntaxProtocol,
+        assemblyType: Configuration.AssemblyType,
+        functionName: Registration.FunctionName
+    )
 
     var errorDescription: String? {
         switch self {
@@ -341,8 +360,11 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             return "Invalid IfConfig expression: \(text)"
         case .nestedIfConfig:
             return "Nested #if statements are not supported"
-        case .nonAbstract:
-            return "`AbstractAssembly`s may only contain Abstract registrations"
+        case let .unsuppportedFunction(_, assemblyType, functionName):
+            if assemblyType == .abstractAssembly {
+                return "`AbstractAssembly`s may only contain Abstract registrations"
+            }
+            return "`\(assemblyType.rawValue)`'s cannot contain \(functionName) registrations"
         case .redundantGetter:
             return "alias matches the default accessor name and can be removed"
         case .redundantAccessControl:
@@ -358,9 +380,9 @@ enum RegistrationParsingError: LocalizedError, SyntaxError {
             let .unwrappedClosureParams(syntax),
             let .invalidIfConfig(syntax, _),
             let .nestedIfConfig(syntax),
-            let .nonAbstract(syntax),
             let .redundantGetter(syntax),
-            let .redundantAccessControl(syntax):
+            let .redundantAccessControl(syntax),
+            let .unsuppportedFunction(syntax, _, _):
             return syntax
         }
     }

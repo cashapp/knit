@@ -187,22 +187,6 @@ extension ConfigurationSet {
             }
     }
 
-    public func validateAbstractRegistrations() throws {
-        for assembly in assemblies {
-            if assembly.assemblyType == .abstractAssembly {
-                continue
-            }
-            for registration in assembly.registrations {
-                if registration.functionName == .registerAbstract {
-                    throw ConfigurationSetParsingError.abstractRegistrationViolation(
-                        service: registration.service,
-                        assembly: assembly.assemblyName
-                    )
-                }
-            }
-        }
-    }
-
 }
 
 enum ConfigurationSetParsingError: LocalizedError {

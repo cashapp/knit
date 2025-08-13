@@ -303,7 +303,6 @@ final class ConfigurationSetTests: XCTestCase {
             moduleDependencies: []
         )
         XCTAssertNoThrow(try configSet.validateNoDuplicateRegistrations())
-        XCTAssertNoThrow(try configSet.validateAbstractRegistrations())
     }
 
     func testValidateDuplicates_multipleTargetResolvers() {
@@ -317,21 +316,6 @@ final class ConfigurationSetTests: XCTestCase {
         )
 
         XCTAssertNoThrow(try configSet.validateNoDuplicateRegistrations())
-        XCTAssertNoThrow(try configSet.validateAbstractRegistrations())
-    }
-
-    func testValidateAbstractRegistrations() {
-        var config1 = Configuration(
-            assemblyName: "Assembly1",
-            moduleName: "Module1",
-            registrations: [
-                .init(service: "RealService", functionName: .register),
-                .init(service: "AbstractService", functionName: .registerAbstract),
-            ],
-            targetResolver: "TestResolver"
-        )
-        let set = ConfigurationSet(assemblies: [config1], externalTestingAssemblies: [], moduleDependencies: [])
-        XCTAssertThrowsError(try set.validateAbstractRegistrations())
     }
 
     func testPerformanceGenDisabled() {

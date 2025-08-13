@@ -110,7 +110,7 @@ public struct AssemblyParser {
         }
 
         guard let assemblyType = classDeclVisitor.assemblyType else {
-            throw AssemblyParsingError.missingAssemblyType
+            throw AssemblyParsingError.missingAssemblyType(classDeclVisitor.assemblyName)
         }
 
         let replaces: [String]

@@ -155,7 +155,7 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
         do {
             var (registrations, registrationsIntoCollections) = try node.getRegistrations(
                 defaultDirectives: directives,
-                abstractOnly: assemblyType == .abstractAssembly
+                assemblyType: assemblyType
             )
             registrations = registrations.map { registration in
                 var mutable = registration
@@ -286,7 +286,7 @@ extension NamedDeclSyntax {
 
 enum AssemblyParsingError: Error {
     case fileReadError(Error, path: String)
-    case missingAssemblyType
+    case missingAssemblyType(String)
     case missingTargetResolver
     case parsingError
     case noAssembliesFound(String)
