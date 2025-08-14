@@ -41,19 +41,19 @@ final class DependencyBuilder {
         let toAssemble = assemblyCache.toAssemble
 
         // Instantiate all types
-        var createdTypes = Set<String>()
+        var createdTypes = Set<ObjectIdentifier>()
         for ref in toAssemble {
             guard !self.isRegisteredInParent(ref) else {
                 continue
             }
             let assembly = try instantiate(moduleType: ref.type)
             // Ensure the same assembly isn't added twice
-            let typeName = String(describing: type(of: assembly))
-            guard !createdTypes.contains(typeName) else {
+            let typeId = ObjectIdentifier(type(of: assembly))
+            guard !createdTypes.contains(typeId) else {
                 continue
             }
             assemblies.append(assembly)
-            createdTypes.insert(typeName)
+            createdTypes.insert(typeId)
         }
     }
 
