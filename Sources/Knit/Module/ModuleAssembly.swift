@@ -29,6 +29,9 @@ public protocol ModuleAssembly<TargetResolver> {
 
     /// Creates an instance of this assembly if the assembly conforms to AutoInitModuleAssembly
     static func _autoInstantiate() -> (any ModuleAssembly)?
+
+    /// An identifier uniquely identifying the module. Defaults to String(describing: self)
+    static var _uniqueIdentifier: String { get }
 }
 
 public extension ModuleAssembly {
@@ -62,6 +65,10 @@ public extension ModuleAssembly {
             return autoInit.init()
         }
         return nil
+    }
+
+    static var _uniqueIdentifier: String {
+        String(describing: self)
     }
 }
 

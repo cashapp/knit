@@ -48,7 +48,7 @@ final class DependencyBuilder {
             }
             let assembly = try instantiate(moduleType: ref.type)
             // Ensure the same assembly isn't added twice
-            let typeName = String(describing: type(of: assembly))
+            let typeName = type(of: assembly)._uniqueIdentifier
             guard !createdTypes.contains(typeName) else {
                 continue
             }

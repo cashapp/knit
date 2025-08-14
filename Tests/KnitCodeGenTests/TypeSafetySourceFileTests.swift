@@ -73,6 +73,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
             public static var _assemblyFlags: [ModuleAssemblyFlags] {
                 []
             }
+            public static var _uniqueIdentifier: String {
+                "Module.ModuleAssembly"
+            }
             public static func _autoInstantiate() -> (any ModuleAssembly)? {
                 nil
             }
@@ -327,6 +330,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
             public static var _assemblyFlags: [ModuleAssemblyFlags] {
                 [.autoInit]
             }
+            public static var _uniqueIdentifier: String {
+                "Module.MyFakeAssembly"
+            }
             public static func _autoInstantiate() -> (any ModuleAssembly)? {
                 MyFakeAssembly()
             }
@@ -367,6 +373,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
             public static var _assemblyFlags: [ModuleAssemblyFlags] {
                 [.autoInit]
             }
+            public static var _uniqueIdentifier: String {
+                "Module.MyFakeAssembly"
+            }
             public static func _autoInstantiate() -> (any ModuleAssembly)? {
                 MyFakeAssembly()
             }
@@ -395,6 +404,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
         extension SomeAbstractAssembly {
             public static var _assemblyFlags: [ModuleAssemblyFlags] {
                 [.autoInit, .abstract]
+            }
+            public static var _uniqueIdentifier: String {
+                "Module.SomeAbstractAssembly"
             }
             public static func _autoInstantiate() -> (any ModuleAssembly)? {
                 SomeAbstractAssembly()
@@ -427,6 +439,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
         extension MainActorAssembly {
             public static var _assemblyFlags: [ModuleAssemblyFlags] {
                 []
+            }
+            public static var _uniqueIdentifier: String {
+                "Module.MainActorAssembly"
             }
             public static func _autoInstantiate() -> (any ModuleAssembly)? {
                 nil
@@ -480,6 +495,9 @@ final class TypeSafetySourceFileTests: XCTestCase {
         extension ModuleAssembly {
             public static var _assemblyFlags: [ModuleAssemblyFlags] {
                 []
+            }
+            public static var _uniqueIdentifier: String {
+                "Module.ModuleAssembly"
             }
             public static func _autoInstantiate() -> (any ModuleAssembly)? {
                 nil

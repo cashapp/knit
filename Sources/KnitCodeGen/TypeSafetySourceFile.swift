@@ -197,6 +197,10 @@ public enum TypeSafetySourceFile {
             isAutoInit = false
         }
 
+        let uniqueIdAccessorBlock = AccessorBlockSyntax(
+            accessors: .getter(.init(stringLiteral: "\"\(config.moduleName).\(config.assemblyName)\""))
+        )
+
         return try ExtensionDeclSyntax(
             extendedType: TypeSyntax(stringLiteral: config.assemblyName),
             memberBlockBuilder: {
@@ -205,6 +209,12 @@ public enum TypeSafetySourceFile {
                     name: "_assemblyFlags",
                     type: "[ModuleAssemblyFlags]",
                     accessorBlock: accessorBlock
+                )
+                VariableDeclSyntax.makeVar(
+                    keywords: [.public, .static],
+                    name: "_uniqueIdentifier",
+                    type: "String",
+                    accessorBlock: uniqueIdAccessorBlock
                 )
                 if isAutoInit {
                     try FunctionDeclSyntax("public static func _autoInstantiate() -> (any ModuleAssembly)? { \(raw: config.assemblyName)() }")

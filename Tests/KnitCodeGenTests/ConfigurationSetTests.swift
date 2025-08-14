@@ -37,6 +37,9 @@ final class ConfigurationSetTests: XCTestCase {
                 public static var _assemblyFlags: [ModuleAssemblyFlags] {
                     []
                 }
+                public static var _uniqueIdentifier: String {
+                    "Module1.Module1Assembly"
+                }
                 public static func _autoInstantiate() -> (any ModuleAssembly)? {
                     nil
                 }
@@ -56,6 +59,9 @@ final class ConfigurationSetTests: XCTestCase {
                 public static var _assemblyFlags: [ModuleAssemblyFlags] {
                     []
                 }
+                public static var _uniqueIdentifier: String {
+                    "Module2.Module2Assembly"
+                }
                 public static func _autoInstantiate() -> (any ModuleAssembly)? {
                     nil
                 }
@@ -70,6 +76,9 @@ final class ConfigurationSetTests: XCTestCase {
             extension Module3Assembly {
                 public static var _assemblyFlags: [ModuleAssemblyFlags] {
                     []
+                }
+                public static var _uniqueIdentifier: String {
+                    "Module3.Module3Assembly"
                 }
                 public static func _autoInstantiate() -> (any ModuleAssembly)? {
                     nil
