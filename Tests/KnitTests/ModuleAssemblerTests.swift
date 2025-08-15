@@ -33,9 +33,9 @@ final class ModuleAssemblerTests: XCTestCase {
         let assembler = try ModuleAssembler(
             _modules: [Assembly1()]
         )
-        XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly1.self}))
-        XCTAssertTrue(assembler.registeredModules.contains(where: {$0 == Assembly2.self}))
-        XCTAssertFalse(assembler.registeredModules.contains(where: {$0 == Assembly3.self}))
+        XCTAssertTrue(assembler.registeredReferences.contains(where: {$0.type == Assembly1.self}))
+        XCTAssertTrue(assembler.registeredReferences.contains(where: {$0.type == Assembly2.self}))
+        XCTAssertFalse(assembler.registeredReferences.contains(where: {$0.type == Assembly3.self}))
     }
 
     @MainActor
@@ -60,7 +60,7 @@ final class ModuleAssemblerTests: XCTestCase {
         XCTAssertTrue(child.isRegistered(Assembly3.self))
         XCTAssertTrue(child.isRegistered(Assembly2.self))
 
-        XCTAssertFalse(child.registeredModules.contains(where: {$0 == Assembly1.self}))
+        XCTAssertFalse(child.registeredReferences.contains(where: {$0.type == Assembly1.self}))
 
         XCTAssertNotNil(child.resolver.resolve(Service1.self))
         XCTAssertNil(parent.resolver.resolve(Service3.self))

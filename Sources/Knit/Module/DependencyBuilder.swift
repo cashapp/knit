@@ -57,6 +57,12 @@ final class DependencyBuilder {
         }
     }
 
+    // The DependencyBuilder stays in memory for debugging, but the assemblies can be released
+    internal func releaseAssemblies() {
+        assemblies = []
+        inputModules = []
+    }
+
     private func instantiate(moduleType: any ModuleAssembly.Type) throws -> any ModuleAssembly {
         let inputModule = inputModules.first(where: { type(of: $0) == moduleType})
         let existingType = inputModules.first { assembly in
