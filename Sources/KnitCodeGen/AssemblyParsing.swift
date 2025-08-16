@@ -224,13 +224,10 @@ class ClassDeclVisitor: SyntaxVisitor, IfConfigVisitor {
     }
 
     override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let identifier = node.initializer.value.as(IdentifierTypeSyntax.self) else {
-            return .skipChildren
-        }
         if node.name.text == "TargetResolver" {
-            self.targetResolver = identifier.name.text
+            self.targetResolver = node.initializer.value.description
         } else if node.name.text == "ReplacedAssembly" {
-            self.fakeReplacesType = identifier.name.text
+            self.fakeReplacesType = node.initializer.value.description
         }
 
         return .skipChildren
