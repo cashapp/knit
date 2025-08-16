@@ -31,6 +31,18 @@ final class AssemblyParsingTests: XCTestCase {
         XCTAssertEqual(config.assemblyShortName, "FooTest")
     }
 
+    func testSubmoduleResolver() throws {
+        let sourceFile: SourceFileSyntax = """
+            import OtherModule
+            class FooTestAssembly: ModuleAssembly {
+                typealias TargetResolver = OtherModule.Resolver
+            }
+            """
+
+        let config = try assertParsesSyntaxTree(sourceFile)
+        XCTAssertEqual(config.targetResolver, "OtherModule.Resolver")
+    }
+
     func testDebugWrappedAssemblyImports() throws {
         let sourceFile: SourceFileSyntax = """
             #if DEBUG
