@@ -12,14 +12,14 @@ struct KnitBuildPlugin: BuildToolPlugin {
         context: PluginContext,
         target: any Target
     ) async throws -> [Command] {
-        let jsonFile = context.package.directory.appending(subpath: "knitconfig.json")
-        
+        let jsonFile = context.package.directoryURL.appending(path: "knitconfig.json")
+
         return [
             try KnitBuildPlugin.createCommand(
                 type: .source,
-                toolPath: try context.tool(named: "knit-cli").path,
-                configFilePath: jsonFile,
-                workingDirectory: context.pluginWorkDirectory
+                toolURL: try context.tool(named: "knit-cli").url,
+                configFileURL: jsonFile,
+                workingDirectory: context.pluginWorkDirectoryURL
             )
         ]
         
@@ -37,8 +37,13 @@ extension KnitBuildPlugin: XcodeBuildToolPlugin {
         context: XcodePluginContext,
         target: XcodeTarget
     ) throws -> [Command] {
-        guard let configFile = context.xcodeProject.filePaths.first(where: { path in
-            path.lastComponent == "knitconfig.json"
+        guard let configFile = context.xcodeProject.filePaths
+            .map({ path in
+                // The `context.xcodeProject` only exposes `filePaths`. Something like `fileURLs` is not yet available
+                URL(filePath: path.string)
+            })
+            .first(where: { url in
+                url.lastPathComponent == "knitconfig.json"
         }) else {
             Diagnostics.error("No `knitconfig.json` file was found in the project.")
             return []
@@ -57,7 +62,7 @@ extension KnitBuildPlugin: XcodeBuildToolPlugin {
 extension XcodePluginContext {
 
     func makeBuildCommand(
-        from configFilePath: Path,
+        from configFileURL: URL,
         target: XcodeTarget
     ) throws -> Command {
         let command: CommandType
@@ -72,9 +77,9 @@ extension XcodePluginContext {
         
         return try KnitBuildPlugin.createCommand(
             type: command,
-            toolPath: try self.tool(named: "knit-cli").path,
-            configFilePath: configFilePath,
-            workingDirectory: self.pluginWorkDirectory
+            toolURL: try self.tool(named: "knit-cli").url,
+            configFileURL: configFileURL,
+            workingDirectory: self.pluginWorkDirectoryURL
         )
     }
 
@@ -90,48 +95,48 @@ fileprivate enum CommandType {
 extension KnitBuildPlugin {
     fileprivate static func createCommand(
         type: CommandType,
-        toolPath: Path,
-        configFilePath: Path,
-        workingDirectory: Path
+        toolURL: URL,
+        configFileURL: URL,
+        workingDirectory: URL
     ) throws -> Command {
-        let configFileData = try Data(contentsOf: URL(filePath: configFilePath.string))
+        let configFileData = try Data(contentsOf: configFileURL)
         let config = try JSONDecoder().decode(KnitPluginConfig.self, from: configFileData)
-        let assemblyInputPaths = config.makeInputPaths(
-            configFilePath: configFilePath
+        let assemblyInputURLs = config.makeInputURLs(
+            configFileURL: configFileURL
         )
         
-        let typeSafetyOutputPath: Path?
-        let unitTestOutputPath: Path?
+        let typeSafetyOutputURL: URL?
+        let unitTestOutputURL: URL?
         switch type {
         case .source:
-            typeSafetyOutputPath = workingDirectory.appending("KnitDITypeSafety.swift")
-            unitTestOutputPath = nil
+            typeSafetyOutputURL = workingDirectory.appending(path: "KnitDITypeSafety.swift")
+            unitTestOutputURL = nil
         case .tests:
-            typeSafetyOutputPath = nil
-            unitTestOutputPath = workingDirectory.appending(subpath: "KnitDIRegistrationTests.swift")
+            typeSafetyOutputURL = nil
+            unitTestOutputURL = workingDirectory.appending(path: "KnitDIRegistrationTests.swift")
         case .unknown:
-            unitTestOutputPath = nil
-            typeSafetyOutputPath = nil
+            typeSafetyOutputURL = nil
+            unitTestOutputURL = nil
         }
         
-        let assemblyInputArgs: [String] = assemblyInputPaths.flatMap { path in
+        let assemblyInputArgs: [String] = assemblyInputURLs.flatMap { url in
             [
                 "--assembly-input-path",
-                path.string
+                url.droppingScheme()
             ]
         }
 
-        let typeSafetyArgs: [String] = typeSafetyOutputPath.flatMap { path in
+        let typeSafetyArgs: [String] = typeSafetyOutputURL.flatMap { url in
             [
                 "--type-safety-extensions-output-path",
-                path.string
+                url.droppingScheme()
             ]
         } ?? []
 
-        let unitTestArgs: [String] = unitTestOutputPath.flatMap { path in
+        let unitTestArgs: [String] = unitTestOutputURL.flatMap { url in
             [
                 "--unit-test-output-path",
-                path.string
+                url.droppingScheme()
             ]
         } ?? []
 
@@ -142,11 +147,11 @@ extension KnitBuildPlugin {
             unitTestArgs
 
         return .buildCommand(
-            displayName: "Knit Plugin: Generate Knit files based on config \(configFilePath.description). Output folder: \(workingDirectory.description)",
-            executable: toolPath,
+            displayName: "Knit Plugin: Generate Knit files based on config \(configFileURL.description). Output folder: \(workingDirectory.description)",
+            executable: toolURL,
             arguments: arguments,
-            inputFiles: assemblyInputPaths,
-            outputFiles: [typeSafetyOutputPath, unitTestOutputPath].compactMap { $0 }
+            inputFiles: assemblyInputURLs,
+            outputFiles: [typeSafetyOutputURL, unitTestOutputURL].compactMap { $0 }
         )
     }
 }
@@ -163,12 +168,20 @@ struct KnitPluginConfig: Decodable {
 
 extension KnitPluginConfig {
 
-    // Convert the relative path strings in the config to fully qualified `Path`s.
-    func makeInputPaths(configFilePath: Path) -> [Path] {
-        let basePath = configFilePath.removingLastComponent()
+    // Convert the relative path strings in the config to fully qualified `URL`s.
+    func makeInputURLs(configFileURL: URL) -> [URL] {
+        let basePath = configFileURL.deletingLastPathComponent()
         return assemblyInputPaths.map { string in
-            basePath.appending(subpath: string)
+            basePath.appending(path: string)
         }
+    }
+
+}
+
+extension URL {
+
+    func droppingScheme() -> String {
+       path(percentEncoded: false)
     }
 
 }
