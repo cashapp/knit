@@ -99,6 +99,7 @@ let package = Package(
             name: "KnitMacrosTests",
             dependencies: [
                 "KnitMacrosImplementations",
+                .target(name: "Knit"),
                 .target(name: "KnitMacros"),
                 .target(name: "KnitCodeGen"),
                 .target(name: "Swinject"),
