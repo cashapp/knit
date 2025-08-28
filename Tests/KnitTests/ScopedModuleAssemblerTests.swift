@@ -50,7 +50,7 @@ final class ScopedModuleAssemblerTests: XCTestCase {
         let foundBehaviors = container.behaviors.filter { behavior in
             let behaviorType = type(of: behavior)
             return behaviorType != ServiceCollector.self &&
-                behaviorType != Container.AbstractRegistrationContainer.self
+                behaviorType != SwinjectContainer.AbstractRegistrationContainer.self
         }
         // There should only be one behavior left
         XCTAssertEqual(foundBehaviors.count, 1)
@@ -66,7 +66,7 @@ private struct Assembly1: AutoInitModuleAssembly {
     func assemble(container: Knit.Container<Self.TargetResolver>) { }
 }
 
-protocol OutsideResolver: Swinject.Resolver { }
+protocol OutsideResolver: SwinjectResolver { }
 
 private struct Assembly2: AutoInitModuleAssembly {
     typealias TargetResolver = OutsideResolver
@@ -83,7 +83,7 @@ private struct Assembly3: AutoInitModuleAssembly {
 private final class TestBehavior: Behavior {
 
     func container<Type, Service>(
-        _ container: Swinject.Container,
+        _ container: SwinjectContainer,
         didRegisterType type: Type.Type,
         toService entry: Swinject.ServiceEntry<Service>,
         withName name: String?

@@ -4,7 +4,7 @@
 
 protocol InstanceWrapper {
     static var wrappedType: Any.Type { get }
-    init?(inContainer container: Container, withInstanceFactory factory: ((GraphIdentifier?) -> Any?)?)
+    init?(inContainer container: SwinjectContainer, withInstanceFactory factory: ((GraphIdentifier?) -> Any?)?)
 }
 
 /// Wrapper to enable delayed dependency instantiation.
@@ -15,9 +15,9 @@ public final class Lazy<Service>: InstanceWrapper {
 
     private let factory: (GraphIdentifier?) -> Any?
     private let graphIdentifier: GraphIdentifier?
-    private weak var container: Container?
+    private weak var container: SwinjectContainer?
 
-    init?(inContainer container: Container, withInstanceFactory factory: ((GraphIdentifier?) -> Any?)?) {
+    init?(inContainer container: SwinjectContainer, withInstanceFactory factory: ((GraphIdentifier?) -> Any?)?) {
         guard let factory = factory else { return nil }
         self.factory = factory
         graphIdentifier = container.currentObjectGraph
@@ -50,7 +50,7 @@ public final class Provider<Service>: InstanceWrapper {
 
     private let factory: (GraphIdentifier?) -> Any?
 
-    init?(inContainer _: Container, withInstanceFactory factory: ((GraphIdentifier?) -> Any?)?) {
+    init?(inContainer _: SwinjectContainer, withInstanceFactory factory: ((GraphIdentifier?) -> Any?)?) {
         guard let factory = factory else { return nil }
         self.factory = factory
     }
@@ -65,7 +65,7 @@ public final class Provider<Service>: InstanceWrapper {
 extension Optional: InstanceWrapper {
     static var wrappedType: Any.Type { return Wrapped.self }
 
-    init?(inContainer _: Container, withInstanceFactory factory: ((GraphIdentifier?) -> Any?)?) {
+    init?(inContainer _: SwinjectContainer, withInstanceFactory factory: ((GraphIdentifier?) -> Any?)?) {
         self = factory?(.none) as? Wrapped
     }
 }

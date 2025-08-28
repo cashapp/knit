@@ -39,7 +39,7 @@ public final class DuplicateRegistrationDetector {
 extension DuplicateRegistrationDetector: Behavior {
 
     public func container<Type, Service>(
-        _ container: Swinject.Container,
+        _ container: SwinjectContainer,
         didRegisterType type: Type.Type,
         toService entry: ServiceEntry<Service>,
         withName name: String?

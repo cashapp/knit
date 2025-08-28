@@ -4,7 +4,7 @@
 
 public typealias LoggingFunctionType = (String) -> Void
 
-public extension Container {
+public extension SwinjectContainer {
     /// Function to be used for logging debugging data.
     /// Default implementation writes to standard output.
     static var loggingFunction: LoggingFunctionType? {

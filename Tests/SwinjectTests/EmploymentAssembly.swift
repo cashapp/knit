@@ -51,7 +51,7 @@ final class EmploymentAssembly {
         self.scope = scope
     }
 
-    func assemble(container: Container) {
+    func assemble(container: SwinjectContainer) {
         container.register(Customer.self) { _ in Customer() }.inObjectScope(scope)
 
         container.register(Employee.self) {

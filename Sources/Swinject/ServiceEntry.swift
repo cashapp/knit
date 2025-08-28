@@ -17,12 +17,12 @@ internal protocol ServiceEntryProtocol: AnyObject {
 /// Represents an entry of a registered service type.
 /// As a returned instance from ``Container/register(_:name:factory:)-8gy9r``, some configurations can be added.
 public final class ServiceEntry<Service>: ServiceEntryProtocol {
-    fileprivate var initCompletedActions: [(Resolver, Service) -> Void] = []
+    fileprivate var initCompletedActions: [(SwinjectResolver, Service) -> Void] = []
     public let serviceType: Any.Type
     public let argumentsType: Any.Type
 
     internal let factory: FunctionType
-    internal weak var container: Container?
+    internal weak var container: SwinjectContainer?
 
     internal var objectScope: ObjectScopeProtocol = ObjectScope.graph
     internal lazy var storage: InstanceStorage = { [unowned self] in
@@ -32,7 +32,7 @@ public final class ServiceEntry<Service>: ServiceEntryProtocol {
     internal var initCompleted: FunctionType? {
         guard !initCompletedActions.isEmpty else { return nil }
 
-        return { [weak self] (resolver: Resolver, service: Any) -> Void in
+        return { [weak self] (resolver: SwinjectResolver, service: Any) -> Void in
             guard let strongSelf = self else { return }
             strongSelf.initCompletedActions.forEach { $0(resolver, service as! Service) }
         }
@@ -85,7 +85,7 @@ public final class ServiceEntry<Service>: ServiceEntryProtocol {
     ///
     /// - Returns: `self` to add another configuration fluently.
     @discardableResult
-    public func initCompleted(_ completed: @escaping (Resolver, Service) -> Void) -> Self {
+    public func initCompleted(_ completed: @escaping (SwinjectResolver, Service) -> Void) -> Self {
         initCompletedActions.append(completed)
         return self
     }

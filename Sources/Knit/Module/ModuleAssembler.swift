@@ -9,14 +9,14 @@ import Swinject
 public final class ModuleAssembler {
 
     /// The container that registrations have been placed in. Prefer using resolver unless mutable access is required
-    let _swinjectContainer: Swinject.Container
+    let _swinjectContainer: SwinjectContainer
     let containerManager: ContainerManager
     let parent: ModuleAssembler?
     let serviceCollector: ServiceCollector
     private let autoConfigureContainers: Bool
 
     /// The unsafe resolver for this ModuleAssembler's container
-    public var resolver: Swinject.Resolver { _swinjectContainer }
+    public var resolver: SwinjectResolver { _swinjectContainer }
 
     // Module types that were registered into the container owned by this ModuleAssembler
     var registeredReferences: [AssemblyReference] {
@@ -47,7 +47,7 @@ public final class ModuleAssembler {
         overrideBehavior: OverrideBehavior = .defaultOverridesWhenTesting,
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
-        postAssemble: ((Swinject.Container) -> Void)? = nil,
+        postAssemble: ((SwinjectContainer) -> Void)? = nil,
         file: StaticString = #fileID,
         line: UInt = #line
     ) {
@@ -83,8 +83,8 @@ public final class ModuleAssembler {
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         behaviors: [Behavior] = [],
-        preAssemble: ((Swinject.Container) -> Void)?,
-        postAssemble: ((Swinject.Container) -> Void)? = nil,
+        preAssemble: ((SwinjectContainer) -> Void)?,
+        postAssemble: ((SwinjectContainer) -> Void)? = nil,
         autoConfigureContainers: Bool
     ) throws {
         self.builder = try DependencyBuilder(
@@ -97,7 +97,7 @@ public final class ModuleAssembler {
         )
 
         self.parent = parent
-        let _swinjectContainer = Swinject.Container(
+        let _swinjectContainer = SwinjectContainer(
             parent: parent?._swinjectContainer,
             behaviors: behaviors
         )
@@ -154,7 +154,7 @@ public final class ModuleAssembler {
 }
 
 // Publicly expose the dependency tree so it can be used for debugging
-public extension Swinject.Resolver {
+public extension SwinjectResolver {
     func _dependencyTree(file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line) -> DependencyTree {
         return knitUnwrap(resolve(DependencyTree.self), callsiteFile: file, callsiteFunction: function, callsiteLine: line)
     }

@@ -11,7 +11,7 @@ class SynchronizedResolverTests: XCTestCase {
     // MARK: Multiple threads
 
     func testSynchronizedResolverCanResolveCircularDependencies() {
-        let container = Container { container in
+        let container = SwinjectContainer { container in
             container.register(ParentProtocol.self) { _ in Parent() }
                 .initCompleted { r, s in
                     let parent = s as! Parent
@@ -35,11 +35,11 @@ class SynchronizedResolverTests: XCTestCase {
 
     func testSynchronizedResolverCanAccessParentAndChildContainersWithoutDeadlock() {
         let runInObjectScope = { (scope: ObjectScope) in
-            let parentContainer = Container { container in
+            let parentContainer = SwinjectContainer { container in
                 container.register(Animal.self) { _ in Cat() }
                     .inObjectScope(scope)
             }
-            let childResolver = Container(parent: parentContainer)
+            let childResolver = SwinjectContainer(parent: parentContainer)
             // swiftlint:disable opening_brace
             onMultipleThreads(actions: [
                 { _ = parentContainer.resolve(Animal.self) as! Cat },
@@ -55,9 +55,9 @@ class SynchronizedResolverTests: XCTestCase {
 
     func testSynchronizedResolverUsesDistinctGraphIdentifier() {
         var graphs = Set<GraphIdentifier>()
-        let container = Container {
+        let container = SwinjectContainer {
             $0.register(Dog.self) {
-                graphs.insert(($0 as! Container).currentObjectGraph!)
+                graphs.insert(($0 as! SwinjectContainer).currentObjectGraph!)
                 return Dog()
             }
         }
@@ -69,7 +69,7 @@ class SynchronizedResolverTests: XCTestCase {
     
     func testSynchronizedResolverSynchronousReadsWrites() {
         let iterationCount = 3_000
-        let container = Container()
+        let container = SwinjectContainer()
         let registerExpectation = expectation(description: "register")
         let resolveExpectations = (0..<iterationCount).map { expectation(description: String(describing: $0)) }
         let resolutionLock = NSLock()
@@ -98,7 +98,7 @@ class SynchronizedResolverTests: XCTestCase {
     // MARK: Nested resolve
 
     func testSynchronizedResolverCanMakeItWithoutDeadlock() {
-        let container = Container()
+        let container = SwinjectContainer()
         let threadSafeResolver = container
         container.register(ChildProtocol.self) { _ in Child() }
         container.register(ParentProtocol.self) { _ in
@@ -120,9 +120,9 @@ class SynchronizedResolverTests: XCTestCase {
 
     func testSynchronizedResolverSynchronizesProviderTypes() {
         var graphs = Set<GraphIdentifier>()
-        let container = Container()
+        let container = SwinjectContainer()
         container.register(Animal.self) {
-            graphs.insert(($0 as! Container).currentObjectGraph!)
+            graphs.insert(($0 as! SwinjectContainer).currentObjectGraph!)
             return Dog()
         }
 
@@ -136,7 +136,7 @@ class SynchronizedResolverTests: XCTestCase {
 
     func testSynchronizedResolverSynchronizesLazyTypes() {
         // Lazy types might share graph identifiers and persistent entities.
-        let container = Container()
+        let container = SwinjectContainer()
         container.register(Dog.self) { _ in
             return Dog()
         }
@@ -155,9 +155,9 @@ class SynchronizedResolverTests: XCTestCase {
 
     func testSynchronizedResolverSafelyDereferencesLazyTypes() {
         var graphs = Set<GraphIdentifier>()
-        let container = Container()
+        let container = SwinjectContainer()
         container.register(Animal.self) {
-            graphs.insert(($0 as! Container).currentObjectGraph!)
+            graphs.insert(($0 as! SwinjectContainer).currentObjectGraph!)
             return Dog()
         }
         .inObjectScope(.container)
@@ -178,7 +178,7 @@ class SynchronizedResolverTests: XCTestCase {
     }
 
     func testGraphIdentifierRestoredAfterLazyResolve() {
-        let container = Container()
+        let container = SwinjectContainer()
         container.register(LazilyResolvedProtocol.self) { _ in
             LazilyResolved()
         }

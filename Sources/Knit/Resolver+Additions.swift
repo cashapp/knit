@@ -4,7 +4,7 @@
 
 import Swinject
 
-public extension Swinject.Resolver {
+public extension SwinjectResolver {
 
     /// Force unwrap that improves single line error logging to help track test failures
     /// This is used in knit generated type safe functions

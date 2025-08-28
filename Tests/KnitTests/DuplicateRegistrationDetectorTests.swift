@@ -13,7 +13,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let container = Container(
+        let container = SwinjectContainer(
             behaviors: [duplicateRegistrationDetector]
         )
 
@@ -25,7 +25,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         XCTAssertEqual(reportedDuplicates.count, 1)
         let firstReport = try XCTUnwrap(reportedDuplicates.first)
         XCTAssert(firstReport.serviceType == String.self)
-        XCTAssert(firstReport.argumentsType == (Swinject.Resolver).self)
+        XCTAssert(firstReport.argumentsType == (SwinjectResolver).self)
         XCTAssertEqual(firstReport.name, nil)
 
         container.register(String.self, factory: { _ in "three" })
@@ -37,7 +37,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let container = Container(
+        let container = SwinjectContainer(
             behaviors: [duplicateRegistrationDetector]
         )
 
@@ -51,7 +51,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         XCTAssertEqual(reportedDuplicates.count, 1)
         let firstReport = try XCTUnwrap(reportedDuplicates.first)
         XCTAssert(firstReport.serviceType == String.self)
-        XCTAssert(firstReport.argumentsType == (Swinject.Resolver).self)
+        XCTAssert(firstReport.argumentsType == (SwinjectResolver).self)
         XCTAssertEqual(firstReport.name, "nameOne")
     }
 
@@ -60,7 +60,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let container = Container(
+        let container = SwinjectContainer(
             behaviors: [duplicateRegistrationDetector]
         )
 
@@ -74,7 +74,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         XCTAssertEqual(reportedDuplicates.count, 1)
         let firstReport = try XCTUnwrap(reportedDuplicates.first)
         XCTAssert(firstReport.serviceType == String.self)
-        XCTAssert(firstReport.argumentsType == (Swinject.Resolver, Int).self)
+        XCTAssert(firstReport.argumentsType == (SwinjectResolver, Int).self)
         XCTAssertEqual(firstReport.name, nil)
     }
 
@@ -83,7 +83,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         let duplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let container = Container(
+        let container = SwinjectContainer(
             behaviors: [duplicateRegistrationDetector]
         )
 
@@ -102,12 +102,12 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         let parentDuplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let parentContainer = Container(behaviors: [parentDuplicateRegistrationDetector])
+        let parentContainer = SwinjectContainer(behaviors: [parentDuplicateRegistrationDetector])
 
         let childDuplicateRegistrationDetector = DuplicateRegistrationDetector(duplicateWasDetected: { key in
             reportedDuplicates.append(key)
         })
-        let childContainer = Container(parent: parentContainer, behaviors: [childDuplicateRegistrationDetector])
+        let childContainer = SwinjectContainer(parent: parentContainer, behaviors: [childDuplicateRegistrationDetector])
 
         parentContainer.register(String.self, factory: { _ in "parent" })
         childContainer.register(String.self, factory: { _ in "child" })
@@ -118,7 +118,7 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
     func testTypeForwarding() throws {
         // A forwarded type (`.implements()`) should not cause a duplicate registration
         let duplicateRegistrationDetector = DuplicateRegistrationDetector()
-        let container = Container(behaviors: [duplicateRegistrationDetector])
+        let container = SwinjectContainer(behaviors: [duplicateRegistrationDetector])
 
         XCTAssertEqual(duplicateRegistrationDetector.detectedKeys.count, 0)
         container.register(String.self, factory: { _ in "string"} )

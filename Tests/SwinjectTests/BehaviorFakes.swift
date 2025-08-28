@@ -10,7 +10,7 @@ class BehaviorSpy: Behavior {
     var types = [Any.Type]()
 
     func container<Type, Service>(
-        _: Container,
+        _: SwinjectContainer,
         didRegisterType type: Type.Type,
         toService entry: ServiceEntry<Service>,
         withName name: String?

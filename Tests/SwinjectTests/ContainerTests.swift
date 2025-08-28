@@ -6,10 +6,10 @@ import XCTest
 @testable import Swinject
 
 class ContainerTests: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
     }
 
     // MARK: Resolution of a non-registered service
@@ -64,8 +64,8 @@ class ContainerTests: XCTestCase {
     // MARK: Container hierarchy
 
     func testContainerResolvesServiceRegisteredOnParentContainer() {
-        let parent = Container()
-        let child = Container(parent: parent)
+        let parent = SwinjectContainer()
+        let child = SwinjectContainer(parent: parent)
 
         parent.register(Animal.self) { _ in Cat() }
         let cat = child.resolve(Animal.self)
@@ -73,8 +73,8 @@ class ContainerTests: XCTestCase {
     }
 
     func testContainerDoesNotResolveServiceRegistredOnChildContainer() {
-        let parent = Container()
-        let child = Container(parent: parent)
+        let parent = SwinjectContainer()
+        let child = SwinjectContainer(parent: parent)
 
         child.register(Animal.self) { _ in Cat() }
         let cat = parent.resolve(Animal.self)
@@ -82,8 +82,8 @@ class ContainerTests: XCTestCase {
     }
 
     func testContainerDoesNotCreateZombies() {
-        let parent = Container()
-        let child = Container(parent: parent)
+        let parent = SwinjectContainer()
+        let child = SwinjectContainer(parent: parent)
 
         parent.register(Cat.self) { _ in Cat() }
         weak var weakCat = child.resolve(Cat.self)
@@ -91,8 +91,8 @@ class ContainerTests: XCTestCase {
     }
 
     func testShadowedRegistration_owningContainerHierarchyAccess() {
-        let parent = Container()
-        let child = Container(parent: parent)
+        let parent = SwinjectContainer()
+        let child = SwinjectContainer(parent: parent)
 
         parent.register(Animal.self, factory: { _ in Dog()})
         child.register(Animal.self, factory: { _ in Cat()})
@@ -107,8 +107,8 @@ class ContainerTests: XCTestCase {
     }
 
     func testShadowedRegistration_owningContainerHierarchyAccess_inObjectScopeContainer() {
-        let parent = Container()
-        let child = Container(parent: parent)
+        let parent = SwinjectContainer()
+        let child = SwinjectContainer(parent: parent)
 
         parent.register(Animal.self, factory: { _ in Dog()})
         child.register(Animal.self, factory: { _ in Cat()})
@@ -143,7 +143,7 @@ class ContainerTests: XCTestCase {
 
     // MARK: Scope
 
-    private func registerCatAndPetOwnerDependingOnFood(_ container: Container) {
+    private func registerCatAndPetOwnerDependingOnFood(_ container: SwinjectContainer) {
         container.register(Animal.self) {
             let cat = Cat()
             cat.favoriteFood = $0.resolve(Food.self)
@@ -212,12 +212,12 @@ class ContainerTests: XCTestCase {
     }
 
     func testContainerSharesObjectFromParentContainerToItsChildWithContainerScope() {
-        let parent = Container()
+        let parent = SwinjectContainer()
         parent.register(Animal.self) { _ in Cat() }
             .inObjectScope(.container)
         parent.register(Animal.self, name: "dog") { _ in Dog() }
             .inObjectScope(.container)
-        let child = Container(parent: parent)
+        let child = SwinjectContainer(parent: parent)
 
         // Case resolving on the parent first.
         let cat1 = parent.resolve(Animal.self) as? Cat
@@ -231,10 +231,10 @@ class ContainerTests: XCTestCase {
     }
 
     func testContainerResolvesServiceInParentContainerToTheSameObjectInGraphWithContainerScope() {
-        let parent = Container()
+        let parent = SwinjectContainer()
         parent.register(Food.self) { _ in Sushi() }
             .inObjectScope(.container)
-        let child = Container(parent: parent)
+        let child = SwinjectContainer(parent: parent)
         registerCatAndPetOwnerDependingOnFood(child)
 
         let owner = child.resolve(Person.self) as? PetOwner
@@ -372,7 +372,7 @@ class ContainerTests: XCTestCase {
             container.removeAll()
             container.register(Animal.self) { _ in Turtle(name: "Ninja") }
                 .inObjectScope(scope)
-            let childContainer = Container(parent: container)
+            let childContainer = SwinjectContainer(parent: container)
 
             var turtle1 = childContainer.resolve(Animal.self)!
             let turtle2 = childContainer.resolve(Animal.self)!
@@ -425,7 +425,7 @@ class ContainerTests: XCTestCase {
     // MARK: Convenience initializers
 
     func testContainerTakesClosureRegisteringServices() {
-        let container = Container {
+        let container = SwinjectContainer {
             $0.register(Animal.self) { _ in Cat() }
         }
 
@@ -435,7 +435,7 @@ class ContainerTests: XCTestCase {
     // MARK: Default object scope
 
     func testContainerRegistersServiceWithGivenObjectScope() {
-        let container = Container(parent: nil, debugHelper: LoggingDebugHelper(), defaultObjectScope: .weak)
+        let container = SwinjectContainer(parent: nil, debugHelper: LoggingDebugHelper(), defaultObjectScope: .weak)
 
         let serviceEntry = container.register(Animal.self) { _ in Siamese(name: "Siam") }
         XCTAssert(serviceEntry.objectScope === ObjectScope.weak)
@@ -444,7 +444,7 @@ class ContainerTests: XCTestCase {
     // MARK: Has Registration
 
     func testContainerHasRegistration() {
-        let container = Container {
+        let container = SwinjectContainer {
             $0.register(Animal.self) { _ in Cat() }
             $0.register(Food.self, name: "Sushi") { _ in Sushi() }
         }

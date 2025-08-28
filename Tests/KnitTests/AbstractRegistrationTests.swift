@@ -10,7 +10,7 @@ import XCTest
 final class AbstractRegistrationTests: XCTestCase {
 
     func testMissingRegistration() {
-        let swinjectContainer = Swinject.Container()
+        let swinjectContainer = SwinjectContainer()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
         let abstractRegistrations = container._unwrappedSwinjectContainer().registerAbstractContainer()
         container.registerAbstract(String.self)
@@ -30,7 +30,7 @@ final class AbstractRegistrationTests: XCTestCase {
     }
 
     func testFilledRegistrations() {
-        let swinjectContainer = Swinject.Container()
+        let swinjectContainer = SwinjectContainer()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
         let abstractRegistrations = container._unwrappedSwinjectContainer().registerAbstractContainer()
         container.registerAbstract(String.self)
@@ -46,7 +46,7 @@ final class AbstractRegistrationTests: XCTestCase {
     }
 
     func testNamedRegistrations() {
-        let swinjectContainer = Swinject.Container()
+        let swinjectContainer = SwinjectContainer()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
         let abstractRegistrations = container._unwrappedSwinjectContainer().registerAbstractContainer()
         container.registerAbstract(String.self)
@@ -63,7 +63,7 @@ final class AbstractRegistrationTests: XCTestCase {
     }
 
     func testPreRegistered() {
-        let swinjectContainer = Swinject.Container()
+        let swinjectContainer = SwinjectContainer()
         let container = ContainerManager(swinjectContainer: swinjectContainer).register(TestResolver.self)
         let abstractRegistrations = container._unwrappedSwinjectContainer().registerAbstractContainer()
         container.register(String.self) { _ in "Test" }
@@ -144,7 +144,7 @@ private struct AnyPublisherAbstractRegistration<UnwrappedServiceType>: AbstractR
     var serviceDescription: String { String(describing: ServiceType.self) }
 
     func registerPlaceholder(
-        container: Swinject.Container,
+        container: SwinjectContainer,
         errorFormatter: any Knit.ModuleAssemblerErrorFormatter,
         dependencyTree: Knit.DependencyTree
     ) {

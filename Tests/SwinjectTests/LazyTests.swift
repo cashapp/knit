@@ -6,10 +6,10 @@ import XCTest
 import Swinject
 
 class LazyTests: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
     }
 
     // MARK: Instance production

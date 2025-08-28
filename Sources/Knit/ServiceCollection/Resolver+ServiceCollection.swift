@@ -4,7 +4,7 @@
 
 import Swinject
 
-extension Swinject.Resolver {
+extension SwinjectResolver {
 
     /// Resolves a collection of all services registered using
     /// ``Container/registerIntoCollection(_:factory:)``

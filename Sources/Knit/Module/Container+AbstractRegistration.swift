@@ -37,7 +37,7 @@ extension Container {
 
 }
 
-extension Swinject.Container {
+extension SwinjectContainer {
 
     // Must be called before using `registerAbstract`
     func registerAbstractContainer() -> AbstractRegistrationContainer {
@@ -80,7 +80,7 @@ public protocol AbstractRegistration {
     /// Register a placeholder registration to fill the unfulfilled abstract registration
     /// This placeholder cannot be resolved
     func registerPlaceholder(
-        container: Swinject.Container,
+        container: SwinjectContainer,
         errorFormatter: ModuleAssemblerErrorFormatter,
         dependencyTree: DependencyTree
     )
@@ -115,7 +115,7 @@ fileprivate struct RealAbstractRegistration<ServiceType>: AbstractRegistration {
     let concurrency: ConcurrencyAttribute
 
     func registerPlaceholder(
-        container: Swinject.Container,
+        container: SwinjectContainer,
         errorFormatter: ModuleAssemblerErrorFormatter,
         dependencyTree: DependencyTree
     ) {
@@ -137,7 +137,7 @@ fileprivate struct OptionalAbstractRegistration<UnwrappedServiceType>: AbstractR
     typealias ServiceType = Optional<UnwrappedServiceType>
 
     func registerPlaceholder(
-        container: Swinject.Container,
+        container: SwinjectContainer,
         errorFormatter: ModuleAssemblerErrorFormatter,
         dependencyTree: DependencyTree
     ) {
@@ -176,7 +176,7 @@ public struct AbstractRegistrationErrors: LocalizedError {
 
 // MARK: -
 
-extension Swinject.Container {
+extension SwinjectContainer {
 
     final class AbstractRegistrationContainer: Behavior {
 
@@ -189,7 +189,7 @@ extension Swinject.Container {
         }
 
         func container<Type, Service>(
-            _ container: Swinject.Container,
+            _ container: SwinjectContainer,
             didRegisterType type: Type.Type,
             toService entry: ServiceEntry<Service>,
             withName name: String?

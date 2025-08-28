@@ -16,7 +16,7 @@ public protocol Behavior {
     /// - Remark: `Type` and `Service` can be different types in the case of type forwarding (commonly used as `.implements()`).
     /// `Type` will represent the forwarded type key, and `Service` will represent the destination.
     func container<Type, Service>(
-        _ container: Container,
+        _ container: SwinjectContainer,
         didRegisterType type: Type.Type,
         toService entry: ServiceEntry<Service>,
         withName name: String?

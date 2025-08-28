@@ -33,32 +33,32 @@ class ServiceKeyTests: XCTestCase {
     // MARK: Without name
 
     func testServiceKeyEqualsWithTheSameFactoryType() {
-        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self)
-        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self)
+        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self)
+        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self)
         XCTAssertEqual(key1, key2)
         XCTAssertEqual(key1.hashValue, key2.hashValue)
 
-        let key3 = ServiceKey(serviceType: Animal.self, argumentsType: (Resolver, String, Bool).self)
-        let key4 = ServiceKey(serviceType: Animal.self, argumentsType: (Resolver, String, Bool).self)
+        let key3 = ServiceKey(serviceType: Animal.self, argumentsType: (SwinjectResolver, String, Bool).self)
+        let key4 = ServiceKey(serviceType: Animal.self, argumentsType: (SwinjectResolver, String, Bool).self)
         XCTAssertEqual(key3, key4)
         XCTAssertEqual(key3.hashValue, key4.hashValue)
     }
 
     func testServiceKeyDoesNotEqualWithDifferentServiceTypesInFactoryTypes() {
-        let key1 = ServiceKey(serviceType: Person.self, argumentsType: Resolver.self)
-        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self)
+        let key1 = ServiceKey(serviceType: Person.self, argumentsType: SwinjectResolver.self)
+        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self)
         XCTAssertNotEqual(key1, key2)
         XCTAssertNotEqual(key1.hashValue, key2.hashValue)
     }
 
     func testServiceKeyDoesNotEqualWithDifferentArgTypesInFactoryTypes() {
-        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: (Resolver, String).self)
-        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: (Resolver, String, Bool).self)
+        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: (SwinjectResolver, String).self)
+        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: (SwinjectResolver, String, Bool).self)
         XCTAssertNotEqual(key1, key2)
         XCTAssertNotEqual(key1.hashValue, key2.hashValue)
 
-        let key3 = ServiceKey(serviceType: Animal.self, argumentsType: (Resolver, String, Bool).self)
-        let key4 = ServiceKey(serviceType: Animal.self, argumentsType: (Resolver, String, Int).self)
+        let key3 = ServiceKey(serviceType: Animal.self, argumentsType: (SwinjectResolver, String, Bool).self)
+        let key4 = ServiceKey(serviceType: Animal.self, argumentsType: (SwinjectResolver, String, Int).self)
         XCTAssertNotEqual(key3, key4)
         XCTAssertNotEqual(key3.hashValue, key4.hashValue)
     }
@@ -66,19 +66,19 @@ class ServiceKeyTests: XCTestCase {
     // MARK: With name
 
     func testServiceKeyEqualsWithTheSameName() {
-        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self, name: "my factory")
-        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self, name: "my factory")
+        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self, name: "my factory")
+        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self, name: "my factory")
         XCTAssertEqual(key1, key2)
         XCTAssertEqual(key1.hashValue, key2.hashValue)
 
         let key3 = ServiceKey(
             serviceType: Animal.self,
-            argumentsType: (Resolver, String, Bool).self,
+            argumentsType: (SwinjectResolver, String, Bool).self,
             name: "my factory"
         )
         let key4 = ServiceKey(
             serviceType: Animal.self,
-            argumentsType: (Resolver, String, Bool).self,
+            argumentsType: (SwinjectResolver, String, Bool).self,
             name: "my factory"
         )
         XCTAssertEqual(key3, key4)
@@ -86,19 +86,19 @@ class ServiceKeyTests: XCTestCase {
     }
 
     func testServiceKeyDoesNotEqualWithDifferentNames() {
-        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self, name: "my factory")
-        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self, name: "your factory")
+        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self, name: "my factory")
+        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self, name: "your factory")
         XCTAssertNotEqual(key1, key2)
         XCTAssertNotEqual(key1.hashValue, key2.hashValue)
 
         let key3 = ServiceKey(
             serviceType: Animal.self,
-            argumentsType: (Resolver, String, Bool).self,
+            argumentsType: (SwinjectResolver, String, Bool).self,
             name: "my factory"
         )
         let key4 = ServiceKey(
             serviceType: Animal.self,
-            argumentsType: (Resolver, String, Bool).self,
+            argumentsType: (SwinjectResolver, String, Bool).self,
             name: "your factory"
         )
         XCTAssertNotEqual(key3, key4)
@@ -108,19 +108,19 @@ class ServiceKeyTests: XCTestCase {
     // MARK: With option
 
     func testServiceKeyEqualsWithTheSameOption() {
-        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self, option: Option(option: 1))
-        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self, option: Option(option: 1))
+        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self, option: Option(option: 1))
+        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self, option: Option(option: 1))
         XCTAssertEqual(key1, key2)
         XCTAssertEqual(key1.hashValue, key2.hashValue)
 
         let key3 = ServiceKey(
             serviceType: Animal.self,
-            argumentsType: (Resolver, String, Bool).self,
+            argumentsType: (SwinjectResolver, String, Bool).self,
             option: Option(option: 1)
         )
         let key4 = ServiceKey(
             serviceType: Animal.self,
-            argumentsType: (Resolver, String, Bool).self,
+            argumentsType: (SwinjectResolver, String, Bool).self,
             option: Option(option: 1)
         )
         XCTAssertEqual(key3, key4)
@@ -128,19 +128,19 @@ class ServiceKeyTests: XCTestCase {
     }
 
     func testServiceKeyDoesNotEqualWithDifferentOptions() {
-        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self, option: Option(option: 1))
-        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: Resolver.self, option: Option(option: 2))
+        let key1 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self, option: Option(option: 1))
+        let key2 = ServiceKey(serviceType: Animal.self, argumentsType: SwinjectResolver.self, option: Option(option: 2))
         XCTAssertNotEqual(key1, key2)
         XCTAssertNotEqual(key1.hashValue, key2.hashValue)
 
         let key3 = ServiceKey(
             serviceType: Animal.self,
-            argumentsType: (Resolver, String, Bool).self,
+            argumentsType: (SwinjectResolver, String, Bool).self,
             option: Option(option: 1)
         )
         let key4 = ServiceKey(
             serviceType: Animal.self,
-            argumentsType: (Resolver, String, Bool).self,
+            argumentsType: (SwinjectResolver, String, Bool).self,
             option: Option(option: 2)
         )
         XCTAssertNotEqual(key3, key4)

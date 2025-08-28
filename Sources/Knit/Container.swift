@@ -6,10 +6,10 @@ import Foundation
 import Swinject
 
 /**
- A light-weight wrapper around the `Swinject.Container` that adds type information about the `TargetResolver`.
+ A light-weight wrapper around the `SwinjectContainer` that adds type information about the `TargetResolver`.
  This allows us to provide registration APIs that are specified to the `TargetResolver`.
 
- The Knit.Container also performs the function of a weak wrapper of the `Swinject.Container`.
+ The Knit.Container also performs the function of a weak wrapper of the `SwinjectContainer`.
  */
 public class Container<TargetResolver>: Knit.Resolver {
 
@@ -24,20 +24,20 @@ public class Container<TargetResolver>: Knit.Resolver {
         _swinjectContainer != nil
     }
 
-    // MARK: - Swinject.Resolver
+    // MARK: - SwinjectResolver
 
-    public func unsafeResolver(file: StaticString, function: StaticString, line: UInt) -> Swinject.Resolver {
+    public func unsafeResolver(file: StaticString, function: StaticString, line: UInt) -> SwinjectResolver {
         _unwrappedSwinjectContainer(file: file, function: function, line: line)
     }
 
     // MARK: - Private Properties
 
-    private weak var _swinjectContainer: Swinject.Container?
+    private weak var _swinjectContainer: SwinjectContainer?
 
     // MARK: - Life Cycle
 
     // This should not be promoted from `fileprivate` access level.
-    fileprivate init(_swinjectContainer: Swinject.Container) {
+    fileprivate init(_swinjectContainer: SwinjectContainer) {
         self._swinjectContainer = _swinjectContainer
     }
 }
@@ -49,7 +49,7 @@ extension Container {
         file: StaticString = #fileID,
         function: StaticString = #function,
         line: UInt = #line
-    ) -> Swinject.Container {
+    ) -> SwinjectContainer {
         guard let _swinjectContainer else {
             fatalError(
                 """
@@ -71,7 +71,7 @@ extension Container {
 internal final class ContainerManager {
 
     // swinjectContainer is weak since the container will own this manager
-    private weak var swinjectContainer: Swinject.Container!
+    private weak var swinjectContainer: SwinjectContainer!
 
     // ContainerManager from the parent of the SwinjectContainer
     private let parent: ContainerManager?
@@ -84,7 +84,7 @@ internal final class ContainerManager {
 
     init(
         parent: ContainerManager? = nil,
-        swinjectContainer: Swinject.Container,
+        swinjectContainer: SwinjectContainer,
         autoConfigureContainers: Bool = false
     ) {
         self.parent = parent

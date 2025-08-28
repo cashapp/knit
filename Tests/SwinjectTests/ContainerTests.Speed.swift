@@ -9,10 +9,10 @@ import XCTest
 /// this test, but good to run before/after changes to see changes.
 @available(iOS 13.0, *)
 class ContainerSpeedTests: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
 
         container.register(Animal.self) { _ in Cat() }
         container.register(Animal.self) { _, arg in Cat(name: arg) }
@@ -40,7 +40,7 @@ class ContainerSpeedTests: XCTestCase {
     }
 }
 
-fileprivate extension Container {
+fileprivate extension SwinjectContainer {
     func resolveCats() {
         for _ in 0..<500_000 {
             _ = resolve(Animal.self) as? Cat
