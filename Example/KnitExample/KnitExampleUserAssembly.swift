@@ -9,7 +9,7 @@ import Knit
 /// An assembly expected to be registered at the user level rather than at the app level
 final class KnitExampleUserAssembly: ModuleAssembly {
 
-    typealias TargetResolver = Resolver
+    typealias TargetResolver = BaseResolver
 
     static var dependencies: [any ModuleAssembly.Type] { [] }
 

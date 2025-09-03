@@ -5,9 +5,7 @@
 @testable import Knit
 import Swinject
 
-protocol TestResolver: Knit.Resolver { }
-
-extension Knit.Container<TestResolver>: TestResolver {}
+class TestResolver: BaseResolver {}
 
 extension ModuleAssembly {
 

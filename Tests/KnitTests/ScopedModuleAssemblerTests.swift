@@ -66,7 +66,7 @@ private struct Assembly1: AutoInitModuleAssembly {
     func assemble(container: Knit.Container<Self.TargetResolver>) { }
 }
 
-protocol OutsideResolver: SwinjectResolver { }
+class OutsideResolver: BaseResolver { }
 
 private struct Assembly2: AutoInitModuleAssembly {
     typealias TargetResolver = OutsideResolver

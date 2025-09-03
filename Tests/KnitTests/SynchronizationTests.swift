@@ -84,11 +84,7 @@ private final class Service2 {
     }
 }
 
-private protocol TestScopedResolver: Knit.Resolver {
-    func service1() -> Service1
-    func service2() -> Service2
-}
-extension TestScopedResolver {
+class TestScopedResolver: BaseResolver {
     fileprivate func service1() -> Service1 {
         self.unsafeResolver(file: #filePath, function: #function, line: #line).resolve(Service1.self)!
     }
@@ -97,4 +93,3 @@ extension TestScopedResolver {
         self.unsafeResolver(file: #filePath, function: #function, line: #line).resolve(Service2.self)!
     }
 }
-extension Container<TestScopedResolver>: TestScopedResolver {}

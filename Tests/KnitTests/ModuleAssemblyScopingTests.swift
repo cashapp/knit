@@ -23,15 +23,13 @@ final class ModuleAssemblyScopingTests: XCTestCase {
 
 }
 
-private protocol ParentResolver: Resolver {}
-private protocol ChildResolver: Resolver {}
-private protocol OtherResolver: Resolver {}
-
-extension ChildResolver {
-    static func contains(resolver: Resolver.Type) -> Bool {
-        return resolver == self || resolver == ParentResolver.self
+private class ParentResolver: BaseResolver {}
+private class ChildResolver: ParentResolver {
+    public override class func inherits(from resolverType: Resolver.Type) -> Bool {
+        return resolverType == self || resolverType == ParentResolver.self
     }
 }
+private class OtherResolver: BaseResolver {}
 
 private struct Assembly1: GeneratedModuleAssembly {
     typealias TargetResolver = ParentResolver
@@ -55,16 +53,4 @@ private struct Assembly4: GeneratedModuleAssembly {
     typealias TargetResolver = ParentResolver
     static var generatedDependencies: [any ModuleAssembly.Type] { [Assembly1.self] }
     func assemble(container: Container<Self.TargetResolver>) {}
-}
-
-private extension ModuleAssembly {
-    // Override the default scoping function to allow assemblies using ParentResolver to be included in ChildResolver
-    static func scoped(_ dependencies: [any ModuleAssembly.Type]) -> [any ModuleAssembly.Type] {
-        return dependencies.filter {
-            if self.resolverType == ChildResolver.self && $0.resolverType == ParentResolver.self {
-                return true
-            }
-            return self.resolverType == $0.resolverType
-        }
-    }
 }

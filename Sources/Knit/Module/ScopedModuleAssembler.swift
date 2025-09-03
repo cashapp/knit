@@ -6,7 +6,7 @@ import Foundation
 import Swinject
 
 /// Module assembly which only allows registering assemblies which target a particular resolver type.
-public final class ScopedModuleAssembler<TargetResolver> {
+public final class ScopedModuleAssembler<TargetResolver: Knit.Resolver> {
 
     public let internalAssembler: ModuleAssembler
 
@@ -58,18 +58,6 @@ public final class ScopedModuleAssembler<TargetResolver> {
         behaviors: [Behavior] = [],
         postAssemble: ((Container<TargetResolver>) -> Void)? = nil
     ) throws {
-        // For provided modules, fail early if they are scoped incorrectly
-        for assembly in modules {
-            let moduleAssemblyType = type(of: assembly)
-            if moduleAssemblyType.resolverType != TargetResolver.self {
-                let scopingError = ScopedModuleAssemblerError.incorrectTargetResolver(
-                    expected: String(describing: TargetResolver.self),
-                    actual: String(describing: moduleAssemblyType.resolverType)
-                )
-
-                throw DependencyBuilderError.assemblyValidationFailure(moduleAssemblyType, reason: scopingError)
-            }
-        }
         self.internalAssembler = try ModuleAssembler(
             parent: parent,
             _modules: modules,

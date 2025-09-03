@@ -7,7 +7,7 @@ import SwiftUI
 
 struct ContentView: View {
 
-    let resolver: Resolver
+    let resolver: BaseResolver
 
     var body: some View {
         VStack {
@@ -21,7 +21,7 @@ struct ContentView: View {
 }
 
 struct ContentView_Previews: PreviewProvider {
-    static let assembler = ScopedModuleAssembler<Resolver>([KnitExampleAssembly()])
+    static let assembler = ScopedModuleAssembler<BaseResolver>([KnitExampleAssembly()])
     static var previews: some View {
         return ContentView(resolver: assembler.resolver)
     }
