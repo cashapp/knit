@@ -15,9 +15,9 @@ class ContainerTests_DebugHelper: XCTestCase {
     // MARK: Resolution fails
 
     func testContainerShouldCallDebugHelperWithFailingServiceAndKey() {
-        let container = Container(debugHelper: spy)
+        let container = SwinjectContainer(debugHelper: spy)
 
-        _ = container._resolve(name: "name") { (_: Resolver, _: (Int) -> Any) in 1 as Double } as Double?
+        _ = container._resolve(name: "name") { (_: SwinjectResolver, _: (Int) -> Any) in 1 as Double } as Double?
 
         XCTAssertEqual("\(spy.serviceType)", "Double")
         XCTAssertEqual(spy.key, ServiceKey(
@@ -29,7 +29,7 @@ class ContainerTests_DebugHelper: XCTestCase {
     }
 
     func testContainerShouldCallHelperWithAllRegistrations() {
-        let container = Container(debugHelper: spy)
+        let container = SwinjectContainer(debugHelper: spy)
         container.register(Int.self) { _ in 0 }
         container.register(Double.self) { _ in 0 }
 
@@ -39,9 +39,9 @@ class ContainerTests_DebugHelper: XCTestCase {
     }
 
     func testContainerShouldCallHelperWithParentRegistrations() {
-        let parent = Container()
+        let parent = SwinjectContainer()
         parent.register(Int.self) { _ in 0 }
-        let container = Container(parent: parent, debugHelper: spy)
+        let container = SwinjectContainer(parent: parent, debugHelper: spy)
         container.register(Double.self) { _ in 0 }
 
         _ = container.resolve(String.self)

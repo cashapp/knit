@@ -6,10 +6,10 @@ import XCTest
 @testable import Swinject
 
 class ContainerTests_Behavior: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
     }
 
     // MARK: Adding service
@@ -88,7 +88,7 @@ class ContainerTests_Behavior: XCTestCase {
     func testConvenienceInitializerAddsBehaviorsToContainer() {
         let spy1 = BehaviorSpy()
         let spy2 = BehaviorSpy()
-        container = Container(behaviors: [spy1, spy2])
+        container = SwinjectContainer(behaviors: [spy1, spy2])
 
         container.register(Dog.self) { _ in Dog() }
 

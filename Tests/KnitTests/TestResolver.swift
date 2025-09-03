@@ -26,7 +26,7 @@ extension ModuleAssembler {
         assemblyValidation: ((any ModuleAssembly.Type) throws -> Void)? = nil,
         errorFormatter: ModuleAssemblerErrorFormatter = DefaultModuleAssemblerErrorFormatter(),
         behaviors: [Behavior] = [],
-        postAssemble: ((Swinject.Container) -> Void)? = nil
+        postAssemble: ((SwinjectContainer) -> Void)? = nil
     ) throws {
         try self.init(
             parent: parent,

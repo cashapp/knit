@@ -21,6 +21,6 @@ public protocol _Resolver {
     func _resolve<Service, Arguments>(
         name: String?,
         option: ServiceKeyOption?,
-        invoker: @escaping (Resolver, (Arguments) -> Any) -> Any
+        invoker: @escaping (SwinjectResolver, (Arguments) -> Any) -> Any
     ) -> Service?
 }

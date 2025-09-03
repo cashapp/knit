@@ -6,10 +6,10 @@ import XCTest
 @testable import Swinject
 
 class ProviderTests: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
     }
 
     // MARK: Instance production

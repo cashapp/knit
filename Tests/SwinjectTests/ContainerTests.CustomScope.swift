@@ -6,10 +6,10 @@ import XCTest
 @testable import Swinject
 
 class ContainerTests_CustomScope: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
     }
 
     // MARK: Resolving from custom scope
@@ -75,7 +75,7 @@ class ContainerTests_CustomScope: XCTestCase {
     func testContainerRemovesInstanceFromServiceRegisteredInParentContainer() {
         let storage = FakeStorage()
         let custom = ObjectScope(storageFactory: { storage })
-        let child = Container(parent: container)
+        let child = SwinjectContainer(parent: container)
 
         container.register(Int.self) { _ in 0 }.inObjectScope(custom)
         storage.instance = 42

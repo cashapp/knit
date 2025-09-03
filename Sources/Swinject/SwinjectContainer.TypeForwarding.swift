@@ -2,7 +2,7 @@
 //  Copyright © 2019 Swinject Contributors. All rights reserved.
 //
 
-extension Container {
+extension SwinjectContainer {
     /// Adds the registration for `type` which resolves in the same way, as would the type
     /// used to create the original `service` - i.e. using the same object scope,
     /// arguments and `initCompleted` closures.

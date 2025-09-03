@@ -102,21 +102,21 @@ final class ModuleAssemblerTests: XCTestCase {
 
         var services = assembler._swinjectContainer.services.filter { (key, value) in
             // Filter out registrations for `AbstractRegistrationContainer` and `DependencyTree`
-            return key.serviceType != Container.AbstractRegistrationContainer.self &&
+            return key.serviceType != SwinjectContainer.AbstractRegistrationContainer.self &&
             key.serviceType != DependencyTree.self && key.serviceType != ContainerManager.self
         }
         XCTAssertEqual(services.count, 3)
 
         XCTAssertNotNil(services.removeValue(forKey: .init(
             serviceType: Assembly5Protocol.self,
-            argumentsType: (Swinject.Resolver).self,
+            argumentsType: (SwinjectResolver).self,
             name: nil
         )), "Service entry for Assembly5Protocol without name should exist")
         XCTAssertEqual(services.count, 2)
 
         XCTAssertNotNil(services.removeValue(forKey: .init(
             serviceType: Assembly5Protocol.self,
-            argumentsType: (Swinject.Resolver).self,
+            argumentsType: (SwinjectResolver).self,
             name: "testName"
         )), "Service entry for Assembly5Protocol with name should exist")
         

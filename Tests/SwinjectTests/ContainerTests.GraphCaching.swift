@@ -6,10 +6,10 @@ import XCTest
 @testable import Swinject
 
 class ContainerTests_GraphCaching: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
     }
 
     // MARK: Restoration
@@ -23,7 +23,7 @@ class ContainerTests_GraphCaching: XCTestCase {
     func testIdentifierIsNotNilDuringGraphResolution() {
         var identifier: GraphIdentifier?
         container.register(Dog.self) {
-            identifier = ($0 as? Container)?.currentObjectGraph
+            identifier = ($0 as? SwinjectContainer)?.currentObjectGraph
             return Dog()
         }
 
@@ -35,7 +35,7 @@ class ContainerTests_GraphCaching: XCTestCase {
     func testIdentifierIsDifferentForSeparateGraphResolutions() {
         var identifiers = [GraphIdentifier?]()
         container.register(Dog.self) {
-            identifiers.append(($0 as? Container)?.currentObjectGraph)
+            identifiers.append(($0 as? SwinjectContainer)?.currentObjectGraph)
             return Dog()
         }
 
@@ -49,12 +49,12 @@ class ContainerTests_GraphCaching: XCTestCase {
     func testIdentifierIsSameDuringGraphResolution() {
         var identifiers = [GraphIdentifier?]()
         container.register(Dog.self) {
-            identifiers.append(($0 as? Container)?.currentObjectGraph)
+            identifiers.append(($0 as? SwinjectContainer)?.currentObjectGraph)
             _ = $0.resolve(Cat.self)
             return Dog()
         }
         container.register(Cat.self) {
-            identifiers.append(($0 as? Container)?.currentObjectGraph)
+            identifiers.append(($0 as? SwinjectContainer)?.currentObjectGraph)
             return Cat()
         }
 
@@ -78,7 +78,7 @@ class ContainerTests_GraphCaching: XCTestCase {
         let restoredIdentifier = GraphIdentifier()
         var identifier: GraphIdentifier?
         container.register(Dog.self) {
-            identifier = ($0 as? Container)?.currentObjectGraph
+            identifier = ($0 as? SwinjectContainer)?.currentObjectGraph
             return Dog()
         }
 
@@ -106,7 +106,7 @@ class ContainerTests_GraphCaching: XCTestCase {
     func testContainerRestoresInstancesFromPreviousGraphsIfAvailable() {
         var graph: GraphIdentifier!
         container.register(Dog.self) {
-            graph = ($0 as? Container)?.currentObjectGraph
+            graph = ($0 as? SwinjectContainer)?.currentObjectGraph
             return Dog()
         }.inObjectScope(.graph)
 
@@ -125,7 +125,7 @@ class ContainerTests_GraphCaching: XCTestCase {
     func testContainerResolvesGraphScopeIfAvailable() {
         var graph: GraphIdentifier?
         container.register(Dog.self) {
-            graph = ($0 as? Container)?.resolve(GraphIdentifier.self)
+            graph = ($0 as? SwinjectContainer)?.resolve(GraphIdentifier.self)
             return Dog()
         }
         let _ = container.resolve(Dog.self)!
@@ -135,7 +135,7 @@ class ContainerTests_GraphCaching: XCTestCase {
     func testContainerManualScopeSetResolvesGraph() {
         var graph: GraphIdentifier!
         container.register(Dog.self) {
-            graph = ($0 as? Container)?.resolve(GraphIdentifier.self)
+            graph = ($0 as? SwinjectContainer)?.resolve(GraphIdentifier.self)
             return Dog()
         }.inObjectScope(.graph)
 

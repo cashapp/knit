@@ -23,14 +23,14 @@ final class SwinjectResolutionTests: XCTestCase {
     }
     
     func test_default_value() {
-        let emptyContainer = Container()
+        let emptyContainer = SwinjectContainer()
         emptyContainer.register(Service3.self, factory: Service3.make)
         let defaultedService = emptyContainer.resolve(Service3.self)
         XCTAssertEqual(defaultedService?.value, 2)
     }
 
     func test_argument() {
-        let container = Container()
+        let container = SwinjectContainer()
         container.register(Service4.self, factory: Service4.make)
         
         let service = container.resolve(Service4.self, argument: Float(5))
@@ -38,7 +38,7 @@ final class SwinjectResolutionTests: XCTestCase {
     }
     
     func test_named_parameter() {
-        let container = Container()
+        let container = SwinjectContainer()
         container.register(Float.self, name: "float2") { _ in 2}
         container.register(Service5.self, factory: Service5.make)
         
@@ -47,7 +47,7 @@ final class SwinjectResolutionTests: XCTestCase {
     }
 
     func test_static_function() {
-        let container = Container()
+        let container = SwinjectContainer()
         container.register(Service3.self, factory: Service3.makeService(resolver:))
 
         let service = container.resolve(Service3.self)
@@ -60,7 +60,7 @@ private struct Service1 {
     let string: String
     let value: Int
     
-    @Resolvable<Swinject.Resolver>
+    @Resolvable<SwinjectResolver>
     init(string: String, value: Int) {
         self.string = string
         self.value = value
@@ -70,7 +70,7 @@ private struct Service1 {
 private struct Service2 {
     let closure: () -> Void
     
-    @Resolvable<Swinject.Resolver>
+    @Resolvable<SwinjectResolver>
     init(closure: @escaping () -> Void) {
         self.closure = closure
     }
@@ -80,12 +80,12 @@ private struct Service3 {
     
     let value: Int
     
-    @Resolvable<Swinject.Resolver>
+    @Resolvable<SwinjectResolver>
     init(@UseDefault defaultedValue: Int = 2) {
         self.value = defaultedValue
     }
 
-    @Resolvable<Swinject.Resolver>
+    @Resolvable<SwinjectResolver>
     static func makeService() -> Service3 {
         return .init(defaultedValue: 5)
     }
@@ -93,7 +93,7 @@ private struct Service3 {
 
 private struct Service4 {
     let value: Float
-    @Resolvable<Swinject.Resolver>
+    @Resolvable<SwinjectResolver>
     init(@Argument value: Float) {
         self.value = value
     }
@@ -101,15 +101,15 @@ private struct Service4 {
 
 private struct Service5 {
     let value: Float
-    @Resolvable<Swinject.Resolver>
+    @Resolvable<SwinjectResolver>
     init(@Named("float2") value: Float) {
         self.value = value
     }
 }
 
 private enum Factory {
-    static var container: Swinject.Container {
-        let container = Container()
+    static var container: SwinjectContainer {
+        let container = SwinjectContainer()
         container.register(String.self) { _ in "Test" }
         container.register(Int.self) { _ in 5 }
         container.register((()->Void).self) { _ in
@@ -128,7 +128,7 @@ enum FloatName: String {
     case float2
 }
 
-private extension Swinject.Resolver {
+private extension SwinjectResolver {
 
     func float(name: FloatName) -> Float {
         resolve(Float.self, name: name.rawValue)!

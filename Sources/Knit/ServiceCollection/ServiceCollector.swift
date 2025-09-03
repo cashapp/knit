@@ -25,7 +25,7 @@ public final class ServiceCollector: Behavior {
 
     /// Maps a service type to an array of service factories
     /// Note: We use `ObjectIdentifier` to represent the service type since `Any.Type` isn't Hashable.
-    private var factoriesByService: [ObjectIdentifier: [(Swinject.Resolver) -> Any]] = [:]
+    private var factoriesByService: [ObjectIdentifier: [(SwinjectResolver) -> Any]] = [:]
 
     private let parent: ServiceCollector?
 
@@ -34,7 +34,7 @@ public final class ServiceCollector: Behavior {
     }
 
     public func container<Type, Service>(
-        _ container: Swinject.Container,
+        _ container: SwinjectContainer,
         didRegisterType type: Type.Type,
         toService entry: ServiceEntry<Service>,
         withName name: String?
@@ -61,7 +61,7 @@ public final class ServiceCollector: Behavior {
         factoriesByService[ObjectIdentifier(Service.self)] = factories
     }
     
-    private func resolveServices<Service>(resolver: Swinject.Resolver) -> ServiceCollection<Service> {
+    private func resolveServices<Service>(resolver: SwinjectResolver) -> ServiceCollection<Service> {
         let parentCollection: ServiceCollection<Service>? = parent?.resolveServices(resolver: resolver)
         let factories = self.factoriesByService[ObjectIdentifier(Service.self)] ?? []
         let entries = factories.map { $0(resolver) as! Service }

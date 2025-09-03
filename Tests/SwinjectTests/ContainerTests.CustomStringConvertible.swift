@@ -6,10 +6,10 @@ import XCTest
 @testable import Swinject
 
 class ContainerTests_CustomStringConvertible: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
     }
 
     func testContainerDescribesEmptyDescriptionWithoutServiceRegistrations() {
@@ -21,7 +21,7 @@ class ContainerTests_CustomStringConvertible: XCTestCase {
 
         XCTAssertEqual(container.description,
             "[\n"
-            + "    { Service: Animal, Factory: Resolver -> Animal, ObjectScope: graph }\n"
+            + "    { Service: Animal, Factory: SwinjectResolver -> Animal, ObjectScope: graph }\n"
             + "]")
     }
 
@@ -30,7 +30,7 @@ class ContainerTests_CustomStringConvertible: XCTestCase {
 
         XCTAssertEqual(container.description,
             "[\n"
-            + "    { Service: Animal, Name: \"My Cat\", Factory: Resolver -> Animal, ObjectScope: graph }\n"
+            + "    { Service: Animal, Name: \"My Cat\", Factory: SwinjectResolver -> Animal, ObjectScope: graph }\n"
             + "]")
     }
 
@@ -39,7 +39,7 @@ class ContainerTests_CustomStringConvertible: XCTestCase {
 
         XCTAssertEqual(container.description,
             "[\n"
-            + "    { Service: Animal, Factory: (Resolver, String, Bool) -> Animal, ObjectScope: graph }\n"
+            + "    { Service: Animal, Factory: (SwinjectResolver, String, Bool) -> Animal, ObjectScope: graph }\n"
             + "]")
     }
 
@@ -49,7 +49,7 @@ class ContainerTests_CustomStringConvertible: XCTestCase {
 
         XCTAssertEqual(container.description,
             "[\n"
-            + "    { Service: Animal, Factory: Resolver -> Animal, ObjectScope: container }\n"
+            + "    { Service: Animal, Factory: SwinjectResolver -> Animal, ObjectScope: container }\n"
             + "]")
     }
 
@@ -59,7 +59,7 @@ class ContainerTests_CustomStringConvertible: XCTestCase {
 
         XCTAssertEqual(container.description,
             "[\n"
-            + "    { Service: Animal, Factory: Resolver -> Animal, ObjectScope: graph, "
+            + "    { Service: Animal, Factory: SwinjectResolver -> Animal, ObjectScope: graph, "
             + "InitCompleted: Specified 1 closures }\n"
             + "]")
     }
@@ -70,8 +70,8 @@ class ContainerTests_CustomStringConvertible: XCTestCase {
 
         XCTAssertEqual(container.description,
             "[\n"
-            + "    { Service: Animal, Name: \"1\", Factory: Resolver -> Animal, ObjectScope: graph },\n"
-            + "    { Service: Animal, Name: \"2\", Factory: Resolver -> Animal, ObjectScope: graph }\n"
+            + "    { Service: Animal, Name: \"1\", Factory: SwinjectResolver -> Animal, ObjectScope: graph },\n"
+            + "    { Service: Animal, Name: \"2\", Factory: SwinjectResolver -> Animal, ObjectScope: graph }\n"
             + "]")
     }
 }

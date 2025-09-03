@@ -6,10 +6,10 @@ import XCTest
 @testable import Swinject
 
 class ContainerTests_Circularity: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
     }
 
     // MARK: Two objects

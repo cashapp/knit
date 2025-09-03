@@ -14,8 +14,8 @@ public final class ScopedModuleAssembler<TargetResolver> {
         internalAssembler.resolver.resolve(Knit.Container<TargetResolver>.self)!.resolver
     }
 
-    /// Access the underlying Swinject.Resolver to resolve without type safety.
-    var unsafeResolver: Swinject.Resolver {
+    /// Access the underlying SwinjectResolver to resolve without type safety.
+    var unsafeResolver: SwinjectResolver {
         internalAssembler.resolver
     }
 

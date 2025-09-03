@@ -6,10 +6,10 @@ import XCTest
 @testable import Swinject
 
 class ContainerTests_Arguments: XCTestCase {
-    var container: Container!
+    var container: SwinjectContainer!
 
     override func setUpWithError() throws {
-        container = Container()
+        container = SwinjectContainer()
     }
 
     func testContainierAccepts1Argument() {

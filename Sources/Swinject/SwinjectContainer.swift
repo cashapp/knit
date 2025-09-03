@@ -4,7 +4,7 @@
 
 import Foundation
 
-/// The ``Container`` class represents a dependency injection container, which stores registrations of services
+/// The ``SwinjectContainer`` class represents a dependency injection container, which stores registrations of services
 /// and retrieves registered services with dependencies injected.
 ///
 /// **Example to register:**
@@ -19,9 +19,9 @@ import Foundation
 ///
 /// where `A` and `X` are protocols, `B` is a type conforming `A`, and `Y` is a type conforming `X`
 /// and depending on `A`.
-public final class Container {
+public final class SwinjectContainer {
     internal var services = [ServiceKey: ServiceEntryProtocol]()
-    private let parent: Container? // Used by HierarchyObjectScope
+    private let parent: SwinjectContainer? // Used by HierarchyObjectScope
     private var resolutionDepth = 0
     private let debugHelper: DebugHelper
     private let defaultObjectScope: ObjectScope
@@ -31,7 +31,7 @@ public final class Container {
     internal var behaviors = [Behavior]()
 
     internal init(
-        parent: Container? = nil,
+        parent: SwinjectContainer? = nil,
         debugHelper: DebugHelper,
         defaultObjectScope: ObjectScope = .graph
     ) {
@@ -41,10 +41,10 @@ public final class Container {
         self.defaultObjectScope = defaultObjectScope
     }
 
-    /// Instantiates a ``Container``
+    /// Instantiates a ``SwinjectContainer``
     ///
     /// - Parameters
-    ///     - parent: The optional parent ``Container``.
+    ///     - parent: The optional parent ``SwinjectContainer``.
     ///     - defaultObjectScope: Default object scope (graph if no scope is injected)
     ///     - behaviors: List of behaviors to be added to the container
     ///     - registeringClosure: The closure registering services to the new container instance.
@@ -52,10 +52,10 @@ public final class Container {
     /// - Remark: Compile time may be long if you pass a long closure to this initializer.
     ///           Use `init()` or `init(parent:)` instead.
     public convenience init(
-        parent: Container? = nil,
+        parent: SwinjectContainer? = nil,
         defaultObjectScope: ObjectScope = .graph,
         behaviors: [Behavior] = [],
-        registeringClosure: (Container) -> Void = { _ in }
+        registeringClosure: (SwinjectContainer) -> Void = { _ in }
     ) {
         self.init(
             parent: parent,
@@ -107,7 +107,7 @@ public final class Container {
     ///   - name:        A registration name, which is used to differentiate from other registrations
     ///                  that have the same service and factory types.
     ///   - factory:     The closure to specify how the service type is resolved with the dependencies of the type.
-    ///                  It is invoked when the ``Container`` needs to instantiate the instance.
+    ///                  It is invoked when the ``SwinjectContainer`` needs to instantiate the instance.
     ///                  It takes a ``Resolver`` to inject dependencies to the instance,
     ///                  and returns the instance of the component type for the service.
     ///
@@ -116,7 +116,7 @@ public final class Container {
     public func register<Service>(
         _ serviceType: Service.Type,
         name: String? = nil,
-        factory: @escaping (Resolver) -> Service
+        factory: @escaping (SwinjectResolver) -> Service
     ) -> ServiceEntry<Service> {
         return _register(serviceType, factory: factory, name: name)
     }
@@ -194,7 +194,7 @@ public final class Container {
     ///   - identifier: Graph scope to use
     ///   - closure: Actions to execute within the Container
     /// - Returns: Any value you return (Void otherwise) within the function call.
-    public func withObjectGraph<T>(_ identifier: GraphIdentifier, closure: (Container) throws -> T) rethrows -> T {
+    public func withObjectGraph<T>(_ identifier: GraphIdentifier, closure: (SwinjectContainer) throws -> T) rethrows -> T {
         try sync {
             let graphIdentifier = currentObjectGraph
             defer { 
@@ -216,14 +216,14 @@ public final class Container {
 
 // MARK: - _Resolver
 
-extension Container: _Resolver {
+extension SwinjectContainer: _Resolver {
 
     /// See documentation on `_Resolver` protocol where this method is declared.
     // swiftlint:disable:next identifier_name
     public func _resolve<Service, Arguments>(
         name: String?,
         option: ServiceKeyOption? = nil,
-        invoker: @escaping (Resolver, (Arguments) -> Any) -> Any
+        invoker: @escaping (SwinjectResolver, (Arguments) -> Any) -> Any
     ) -> Service? {
         // No need to use weak self since the resolution will be executed before
         // this function exits.
@@ -258,7 +258,7 @@ extension Container: _Resolver {
     fileprivate func resolveAsWrapper<Wrapper, Arguments>(
         name: String?,
         option: ServiceKeyOption?,
-        invoker: @escaping (Resolver, (Arguments) -> Any) -> Any
+        invoker: @escaping (SwinjectResolver, (Arguments) -> Any) -> Any
     ) -> Wrapper? {
         guard let wrapper = Wrapper.self as? InstanceWrapper.Type else { return nil }
 
@@ -321,13 +321,13 @@ extension Container: _Resolver {
 
 // MARK: - Resolver
 
-extension Container: Resolver {
+extension SwinjectContainer: SwinjectResolver {
     /// Retrieves the instance with the specified service type.
     ///
     /// - Parameter serviceType: The service type to resolve.
     ///
     /// - Returns: The resolved service type instance, or nil if no registration for the service type
-    ///            is found in the ``Container``.
+    ///            is found in the ``SwinjectContainer``.
     public func resolve<Service>(_ serviceType: Service.Type) -> Service? {
         return resolve(serviceType, name: nil)
     }
@@ -339,11 +339,11 @@ extension Container: Resolver {
     ///   - name:        The registration name.
     ///
     /// - Returns: The resolved service type instance, or nil if no registration for the service type and name
-    ///            is found in the ``Container``.
+    ///            is found in the ``SwinjectContainer``.
     public func resolve<Service>(_: Service.Type, name: String?) -> Service? {
         return _resolve(
             name: name,
-            invoker: { (resolver: Resolver, factory: (Resolver) -> Any) in
+            invoker: { (resolver: SwinjectResolver, factory: (SwinjectResolver) -> Any) in
                 factory(resolver)
             }
         )
@@ -352,7 +352,7 @@ extension Container: Resolver {
     /// Retrieve the service entry for a given service key.
     ///
     /// - Returns: An optional tuple of the service entry and the source resolver.
-    fileprivate func getEntry(for key: ServiceKey) -> (ServiceEntryProtocol, Resolver)? {
+    fileprivate func getEntry(for key: ServiceKey) -> (ServiceEntryProtocol, SwinjectResolver)? {
         if let entry = services[key] {
             return (entry, self)
         } else if let parentResult = parent?.getEntry(for: key) {
@@ -365,8 +365,8 @@ extension Container: Resolver {
 
     fileprivate func resolve<Service, Factory>(
         entry: ServiceEntryProtocol,
-        invoker: @escaping (Resolver, Factory) -> Any,
-        resolver: Resolver
+        invoker: @escaping (SwinjectResolver, Factory) -> Any,
+        resolver: SwinjectResolver
     ) -> Service? {
         self.incrementResolutionDepth()
         defer { self.decrementResolutionDepth() }
@@ -387,7 +387,7 @@ extension Container: Resolver {
         entry.storage.setInstance(resolvedInstance as Any, inGraph: currentObjectGraph)
         graphInstancesInFlight.append(entry)
 
-        if let completed = entry.initCompleted as? (Resolver, Any) -> Void,
+        if let completed = entry.initCompleted as? (SwinjectResolver, Any) -> Void,
            let resolvedInstance = resolvedInstance as? Service {
             completed(self, resolvedInstance)
         }
@@ -414,7 +414,7 @@ extension Container: Resolver {
 
 // MARK: CustomStringConvertible
 
-extension Container: CustomStringConvertible {
+extension SwinjectContainer: CustomStringConvertible {
     public var description: String {
         return "["
             + services.map { "\n    { \($1.describeWithKey($0)) }" }.sorted().joined(separator: ",")
@@ -424,6 +424,6 @@ extension Container: CustomStringConvertible {
 
 // MARK: Constants
 
-private extension Container {
-    static let graphIdentifierKey = ServiceKey(serviceType: GraphIdentifier.self, argumentsType: Resolver.self)
+private extension SwinjectContainer {
+    static let graphIdentifierKey = ServiceKey(serviceType: GraphIdentifier.self, argumentsType: SwinjectResolver.self)
 }

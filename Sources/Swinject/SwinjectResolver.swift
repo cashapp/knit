@@ -6,13 +6,13 @@
 //
 // NOTICE:
 //
-// Resolver.swift is generated from Resolver.erb by ERB.
-// Do NOT modify Container.Arguments.swift directly.
-// Instead, modify Resolver.erb and run `Scripts/gencode` at the project root directory to generate the code.
+// SwinjectResolver.swift is generated from Resolver.erb by ERB.
+// Do NOT modify SwinjectResolver.swift directly.
+// Instead, modify SwinjectResolver.erb and run `Scripts/gencode` at the project root directory to generate the code.
 //
 
 
-public protocol Resolver: AnyObject {
+public protocol SwinjectResolver: AnyObject {
     /// Retrieves the instance with the specified service type.
     ///
     /// - Parameter serviceType: The service type to resolve.
