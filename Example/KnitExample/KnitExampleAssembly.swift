@@ -9,7 +9,7 @@ import KnitMacros
 // @knit internal
 final class KnitExampleAssembly: ModuleAssembly {
     
-    typealias TargetResolver = Resolver
+    typealias TargetResolver = BaseResolver
 
     static var dependencies: [any ModuleAssembly.Type] { [] }
 

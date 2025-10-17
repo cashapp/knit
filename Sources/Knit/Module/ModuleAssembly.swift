@@ -7,7 +7,7 @@ import Swinject
 
 public protocol ModuleAssembly<TargetResolver> {
 
-    associatedtype TargetResolver
+    associatedtype TargetResolver: Knit.Resolver
 
     static var resolverType: Self.TargetResolver.Type { get }
 
@@ -19,10 +19,6 @@ public protocol ModuleAssembly<TargetResolver> {
     /// If this assembly replaces another it is expected to provide all registrations from the replaced assemblies.
     /// A common case is a fake assembly that registers fake services matching those from the original module.
     static var replaces: [any ModuleAssembly.Type] { get }
-
-    /// Filter the list of dependencies down to those which match the scope of this assembly
-    /// This can be overridden in apps with custom Resolver hierarchies
-    static func scoped(_ dependencies: [any ModuleAssembly.Type]) -> [any ModuleAssembly.Type]
 
     /// Hints about this assembly using by DependencyBuilder. Designed for internal use
     static var _assemblyFlags: [ModuleAssemblyFlags] { get }
@@ -38,13 +34,6 @@ public extension ModuleAssembly {
     }
 
     static var replaces: [any ModuleAssembly.Type] { [] }
-
-    static func scoped(_ dependencies: [any ModuleAssembly.Type]) -> [any ModuleAssembly.Type] {
-        return dependencies.filter {
-            // Default the scoped implementation to match types directly
-            return self.resolverType == $0.resolverType
-        }
-    }
 
     static var _assemblyFlags: [ModuleAssemblyFlags] {
         var result: [ModuleAssemblyFlags] = []
@@ -84,6 +73,13 @@ public protocol GeneratedModuleAssembly: ModuleAssembly {
 extension ModuleAssembly where Self: GeneratedModuleAssembly {
     // Default the dependencies to using generatedDependencies scoped to those with compatible resolvers
     public static var dependencies: [any ModuleAssembly.Type] { scoped(generatedDependencies) }
+
+    /// Filter the list of dependencies down to those which match the scope of this assembly
+    public static func scoped(_ dependencies: [any ModuleAssembly.Type]) -> [any ModuleAssembly.Type] {
+        return dependencies.filter { module in
+            return resolverType.inherits(from: module.resolverType)
+        }
+    }
 }
 
 /// Control the behavior of Assembly Overrides.

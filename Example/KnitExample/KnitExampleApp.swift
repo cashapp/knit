@@ -8,12 +8,12 @@ import Knit
 @main
 struct KnitExampleApp: App {
 
-    let assembler: ScopedModuleAssembler<Resolver>
-    var resolver: Resolver { assembler.resolver }
+    let assembler: ScopedModuleAssembler<BaseResolver>
+    var resolver: BaseResolver { assembler.resolver }
 
     @MainActor
     init() {
-        assembler = ScopedModuleAssembler<Resolver>(
+        assembler = ScopedModuleAssembler<BaseResolver>(
             [KnitExampleAssembly()]
         )
     }

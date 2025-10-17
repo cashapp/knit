@@ -11,24 +11,11 @@ import Swinject
 
  The Knit.Container also performs the function of a weak wrapper of the `SwinjectContainer`.
  */
-public class Container<TargetResolver>: Knit.Resolver {
+public class Container<TargetResolver: Knit.Resolver> {
 
     // MARK: - Knit.Resolver
 
-    public var resolver: TargetResolver {
-        self as! TargetResolver
-    }
-
-    /// Returns `true` if the backing container is still available in memory, otherwise `false`.
-    public var isAvailable: Bool {
-        _swinjectContainer != nil
-    }
-
-    // MARK: - SwinjectResolver
-
-    public func unsafeResolver(file: StaticString, function: StaticString, line: UInt) -> SwinjectResolver {
-        _unwrappedSwinjectContainer(file: file, function: function, line: line)
-    }
+    public let resolver: TargetResolver
 
     // MARK: - Private Properties
 
@@ -39,6 +26,7 @@ public class Container<TargetResolver>: Knit.Resolver {
     // This should not be promoted from `fileprivate` access level.
     fileprivate init(_swinjectContainer: SwinjectContainer) {
         self._swinjectContainer = _swinjectContainer
+        self.resolver = TargetResolver(_swinjectContainer: _swinjectContainer)
     }
 }
 
