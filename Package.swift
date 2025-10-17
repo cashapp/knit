@@ -18,7 +18,7 @@ let package = Package(
         .executable(name: "knit-cli", targets: ["knit-cli"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", "510.0.2"..<"602.0.0"),
+        .package(url: "https://github.com/apple/swift-syntax.git", "510.0.2"..<"603.0.0"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.4.0"),
     ],
     targets: [
