@@ -160,7 +160,7 @@ final class DependencyBuilderTests: XCTestCase {
                 )
 
                 if case let DependencyBuilderError.assemblyValidationFailure(moduleType, reason: reasonError) = error {
-                    XCTAssert(moduleType == Assembly1.self)
+                    XCTAssert(moduleType == "Assembly1")
                     if case DependencyBuilderTestError.failedValidation = reasonError {
                         // Correct `reasonError`
                     } else {

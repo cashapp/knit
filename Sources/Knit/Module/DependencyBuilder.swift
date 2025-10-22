@@ -82,7 +82,10 @@ final class DependencyBuilder {
             return created
         }
 
-        throw DependencyBuilderError.moduleNotProvided(moduleType, dependencyTree.sourcePathString(moduleType: moduleType))
+        throw DependencyBuilderError.moduleNotProvided(
+            String(describing: moduleType),
+            dependencyTree.sourcePathString(moduleType: moduleType)
+        )
     }
 
     private func gatherDependencies(
@@ -112,7 +115,7 @@ final class DependencyBuilder {
             do {
                 try assemblyValidation(resolved)
             } catch {
-                throw DependencyBuilderError.assemblyValidationFailure(resolved, reason: error)
+                throw DependencyBuilderError.assemblyValidationFailure(String(describing: resolved), reason: error)
             }
         }
 
@@ -160,16 +163,16 @@ final class DependencyBuilder {
 
         let type = defaultType.erasedType
         guard type.doesReplace(type: moduleType) else {
-            throw DependencyBuilderError.invalidDefault(type, moduleType)
+            throw DependencyBuilderError.invalidDefault(String(describing: type), String(describing: moduleType))
         }
         return type
     }
 }
 
 public enum DependencyBuilderError: LocalizedError {
-    case moduleNotProvided(_ moduleType: any ModuleAssembly.Type, _ sourcePath: String)
-    case invalidDefault(_ overrideType: any ModuleAssembly.Type, _ moduleType: any ModuleAssembly.Type)
-    case assemblyValidationFailure(_ moduleType: any ModuleAssembly.Type, reason: Swift.Error)
+    case moduleNotProvided(_ moduleType: String, _ sourcePath: String)
+    case invalidDefault(_ overrideType: String, _ moduleType: String)
+    case assemblyValidationFailure(_ moduleType: String, reason: Swift.Error)
 
     public var errorDescription: String? {
         switch self {

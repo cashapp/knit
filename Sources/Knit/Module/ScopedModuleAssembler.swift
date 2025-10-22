@@ -67,7 +67,10 @@ public final class ScopedModuleAssembler<TargetResolver> {
                     actual: String(describing: moduleAssemblyType.resolverType)
                 )
 
-                throw DependencyBuilderError.assemblyValidationFailure(moduleAssemblyType, reason: scopingError)
+                throw DependencyBuilderError.assemblyValidationFailure(
+                    String(describing: moduleAssemblyType),
+                    reason: scopingError
+                )
             }
         }
         self.internalAssembler = try ModuleAssembler(
