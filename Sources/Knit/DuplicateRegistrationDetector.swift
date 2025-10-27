@@ -26,9 +26,15 @@ public final class DuplicateRegistrationDetector {
     /// Useful to check that the count of this set is non-zero to confirm the Detector was set up correctly.
     public private(set) var existingRegistrations = Set<Key>()
 
+    /// Service types that should be ignored from this check.
+    /// This should not be used for production environments but may be needed for test configuraitons
+    public var ignoredServices: [Any.Type]
+
     public init(
+        ignoredServices: [Any.Type] = [],
         duplicateWasDetected: ((Key) -> Void)? = nil
     ) {
+        self.ignoredServices = ignoredServices
         self.duplicateWasDetected = duplicateWasDetected
     }
 
@@ -50,6 +56,12 @@ extension DuplicateRegistrationDetector: Behavior {
             argumentsType: entry.argumentsType,
             name: name
         )
+
+        // Skip any service types which are expected to have duplicates for testing configurations
+        let isIgnored = ignoredServices.contains { $0 == type }
+        if isIgnored {
+            return
+        }
 
         let preInsertCount = existingRegistrations.count
         existingRegistrations.insert(key)

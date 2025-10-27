@@ -133,6 +133,29 @@ final class DuplicateRegistrationDetectorTests: XCTestCase {
         XCTAssertEqual(duplicateRegistrationDetector.detectedKeys.count, 1)
     }
 
+    func testIgnoredServices() throws {
+        var reportedDuplicates = [DuplicateRegistrationDetector.Key]()
+        let duplicateRegistrationDetector = DuplicateRegistrationDetector(
+            ignoredServices: [
+                String.self,
+            ]
+        ) {
+            reportedDuplicates.append($0)
+        }
+        let container = SwinjectContainer(
+            behaviors: [duplicateRegistrationDetector]
+        )
+
+        container.register(String.self, factory: { _ in "one" })
+        container.register(Int.self, factory: { _ in 1 })
+        XCTAssertEqual(reportedDuplicates.count, 0)
+
+        container.register(String.self, factory: { _ in "two" })
+        XCTAssertEqual(reportedDuplicates.count, 0)
+        container.register(Int.self, factory: { _ in 2 })
+        XCTAssertEqual(reportedDuplicates.count, 1)
+    }
+
     func testCustomStringDescription() throws {
         assertCustomStringDescription(key: DuplicateRegistrationDetector.Key(
             serviceType: String.self,
