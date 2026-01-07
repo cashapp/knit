@@ -227,7 +227,8 @@ extension SwinjectContainer: _Resolver {
     ) -> Service? {
         // No need to use weak self since the resolution will be executed before
         // this function exits.
-        sync {
+        let start = ContinuousClock.now
+        return sync {
             var resolvedInstance: Service?
             let key = ServiceKey(serviceType: Service.self, argumentsType: Arguments.self, name: name, option: option)
 
@@ -249,6 +250,11 @@ extension SwinjectContainer: _Resolver {
                     key: key,
                     availableRegistrations: getRegistrations()
                 )
+            } else {
+                let duration = ContinuousClock.now - start
+                behaviors
+                    .filter { $0.shouldReportResolution }
+                    .forEach { $0.container(self, didResolve: Service.self, name: name, duration: duration) }
             }
 
             return resolvedInstance
