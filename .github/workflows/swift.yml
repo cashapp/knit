@@ -14,7 +14,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        xcode-version: ["16.4", "26.0.1"]
+        xcode-version: ["17.0", "26.0.1"]
     steps:
     - uses: actions/checkout@v4
     - name: Select Xcode Version
