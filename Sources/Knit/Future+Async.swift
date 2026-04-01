@@ -3,6 +3,7 @@
 //  Knit
 //
 
+#if canImport(Combine)
 import Combine
 
 public extension Future {
@@ -19,3 +20,4 @@ public extension Future {
     }
 
 }
+#endif
